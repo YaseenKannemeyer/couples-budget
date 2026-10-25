@@ -1,56 +1,51 @@
-# Welcome to your Expo app 👋
+# Co-Pilot (working title)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A budgeting app for couples: one Shared Bucket for life together, plus a Private Space for each
+partner that the other can see the balance of, but never the contents.
 
-## Get started
+One codebase (Expo + React Native) runs on iOS, Android and the web. Supabase provides the
+database, sign-in and live sync.
 
-1. Install dependencies
+See [PLAN.md](PLAN.md) for the full roadmap, phase by phase.
 
-   ```bash
-   npm install
-   ```
+## First-time setup
 
-2. Start the app
+1. Install dependencies: `npm install`
+2. Create a free project at [supabase.com](https://supabase.com).
+3. Copy `.env.example` to `.env.local` and fill in the project URL and publishable key
+   (Supabase → Project Settings → API).
+4. In the Supabase dashboard, open **SQL Editor** and run
+   `supabase/migrations/20261025000000_foundation.sql`.
+5. While developing, consider turning off **Confirm email** (Authentication → Sign In / Providers →
+   Email) so new test accounts can sign in immediately.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Running it
 
 ```bash
-npm run reset-project
+npm run web        # in the browser
+npm start          # then scan the QR code with Expo Go on your phone
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+To try the couple flow, sign up as one partner in the browser and as the other on your phone
+(or in a private browser window).
 
-### Other setup steps
+## Checks
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm test           # money maths and the fair-share split
+npm run test:db    # privacy rules, run against a real Postgres in-process
+npm run typecheck
+npm run lint
+```
 
-## Learn more
+## Where things live
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Path | What |
+|---|---|
+| `src/app/` | Screens (Expo Router: every file is a route) |
+| `src/features/` | Feature code: data hooks and validation per area |
+| `src/lib/money.ts` | Integer minor-unit money maths and formatting |
+| `src/lib/split.ts` | The Fair-Share Calculator |
+| `src/constants/theme.ts` | Colours for the shared and private spaces |
+| `supabase/migrations/` | Database tables and row-level security |
+| `test/db/` | Database privacy tests |

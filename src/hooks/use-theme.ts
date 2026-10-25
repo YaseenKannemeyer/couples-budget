@@ -3,12 +3,20 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
+import { createContext, useContext } from 'react';
+
+import { Palettes, type Space, type ThemeColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? 'dark' : 'light';
+/** Which space the current screen belongs to. Wrap private screens in `SpaceContext value="private"`. */
+export const SpaceContext = createContext<Space>('shared');
 
-  return Colors[theme];
+export function useSpace() {
+  return useContext(SpaceContext);
+}
+
+export function useTheme(): ThemeColors {
+  const space = useSpace();
+  const scheme = useColorScheme();
+  return Palettes[space][scheme === 'dark' ? 'dark' : 'light'];
 }

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "couples-budget",
+    "name": "Co-Pilot",
     "slug": "couples-budget",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F7F3EC",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -20,7 +20,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "server",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -28,11 +28,16 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F7F3EC",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 76,
+          "dark": {
+            "backgroundColor": "#1C1F1C"
+          }
         }
-      ]
+      ],
+      "expo-sqlite",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
