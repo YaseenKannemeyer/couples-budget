@@ -15,7 +15,7 @@ See [PLAN.md](PLAN.md) for the full roadmap, phase by phase.
 3. Copy `.env.example` to `.env.local` and fill in the project URL and publishable key
    (Supabase → Project Settings → API).
 4. In the Supabase dashboard, open **SQL Editor** and run
-   `supabase/migrations/20261025000000_foundation.sql`.
+   `supabase/migrations/20261025152237_foundation.sql`.
 5. While developing, consider turning off **Confirm email** (Authentication → Sign In / Providers →
    Email) so new test accounts can sign in immediately.
 
