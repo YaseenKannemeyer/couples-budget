@@ -6,7 +6,8 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { APP_NAME } from '@/constants/app';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
@@ -15,16 +16,23 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 export default function AppTabs() {
+  const { t } = useTranslation();
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="index" href="/" asChild>
-            <TabButton>Home</TabButton>
+            <TabButton>{t('navigation.home')}</TabButton>
+          </TabTrigger>
+          <TabTrigger name="shared-budget" href="/shared-budget" asChild>
+            <TabButton>{t('navigation.sharedBudget')}</TabButton>
+          </TabTrigger>
+          <TabTrigger name="private-space" href="/private-space" asChild>
+            <TabButton>{t('navigation.privateSpace')}</TabButton>
           </TabTrigger>
           <TabTrigger name="settings" href="/settings" asChild>
-            <TabButton>Settings</TabButton>
+            <TabButton>{t('navigation.settings')}</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
@@ -36,7 +44,7 @@ export default function AppTabs() {
 // forwarded; the button doesn't need one.
 export function TabButton({ children, isFocused, ref: _ref, ...props }: TabTriggerSlotProps) {
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable {...props} style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
@@ -49,12 +57,13 @@ export function TabButton({ children, isFocused, ref: _ref, ...props }: TabTrigg
 }
 
 export function CustomTabList(props: TabListProps) {
+  const { width, fontScale } = useWindowDimensions();
   return (
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" themeColor="accent" style={styles.brandText}>
+        {width / fontScale >= 600 && <ThemedText type="smallBold" themeColor="accent" style={styles.brandText}>
           {APP_NAME}
-        </ThemedText>
+        </ThemedText>}
 
         {props.children}
       </ThemedView>
@@ -73,7 +82,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
+    paddingHorizontal: Spacing.two,
     borderRadius: Spacing.five,
     flexDirection: 'row',
     alignItems: 'center',
@@ -87,9 +96,16 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
+  tabButton: {
+    minHeight: 48,
+    flexShrink: 1,
+    justifyContent: 'center',
+  },
   tabButtonView: {
+    minHeight: 48,
+    justifyContent: 'center',
     paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.two,
     borderRadius: Spacing.three,
   },
 });

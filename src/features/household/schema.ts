@@ -13,6 +13,7 @@ export const householdSchema = z
     split_mode: z.enum(['proportional', 'equal', 'combined']),
     money_date_day: z.number(),
     invite_code: z.string(),
+    budget_revision: z.number().int(),
   })
   .transform((row) => ({
     id: row.id,
@@ -22,6 +23,7 @@ export const householdSchema = z
     splitMode: row.split_mode,
     moneyDateDay: row.money_date_day,
     inviteCode: row.invite_code,
+    budgetRevision: row.budget_revision,
   }));
 
 export const memberSchema = z
@@ -32,6 +34,8 @@ export const memberSchema = z
     monthly_income_minor: z.coerce.number(),
     monthly_allowance_minor: z.coerce.number(),
     joined_at: z.string(),
+    budget_setup_step: z.number().int().min(0).max(4),
+    budget_completed_at: z.string().nullable(),
   })
   .transform((row) => ({
     householdId: row.household_id,
@@ -40,6 +44,8 @@ export const memberSchema = z
     monthlyIncomeMinor: row.monthly_income_minor,
     monthlyAllowanceMinor: row.monthly_allowance_minor,
     joinedAt: row.joined_at,
+    budgetSetupStep: row.budget_setup_step,
+    budgetCompletedAt: row.budget_completed_at,
   }));
 
 export type Household = z.output<typeof householdSchema>;
@@ -47,16 +53,16 @@ export type Member = z.output<typeof memberSchema>;
 
 /** Form inputs. The database enforces the same rules again. */
 
-const displayName = z.string().trim().min(1, 'What should your partner call you?').max(40);
+const displayName = z.string().trim().min(1, 'validation.displayName').max(40);
 
 export const createHouseholdInput = z.object({
-  name: z.string().trim().min(1, 'Give your household a name').max(80),
+  name: z.string().trim().min(1, 'validation.householdName').max(80),
   displayName,
   baseCurrency: z
     .string()
     .trim()
     .toUpperCase()
-    .refine(isValidCurrency, 'Use a 3-letter currency code, like USD or ZAR'),
+    .refine(isValidCurrency, 'validation.currency'),
   timezone: z.string().min(1),
 });
 
@@ -64,7 +70,7 @@ export const joinHouseholdInput = z.object({
   inviteCode: z
     .string()
     .transform((code) => code.replace(/[\s-]/g, '').toUpperCase())
-    .pipe(z.string().length(8, 'Invite codes are 8 characters')),
+    .pipe(z.string().length(8, 'validation.inviteCode')),
   displayName,
 });
 

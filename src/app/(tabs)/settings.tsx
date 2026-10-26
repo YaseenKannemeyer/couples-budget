@@ -1,4 +1,6 @@
 import { Platform, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
@@ -8,33 +10,39 @@ import { Spacing } from '@/constants/theme';
 import { useMyHousehold } from '@/features/household/api';
 import { useSession } from '@/hooks/use-session';
 import { supabase } from '@/lib/supabase';
-import { SPLIT_MODES } from '@/lib/split';
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const { session } = useSession();
   const { data } = useMyHousehold();
   if (!data) return null;
   const { household, me, partner } = data;
-  const splitLabel = SPLIT_MODES.find((s) => s.mode === household.splitMode)?.label;
+  const splitLabel = t(`split.${household.splitMode}.label`);
 
   return (
     <Screen withTabBar>
       {Platform.OS === 'web' && <View style={styles.webTabSpacer} />}
-      <ThemedText type="subtitle">Settings</ThemedText>
+      <ThemedText type="subtitle">{t('navigation.settings')}</ThemedText>
 
       <Card>
-        <ThemedText type="smallBold">Household</ThemedText>
-        <Row label="Name" value={household.name} />
-        <Row label="Partners" value={[me.displayName, partner?.displayName ?? 'Invite pending'].join(' & ')} />
-        <Row label="Currency" value={household.baseCurrency} />
-        <Row label="Timezone" value={household.timezone} />
-        <Row label="How we split" value={splitLabel ?? household.splitMode} />
+        <ThemedText type="smallBold">{t('settings.household')}</ThemedText>
+        <Row label={t('settings.name')} value={household.name} />
+        <Row label={t('settings.partners')} value={t('common.partners', {
+          first: me.displayName,
+          second: partner?.displayName ?? t('settings.invitePending'),
+        })} />
+        <Row label={t('settings.currency')} value={household.baseCurrency} />
+        <Row label={t('settings.timezone')} value={household.timezone} />
+        <Row label={t('settings.split')} value={splitLabel} />
+        <Button title={t(me.budgetCompletedAt ? 'budget.review' : 'budget.resume')}
+          variant="secondary" onPress={() => router.push('/budget')} />
+        <Button title={t('categories.manage')} variant="secondary" onPress={() => router.push('/categories')} />
       </Card>
 
       <Card>
-        <ThemedText type="smallBold">Account</ThemedText>
-        <Row label="Email" value={session?.user.email ?? '—'} />
-        <Button variant="secondary" title="Sign out" onPress={() => supabase.auth.signOut()} />
+        <ThemedText type="smallBold">{t('settings.account')}</ThemedText>
+        <Row label={t('common.email')} value={session?.user.email ?? t('common.unknown')} />
+        <Button variant="secondary" title={t('common.signOut')} onPress={() => supabase.auth.signOut()} />
       </Card>
     </Screen>
   );

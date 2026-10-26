@@ -12,7 +12,7 @@ export function Screen({ children, withTabBar = false }: { children: ReactNode; 
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.container} edges={withTabBar ? ['top', 'left', 'right'] : ['top', 'left', 'right', 'bottom']}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     padding: Spacing.four,
+    paddingBottom: Spacing.six + Spacing.five,
     gap: Spacing.four,
   },
 });

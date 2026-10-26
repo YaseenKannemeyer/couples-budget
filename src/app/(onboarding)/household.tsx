@@ -1,5 +1,7 @@
-import { getCalendars, getLocales } from 'expo-localization';
+import { useCalendars, useLocales } from 'expo-localization';
+import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -11,40 +13,43 @@ import { TextField } from '@/components/ui/text-field';
 import { Radius, Spacing } from '@/constants/theme';
 import { useCreateHousehold, useJoinHousehold } from '@/features/household/api';
 import { createHouseholdInput, joinHouseholdInput } from '@/features/household/schema';
+import { errorTranslationKey } from '@/i18n/errors';
 import { supabase } from '@/lib/supabase';
 
 type Path = 'start' | 'join';
 
 export default function HouseholdScreen() {
+  const { t } = useTranslation();
   const [path, setPath] = useState<Path>('start');
 
   return (
     <Screen>
       <View style={styles.hero}>
-        <ThemedText type="subtitle">Let&apos;s set up our space</ThemedText>
+        <ThemedText type="subtitle">{t('household.title')}</ThemedText>
         <ThemedText themeColor="textSecondary">
-          One of us starts the household, then invites the other with a code.
+          {t('household.description')}
         </ThemedText>
       </View>
 
       <ThemedView type="backgroundElement" style={styles.segmented}>
-        <Segment label="Start our household" selected={path === 'start'} onPress={() => setPath('start')} />
-        <Segment label="Join my partner" selected={path === 'join'} onPress={() => setPath('join')} />
+        <Segment label={t('household.start')} selected={path === 'start'} onPress={() => setPath('start')} />
+        <Segment label={t('household.joinPartner')} selected={path === 'join'} onPress={() => setPath('join')} />
       </ThemedView>
 
       {path === 'start' ? <StartForm /> : <JoinForm />}
 
-      <Button variant="ghost" title="Sign out" onPress={() => supabase.auth.signOut()} />
+      <Button variant="ghost" title={t('common.signOut')} onPress={() => supabase.auth.signOut()} />
     </Screen>
   );
 }
 
 function StartForm() {
-  const locale = getLocales()[0];
+  const { t } = useTranslation();
+  const locale = useLocales()[0];
   const [displayName, setDisplayName] = useState('');
-  const [name, setName] = useState('Our home');
+  const [name, setName] = useState(() => t('household.defaultName'));
   const [baseCurrency, setBaseCurrency] = useState(locale?.currencyCode ?? 'USD');
-  const timezone = getCalendars()[0]?.timeZone ?? 'UTC';
+  const timezone = useCalendars()[0]?.timeZone ?? 'UTC';
   const create = useCreateHousehold();
 
   const parsed = createHouseholdInput.safeParse({ displayName, name, baseCurrency, timezone });
@@ -52,29 +57,39 @@ function StartForm() {
 
   return (
     <Card>
-      <TextField label="Your first name" value={displayName} onChangeText={setDisplayName} autoComplete="given-name" />
-      <TextField label="Household name" value={name} onChangeText={setName} />
+      <TextField label={t('household.firstName')} value={displayName} onChangeText={setDisplayName} autoComplete="given-name" />
+      <TextField label={t('household.name')} value={name} onChangeText={setName} />
       <TextField
-        label="Our currency"
+        label={t('household.currency')}
         value={baseCurrency}
         onChangeText={setBaseCurrency}
         autoCapitalize="characters"
         maxLength={3}
-        error={baseCurrency.length === 3 ? errors.baseCurrency?.[0] : undefined}
-        hint={`Everything is tracked in this currency. Timezone: ${timezone}`}
+        error={baseCurrency.length === 3 && errors.baseCurrency ? t('validation.currency') : undefined}
+        hint={t('household.currencyHint', { timezone })}
       />
-      {create.error && <ThemedText themeColor="attention">{create.error.message}</ThemedText>}
+      {create.error && <ThemedText themeColor="attention">{t(errorTranslationKey(create.error))}</ThemedText>}
       <Button
-        title="Create our household"
+        title={t('household.create')}
         disabled={!parsed.success}
         loading={create.isPending}
-        onPress={() => create.mutate({ displayName, name, baseCurrency, timezone })}
+        onPress={async () => {
+          try {
+            // Awaiting the mutation survives this form unmounting when the
+            // household query refreshes and the protected route changes.
+            await create.mutateAsync({ displayName, name, baseCurrency, timezone });
+            router.replace('/budget');
+          } catch {
+            // The mutation exposes the translated error above.
+          }
+        }}
       />
     </Card>
   );
 }
 
 function JoinForm() {
+  const { t } = useTranslation();
   const [displayName, setDisplayName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const join = useJoinHousehold();
@@ -82,22 +97,29 @@ function JoinForm() {
 
   return (
     <Card>
-      <TextField label="Your first name" value={displayName} onChangeText={setDisplayName} autoComplete="given-name" />
+      <TextField label={t('household.firstName')} value={displayName} onChangeText={setDisplayName} autoComplete="given-name" />
       <TextField
-        label="Invite code"
+        label={t('household.inviteCode')}
         value={inviteCode}
         onChangeText={setInviteCode}
         autoCapitalize="characters"
         autoCorrect={false}
-        placeholder="ABCD-EFGH"
-        hint="Your partner can find this on their home screen."
+        placeholder={t('household.invitePlaceholder')}
+        hint={t('household.inviteHint')}
       />
-      {join.error && <ThemedText themeColor="attention">{join.error.message}</ThemedText>}
+      {join.error && <ThemedText themeColor="attention">{t(errorTranslationKey(join.error))}</ThemedText>}
       <Button
-        title="Join household"
+        title={t('household.join')}
         disabled={!isValid}
         loading={join.isPending}
-        onPress={() => join.mutate({ displayName, inviteCode })}
+        onPress={async () => {
+          try {
+            await join.mutateAsync({ displayName, inviteCode });
+            router.replace('/budget');
+          } catch {
+            // The mutation exposes the translated error above.
+          }
+        }}
       />
     </Card>
   );

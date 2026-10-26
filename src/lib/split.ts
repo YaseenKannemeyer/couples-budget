@@ -20,23 +20,23 @@ export type PartnerShare = {
   amountMinor: number;
 };
 
-export const SPLIT_MODES: { mode: SplitMode; label: string; description: string }[] = [
+export const SPLIT_MODES = [
   {
     mode: 'proportional',
-    label: 'Proportional',
-    description: 'We each chip in based on what we earn. Recommended.',
+    labelKey: 'split.proportional.label',
+    descriptionKey: 'split.proportional.description',
   },
   {
     mode: 'equal',
-    label: 'Equal (50/50)',
-    description: 'We split shared costs down the middle.',
+    labelKey: 'split.equal.label',
+    descriptionKey: 'split.equal.description',
   },
   {
     mode: 'combined',
-    label: 'Fully combined',
-    description: 'All our money goes into one pot and is treated as ours.',
+    labelKey: 'split.combined.label',
+    descriptionKey: 'split.combined.description',
   },
-];
+] as const satisfies readonly { mode: SplitMode; labelKey: string; descriptionKey: string }[];
 
 function weightsFor(partners: Partner[], mode: SplitMode): number[] {
   if (mode === 'equal') return partners.map(() => 1);

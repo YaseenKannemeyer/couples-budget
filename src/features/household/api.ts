@@ -1,5 +1,8 @@
+import { z } from 'zod';
+import { cacheRaw, readCached } from '@/features/quick-log/local';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 
 import {
   createHouseholdInput,
@@ -14,15 +17,26 @@ import { supabase } from '@/lib/supabase';
 
 const householdKey = (userId: string | undefined) => ['household', userId] as const;
 
+const cachedHousehold = z.object({ household: householdSchema, members: z.array(memberSchema) });
+function offlineHousehold(userId: string | undefined) {
+  if (!userId) return undefined;
+  const value = readCached(`household-offline:v1:${userId}`, cachedHousehold);
+  const me = value?.members.find(member => member.userId === userId);
+  return value && me ? { ...value, me, partner: value.members.find(member => member.userId !== userId) ?? null } : undefined;
+}
+
 /** The signed-in person's household and both partners, or null if they haven't set one up yet. */
 export function useMyHousehold() {
-  const { session } = useSession();
-  const userId = session?.user.id;
+  const subscriptionId = useId();
+  const { session, accountId } = useSession();
+  const userId = accountId;
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: householdKey(userId),
-    enabled: !!userId,
+    enabled: !!session && !!userId,
+    initialData: () => offlineHousehold(userId),
+    initialDataUpdatedAt: 0,
     queryFn: async () => {
       const { data: me, error } = await supabase
         .from('members')
@@ -30,7 +44,10 @@ export function useMyHousehold() {
         .eq('user_id', userId!)
         .maybeSingle();
       if (error) throw error;
-      if (!me?.household) return null;
+      if (!me?.household) {
+        try { localStorage.removeItem(`household-offline:v1:${userId}`); } catch { /* Storage unavailable. */ }
+        return null;
+      }
 
       const household = householdSchema.parse(me.household);
       const { data: rows, error: membersError } = await supabase
@@ -40,6 +57,7 @@ export function useMyHousehold() {
         .order('joined_at');
       if (membersError) throw membersError;
 
+      cacheRaw(`household-offline:v1:${userId}`, { household: me.household, members: rows });
       const members = rows.map((row) => memberSchema.parse(row));
       return {
         household,
@@ -53,10 +71,10 @@ export function useMyHousehold() {
   // Refresh live when the partner joins or either of us changes household settings.
   const householdId = query.data?.household.id;
   useEffect(() => {
-    if (!householdId) return;
+    if (!householdId || !userId || !session) return;
     const refresh = () => queryClient.invalidateQueries({ queryKey: householdKey(userId) });
     const channel = supabase
-      .channel(`household:${householdId}`)
+      .channel(`household:${householdId}:${subscriptionId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'members', filter: `household_id=eq.${householdId}` },
@@ -71,7 +89,7 @@ export function useMyHousehold() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [householdId, userId, queryClient]);
+  }, [householdId, userId, queryClient, subscriptionId, session]);
 
   return query;
 }
@@ -87,7 +105,7 @@ export function useCreateHousehold() {
         p_timezone: values.timezone,
         p_display_name: values.displayName,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
   });
@@ -102,7 +120,7 @@ export function useJoinHousehold() {
         p_invite_code: values.inviteCode,
         p_display_name: values.displayName,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
   });
@@ -113,7 +131,7 @@ export function useRegenerateInviteCode() {
   return useMutation({
     mutationFn: async (householdId: string) => {
       const { error } = await supabase.rpc('regenerate_invite_code', { p_household_id: householdId });
-      if (error) throw new Error(error.message);
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
   });

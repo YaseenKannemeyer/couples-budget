@@ -23,8 +23,8 @@ export const Palettes = {
       accent: '#2F5D50',
       accentSoft: '#C9D6C4',
       onAccent: '#FFFFFF',
-      attention: '#C8734F',
-      success: '#4F7A5A',
+      attention: '#98472C', // Warm clay with body-text contrast on the light surfaces.
+      success: '#3C6247',
     },
     dark: {
       text: '#F2EDE3',
@@ -43,16 +43,16 @@ export const Palettes = {
   private: {
     light: {
       text: '#2E2620',
-      textSecondary: '#75685B',
+      textSecondary: '#615448',
       background: '#F5EBDD',
       backgroundElement: '#ECDFCC',
       backgroundSelected: '#E0CFB6',
       border: '#E2D3BE',
-      accent: '#A4553A',
+      accent: '#87432B',
       accentSoft: '#EBCBB8',
       onAccent: '#FFFFFF',
-      attention: '#9A6B2F',
-      success: '#5E7D55',
+      attention: '#7A4D20',
+      success: '#3C6247',
     },
     dark: {
       text: '#F3E9DC',

@@ -1,14 +1,15 @@
 {
   "expo": {
     "name": "Co-Pilot",
-    "slug": "couples-budget",
+    "slug": "yaseen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "couplesbudget",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {}
     },
     "android": {
       "adaptiveIcon": {
@@ -37,11 +38,31 @@
         }
       ],
       "expo-sqlite",
-      "expo-localization"
+      "expo-localization",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a receipt photo to attach to an expense.",
+          "cameraPermission": "Take a receipt photo to attach to an expense.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "2af7f515-4fa5-40a7-a644-d1de9acc4816"
+      }
+    },
+    "owner": "yaseenkannemeyers-team"
   }
 }

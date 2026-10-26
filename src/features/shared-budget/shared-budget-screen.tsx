@@ -1,0 +1,140 @@
+import { useLocales } from 'expo-localization';
+import { router } from 'expo-router';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Platform, StyleSheet, View } from 'react-native';
+
+import { ThemedText } from '@/components/themed-text';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Screen } from '@/components/ui/screen';
+import { SummaryRow } from '@/components/ui/summary-row';
+import { Spacing } from '@/constants/theme';
+import type { Workspace } from '@/features/cashflow/schema';
+import { categoryLabel } from '@/features/categories/schema';
+import { paymentWindow } from '@/features/dashboard/model';
+import { useMyHousehold } from '@/features/household/api';
+import { dueState, useHouseholdToday } from '@/features/payments/dates';
+import { dueLabel } from '@/features/payments/ui';
+import { useFormatters } from '@/hooks/use-formatters';
+import { SpaceContext, useTheme } from '@/hooks/use-theme';
+import { useSharedBudget } from './api';
+import { sharedBudgetModel } from './model';
+
+export function SharedBudgetScreen() {
+  const household = useMyHousehold();
+  const h = household.data?.household;
+  const today = useHouseholdToday(h?.timezone ?? 'UTC');
+  const query = useSharedBudget(h?.id, today);
+  return <SpaceContext value="shared"><SharedBudget
+    workspace={query.data} currency={h?.baseCurrency ?? 'USD'} timezone={h?.timezone ?? 'UTC'}
+    error={household.isError || query.isError} refreshing={query.isFetching || household.isFetching}
+    onRefresh={() => { void household.refetch(); void query.refetch(); }} />
+  </SpaceContext>;
+}
+
+export type SharedBudgetProps = {
+  workspace?: Workspace; currency: string; timezone: string;
+  error: boolean; refreshing: boolean; onRefresh: () => unknown;
+};
+
+export function SharedBudget({ workspace, currency, timezone, error, refreshing, onRefresh }: SharedBudgetProps) {
+  const { t } = useTranslation();
+  const locale = useLocales()[0]?.languageTag ?? 'en';
+  const format = useFormatters(timezone);
+  const theme = useTheme();
+  const result = useMemo(() => {
+    if (!workspace || error) return null;
+    try { return sharedBudgetModel(workspace); } catch { return null; }
+  }, [workspace, error]);
+  const failed = error || (!!workspace && !result);
+  const money = (amount: number) => format.money(amount, currency);
+  const month = workspace ? new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${workspace.today.slice(0, 7)}-15T12:00:00Z`)) : '';
+  return <Screen withTabBar>
+    {Platform.OS === 'web' && <View style={styles.webTabSpacer} />}
+    <View style={styles.heading}>
+      <ThemedText type="subtitle" accessibilityRole="header">{t('sharedBudget.title')}</ThemedText>
+      <ThemedText themeColor="textSecondary">{month}</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.description')}</ThemedText>
+    </View>
+    {!result ? <View style={styles.section}>
+      <ThemedText accessibilityRole={failed ? 'alert' : undefined} themeColor={failed ? 'attention' : 'textSecondary'}>
+        {t(failed ? 'sharedBudget.loadError' : 'dashboard.loading')}
+      </ThemedText>
+      {failed && <Button title={t('common.tryAgain')} onPress={onRefresh} />}
+    </View> : <>
+      <Card>
+        <SummaryRow label={t('dashboard.planned')} value={result.hasPlan ? money(result.plan) : t('sharedBudget.noPlan')} />
+        <SummaryRow label={t('dashboard.spent')} value={money(result.spent)} />
+        {result.hasPlan && <SummaryRow label={t('dashboard.remaining')} value={money(result.remaining)} />}
+        {result.hasPlan && result.remaining < 0 && <ThemedText themeColor="attention">
+          {t('dashboard.overPlan', { amount: money(-result.remaining) })}
+        </ThemedText>}
+        <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.actualHint')}</ThemedText>
+        {result.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.futureHint')}</ThemedText>}
+        <Button variant="secondary" title={t('budget.review')} onPress={() => router.push('/(onboarding)/budget')} />
+      </Card>
+
+      <View style={styles.section}>
+        <ThemedText type="smallBold" accessibilityRole="header">{t('sharedBudget.categories')}</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.categoryHint')}</ThemedText>
+        {result.rows.length === 0 && <ThemedText themeColor="textSecondary">{t('sharedBudget.emptyCategories')}</ThemedText>}
+        {result.rows.map(row => <View key={row.category.id} style={[styles.category, { borderBottomColor: theme.border }]}>
+          <ThemedText type="smallBold" accessibilityRole="header">{categoryLabel(row.category)}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t(`categories.buckets.${row.category.bucket}`)}{row.category.archived ? ` · ${t('payments.archived')}` : ''}
+          </ThemedText>
+          <SummaryRow label={t('sharedBudget.spent')} value={money(row.spent)} />
+          {row.plan === null ? <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.notAssigned')}</ThemedText> : <>
+            <SummaryRow label={t('sharedBudget.plan')} value={money(row.plan)} />
+            <SummaryRow label={t('sharedBudget.remaining')} value={money(row.remaining!)} />
+            {row.remaining! < 0 && <ThemedText type="small" themeColor="attention">
+              {t('sharedBudget.categoryOver', { amount: money(-row.remaining!) })}
+            </ThemedText>}
+          </>}
+        </View>)}
+        {result.uncategorisedCount > 0 && <View style={styles.category}>
+          <SummaryRow label={t('sharedBudget.uncategorised')} value={money(result.uncategorisedSpent)} />
+        </View>}
+        {result.unassigned.length > 0 && <View style={styles.section}>
+          <SummaryRow label={t('sharedBudget.unassigned')} value={money(result.unassignedAmount)} />
+          <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.unassignedHint')}</ThemedText>
+          {result.unassigned.map(line => <SummaryRow key={line.id} label={line.name} value={money(line.amount_minor)} />)}
+        </View>}
+        <Button variant="secondary" title={t('sharedBudget.assign')} onPress={() => router.push('/budget-categories')} />
+        <Button variant="ghost" title={t('categories.manage')} onPress={() => router.push('/categories')} />
+      </View>
+
+      <View style={styles.section}>
+        <ThemedText type="smallBold" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.paymentHint')}</ThemedText>
+        {!result.pending.length && <ThemedText themeColor="textSecondary">{t('dashboard.noPayments')}</ThemedText>}
+        {result.pending.map(item => {
+          const window = paymentWindow(item);
+          const state = dueState(window.dueStart, window.dueEnd, workspace!.today);
+          return <View key={item.key} style={[styles.category, { borderBottomColor: theme.border }]}>
+            <SummaryRow label={item.name} value={item.amount === null ? t('payments.unknownAmount') : money(item.amount)} />
+            <ThemedText themeColor="textSecondary">{dueLabel(window, locale)}</ThemedText>
+            <ThemedText type="small" themeColor={state === 'overdue' ? 'attention' : 'textSecondary'}>
+              {t('dashboard.unpaid')} · {t(`payments.${state}`)}{item.corrected ? ` · ${t('cashflow.corrected')}` : ''}
+            </ThemedText>
+            <Button variant="ghost" title={t('dashboard.reviewPayment', { name: item.name })}
+              onPress={() => router.push({ pathname: '/payment-detail', params: { id: item.key.split(':')[1] } })} />
+          </View>;
+        })}
+        <Button variant="secondary" title={t('payments.all')} onPress={() => router.push('/payments')} />
+      </View>
+    </>}
+    <Button variant="secondary" title={t('expenses.title')} onPress={() => router.push({ pathname: '/expenses', params: { visibility: 'shared' } })} />
+    <Button variant="ghost" title={t('sharedBudget.refresh')} accessibilityLabel={t('sharedBudget.refresh')}
+      loading={refreshing} onPress={onRefresh} />
+  </Screen>;
+}
+
+const styles = StyleSheet.create({
+  webTabSpacer: { height: Spacing.six },
+  heading: { gap: Spacing.two },
+  section: { gap: Spacing.three, paddingVertical: Spacing.two },
+  category: { gap: Spacing.two, paddingVertical: Spacing.three, borderBottomWidth: StyleSheet.hairlineWidth },
+});
