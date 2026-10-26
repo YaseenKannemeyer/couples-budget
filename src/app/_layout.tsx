@@ -1,3 +1,5 @@
+import { useFonts } from 'expo-font';
+import { DisplayFontContext } from '@/components/ui/font-context';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -22,6 +24,7 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({ Manrope: require('../../assets/fonts/Manrope.ttf') });
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const colors = Palettes.shared[scheme];
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
@@ -37,7 +40,10 @@ export default function RootLayout() {
     },
   };
 
+  if (!fontsLoaded && !fontError) return null;
+
   return (
+    <DisplayFontContext value={fontsLoaded}>
     <LocalizationProvider>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
@@ -47,6 +53,7 @@ export default function RootLayout() {
         </SessionProvider>
       </QueryClientProvider>
     </LocalizationProvider>
+    </DisplayFontContext>
   );
 }
 
@@ -119,8 +126,8 @@ function RootNavigator() {
         <Stack.Screen name="offline" />
       </Stack.Protected>
       <Stack.Protected guard={(isSignedIn || isOffline) && hasHousehold}>
-        <Stack.Screen name="quick-log" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="pending-logs" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="quick-log" options={{ presentation: 'formSheet', sheetAllowedDetents: [1], sheetGrabberVisible: false }} />
+        <Stack.Screen name="pending-logs" options={{ presentation: 'formSheet', sheetAllowedDetents: [1], sheetGrabberVisible: false }} />
       </Stack.Protected>
     </Stack>
     {(isSignedIn || isOffline) && household.data && <QuickLogLauncher householdId={household.data.household.id} />}

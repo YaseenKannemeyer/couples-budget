@@ -9,13 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { SummaryRow } from '@/components/ui/summary-row';
-import { Spacing, Radius } from '@/constants/theme';
+import { HeroCard, HeroRow } from '@/components/ui/hero-card';
+import { StatTile } from '@/components/ui/stat-tile';
+import { PillActions } from '@/components/ui/pill-actions';
+import { Spacing } from '@/constants/theme';
 import type { Workspace } from '@/features/cashflow/schema';
 import type { useMyHousehold } from '@/features/household/api';
 import { formatCalendarDate, dueState } from '@/features/payments/dates';
 import { dueLabel } from '@/features/payments/ui';
 import { useFormatters } from '@/hooks/use-formatters';
-import { useTheme } from '@/hooks/use-theme';
 import { homeModel, paymentWindow } from './model';
 import type { HomeActivity } from './schema';
 
@@ -39,7 +41,6 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
   const { household, me, partner, members } = data;
   const format = useFormatters(household.timezone);
   const locale = useLocales()[0]?.languageTag ?? 'en';
-  const theme = useTheme();
   const model = useMemo(() => workspace ? homeModel(workspace, members) : null, [workspace, members]);
   const money = (amount: number) => format.money(amount, household.baseCurrency);
   const displayDate = (on: string) => formatCalendarDate(on, locale);
@@ -58,40 +59,40 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
     </View>
     {!partner && invite}
 
-    <Card>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('dashboard.month', { month })}</ThemedText>
-      {usable ? <>
-        <SummaryRow label={t(model.incomeComplete ? 'budget.jointIncome' : 'dashboard.incomeSoFar')} value={money(model.income)} />
-        {!model.incomeComplete && <ThemedText type="small" themeColor="textSecondary">{t('dashboard.incomePending')}</ThemedText>}
-        <SummaryRow label={t('dashboard.planned')} value={money(model.plan)} />
-        <SummaryRow label={t('dashboard.spent')} value={money(model.spent)} />
-        {model.progress !== null ? <>
-          <SummaryRow label={t('dashboard.remaining')} value={money(model.remaining)} />
-          <View accessible accessibilityRole="progressbar" accessibilityLabel={t('dashboard.progress')}
-            accessibilityValue={{ min: 0, max: 100, now: Math.round(model.progress),
-              text: t('dashboard.spentOfPlan', { spent: money(model.spent), plan: money(model.plan) }) }}
-            style={[styles.progress, { backgroundColor: theme.backgroundSelected }]}>
-            <View style={[styles.progressFill, { width: `${model.progress}%`, backgroundColor: model.remaining < 0 ? theme.attention : theme.accent }]} />
-          </View>
-          {model.remaining < 0 && <ThemedText themeColor="attention">{t('dashboard.overPlan', { amount: money(-model.remaining) })}</ThemedText>}
-        </> : <ThemedText themeColor="textSecondary">{t('dashboard.noPlan')}</ThemedText>}
-        <ThemedText type="small" themeColor="textSecondary">{t('dashboard.budgetHint')}</ThemedText>
-      </> : <SectionState error={flowError} retry={onRetryFlow} />}
-      <Button title={budgetTitle} variant="secondary" onPress={reviewBudget} />
-      <Button title={t('sharedBudget.title')} variant="ghost" onPress={() => router.push('/shared-budget')} />
-    </Card>
+    {usable ? <>
+      <HeroCard title={t('dashboard.month', { month })} value={money(model.spent)} subtitle={t('dashboard.spent')}
+        progress={model.progress} progressLabel={t('dashboard.progress')}
+        progressSummary={t('dashboard.spentOfPlan', { spent: money(model.spent), plan: money(model.plan) })}
+        warning={model.remaining < 0 && model.progress !== null ? t('dashboard.overPlan', { amount: money(-model.remaining) }) : undefined}>
+        <HeroRow label={t('dashboard.planned')} value={money(model.plan)} />
+        {model.progress !== null ? <HeroRow label={t('dashboard.remaining')} value={money(model.remaining)} /> :
+          <ThemedText themeColor="heroSecondary">{t('dashboard.noPlan')}</ThemedText>}
+      </HeroCard>
+      <View style={styles.tiles}>
+        <StatTile icon="income" label={t(model.incomeComplete ? 'budget.jointIncome' : 'dashboard.incomeSoFar')}
+          value={money(model.income)} hint={!model.incomeComplete ? t('dashboard.incomePending') : undefined} />
+        <StatTile icon="bill" label={t('dashboard.commitments')} value={money(model.commitments)}
+          hint={model.unknownCommitments ? t('dashboard.unknownCommitments') : undefined} />
+      </View>
+      <ThemedText type="small" themeColor="textSecondary">{t('dashboard.budgetHint')}</ThemedText>
+    </> : <Card><ThemedText type="smallBold">{t('dashboard.month', { month })}</ThemedText><SectionState error={flowError} retry={onRetryFlow} /></Card>}
+    <PillActions actions={[
+      { label: budgetTitle, icon: 'bill', onPress: reviewBudget },
+      { label: t('sharedBudget.title'), icon: 'chart', onPress: () => router.push('/shared-budget') },
+    ]} />
 
     <View style={styles.section}>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('dashboard.allowances')}</ThemedText>
+      <ThemedText type="section" accessibilityRole="header">{t('dashboard.allowances')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('dashboard.allowancePrivacy')}</ThemedText>
-      {activity && !activityError ? members.map(member => {
+      {activity && !activityError ? <View style={styles.tiles}>{members.map(member => {
         const balance = activity.allowances.find(a => a.user_id === member.userId);
-        return <SummaryRow key={member.userId} label={member.displayName} value={balance ? money(balance.remaining_minor) : t('dashboard.unavailable')} />;
-      }) : <SectionState error={activityError} retry={onRetryActivity} />}
+        return <StatTile key={member.userId} icon="lock" label={member.displayName}
+          value={balance ? money(balance.remaining_minor) : t('dashboard.unavailable')} />;
+      })}</View> : <SectionState error={activityError} retry={onRetryActivity} />}
     </View>
 
     <View style={styles.section}>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
+      <ThemedText type="section" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('dashboard.sharedOnly')}</ThemedText>
       {usable ? <>
         {!model.pending.length && <ThemedText themeColor="textSecondary">{t('dashboard.noPayments')}</ThemedText>}
@@ -120,7 +121,7 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
     </View>
 
     <Card>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('dashboard.cashflow')}</ThemedText>
+      <ThemedText type="section" accessibilityRole="header">{t('dashboard.cashflow')}</ThemedText>
       {usable ? <>
         <SummaryRow label={t('dashboard.nextIncome')} value={model.nextIncome ? displayDate(model.nextIncome.on) : t('dashboard.noIncome')} />
         {model.nextIncome?.amount != null && <SummaryRow label={t('cashflow.contribution')} value={money(model.nextIncome.amount)} />}
@@ -138,7 +139,7 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
     </Card>
 
     <View style={styles.section}>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('dashboard.activity')}</ThemedText>
+      <ThemedText type="section" accessibilityRole="header">{t('dashboard.activity')}</ThemedText>
       {activity && !activityError ? <>
         {!activity.recent.length && <ThemedText themeColor="textSecondary">{t('dashboard.noActivity')}</ThemedText>}
         {activity.recent.map(entry => <View key={entry.id} style={styles.entry}>
@@ -168,10 +169,9 @@ function SectionState({ error, retry }: { error: boolean; retry: () => unknown }
 }
 
 const styles = StyleSheet.create({
-  webTabSpacer: { height: Spacing.six },
+  webTabSpacer: { height: 0 },
   heading: { gap: Spacing.one },
   section: { gap: Spacing.three, paddingVertical: Spacing.two },
   entry: { gap: Spacing.two, paddingVertical: Spacing.two },
-  progress: { minHeight: 10, borderRadius: Radius.small, overflow: 'hidden' },
-  progressFill: { height: 10 },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
 });

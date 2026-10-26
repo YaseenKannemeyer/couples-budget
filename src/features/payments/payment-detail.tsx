@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
+import { HeroCard } from '@/components/ui/hero-card';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { useFormatters } from '@/hooks/use-formatters';
@@ -50,10 +51,9 @@ function PaymentDetail({ householdId, id, context }: { householdId: string; id: 
     {schedule.recurrence === 'monthly' && <ThemedText type="small" themeColor="textSecondary">
       {t('payments.monthlyAnchor', { startDay: format.number(schedule.anchorStartDay), endDay: format.number(schedule.anchorEndDay) })}
     </ThemedText>}
-    <ThemedText>{schedule.estimateMinor === null ? t('payments.unknownAmount') :
-      t(schedule.expectedAmountMinor === null ? 'payments.estimatedValue' : 'payments.expectedValue', {
-        amount: format.money(schedule.estimateMinor, household.household.baseCurrency),
-      })}</ThemedText>
+    <HeroCard icon="bill" title={t('payments.title')}
+      value={schedule.estimateMinor === null ? t('payments.unknownAmount') : format.money(schedule.estimateMinor, household.household.baseCurrency)}
+      subtitle={schedule.estimateMinor === null ? dueLabel(schedule, locale) : t(schedule.expectedAmountMinor === null ? 'payments.estimatedValue' : 'payments.expectedValue', { amount: format.money(schedule.estimateMinor, household.household.baseCurrency) })} />
     <ThemedText themeColor="textSecondary">{category}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('payments.payerDisplay', {
       name: household.members.find((member) => member.userId === schedule.payerId)?.displayName ?? t('common.unknown'),

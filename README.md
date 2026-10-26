@@ -1,4 +1,4 @@
-# Co-Pilot (working title)
+# Couple Goals
 
 A budgeting app for couples: one Shared Bucket for life together, plus a Private Space for each
 partner that the other can see the balance of, but never the contents.

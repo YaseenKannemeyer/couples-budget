@@ -10,7 +10,9 @@ import { Pressable, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { APP_NAME } from '@/constants/app';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { Icon, type IconName } from '@/components/ui/icon';
+import { useTheme } from '@/hooks/use-theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -23,16 +25,16 @@ export default function AppTabs() {
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="index" href="/" asChild>
-            <TabButton>{t('navigation.home')}</TabButton>
+            <TabButton icon="home">{t('navigation.home')}</TabButton>
           </TabTrigger>
           <TabTrigger name="shared-budget" href="/shared-budget" asChild>
-            <TabButton>{t('navigation.sharedBudget')}</TabButton>
+            <TabButton icon="chart">{t('navigation.sharedBudget')}</TabButton>
           </TabTrigger>
           <TabTrigger name="private-space" href="/private-space" asChild>
-            <TabButton>{t('navigation.privateSpace')}</TabButton>
+            <TabButton icon="lock">{t('navigation.privateSpace')}</TabButton>
           </TabTrigger>
           <TabTrigger name="settings" href="/settings" asChild>
-            <TabButton>{t('navigation.settings')}</TabButton>
+            <TabButton icon="settings">{t('navigation.settings')}</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
@@ -42,13 +44,15 @@ export default function AppTabs() {
 
 // The slot's `ref` is typed as a component ref rather than a view ref, so it isn't
 // forwarded; the button doesn't need one.
-export function TabButton({ children, isFocused, ref: _ref, ...props }: TabTriggerSlotProps) {
+export function TabButton({ children, isFocused, icon, ref: _ref, ...props }: TabTriggerSlotProps & { icon: IconName }) {
+  const theme = useTheme();
   return (
     <Pressable {...props} style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+        <Icon name={icon} size={21} color={isFocused ? theme.accent : theme.textSecondary} />
+        <ThemedText type="smallBold" themeColor={isFocused ? 'accent' : 'textSecondary'} style={{ fontSize: 12, textAlign: 'center' }}>
           {children}
         </ThemedText>
       </ThemedView>
@@ -74,6 +78,7 @@ export function CustomTabList(props: TabListProps) {
 const styles = StyleSheet.create({
   tabListContainer: {
     position: 'absolute',
+    bottom: 0,
     width: '100%',
     padding: Spacing.three,
     justifyContent: 'center',
@@ -83,11 +88,11 @@ const styles = StyleSheet.create({
   innerContainer: {
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.two,
-    borderRadius: Spacing.five,
+    borderRadius: Radius.large,
     flexDirection: 'row',
     alignItems: 'center',
     flexGrow: 1,
-    gap: Spacing.two,
+    gap: Spacing.one,
     maxWidth: MaxContentWidth,
   },
   brandText: {
@@ -98,11 +103,14 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     minHeight: 48,
-    flexShrink: 1,
+    flex: 1,
+    minWidth: 0,
     justifyContent: 'center',
   },
   tabButtonView: {
-    minHeight: 48,
+    minHeight: 56,
+    alignItems: 'center',
+    gap: Spacing.one,
     justifyContent: 'center',
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.two,

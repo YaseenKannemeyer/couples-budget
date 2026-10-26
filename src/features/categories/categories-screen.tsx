@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { CategoryRow } from '@/components/ui/category-row';
 import { Choice, Choices } from '@/components/ui/choices';
 import { Screen } from '@/components/ui/screen';
 import { Spacing } from '@/constants/theme';
@@ -48,8 +48,7 @@ export function CategoriesView({ householdId, categories, reload, initialVisibil
       <Choice label={t('payments.archived')} selected={archived} onPress={() => setArchived(true)} disabled={action.isPending} />
     </Choices>
     {!rows.length && <ThemedText themeColor="textSecondary">{t('categories.empty')}</ThemedText>}
-    {rows.map((category, index) => <Card key={category.id}>
-      <ThemedText type="smallBold">{categoryLabel(category)}</ThemedText>
+    {rows.map((category, index) => <CategoryRow key={category.id} id={category.id} name={categoryLabel(category)} emoji={category.emoji}>
       <ThemedText themeColor="textSecondary">{t(`categories.buckets.${category.bucket}`)}</ThemedText>
       <Button title={t('categories.edit')} variant="secondary" disabled={action.isPending}
         accessibilityLabel={t('categories.editName', { name: category.name })}
@@ -62,7 +61,7 @@ export function CategoriesView({ householdId, categories, reload, initialVisibil
           accessibilityLabel={t('categories.moveDownName', { name: category.name })}
           onPress={() => action.mutate({ kind: 'move', id: category.id, version: category.version, direction: 1 })} />
       </View>}
-    </Card>)}
+    </CategoryRow>)}
     <CategoryError error={action.error} reload={() => { reload(); action.reset(); }} />
     <Button title={t('categories.back')} variant="ghost" disabled={action.isPending} onPress={goBack} />
   </Screen></SpaceContext>;

@@ -6,6 +6,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
+import { HeroCard, HeroRow } from '@/components/ui/hero-card';
+import { PeriodBarChart } from '@/components/ui/charts';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { SummaryRow } from '@/components/ui/summary-row';
@@ -31,6 +33,12 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
   const onDay=result.items.filter(i=>i.on===selected);
   const latest=Object.keys(result.daily).filter(d=>d<=selected).sort().at(-1);
   const selectedBalance=latest?result.daily[latest]:result.confirmed;
+  const chartItems = result.confirmed === null ? [] : [0,7,14,21].map(offset => {
+    const date = shiftCalendarDays(data.today, offset);
+    const prior = Object.keys(result.daily).filter(day => day <= date).sort().at(-1);
+    const amount = prior ? result.daily[prior] : result.confirmed!;
+    return { id: date, label: formatCalendarDate(date, locale), amount, value: money(amount) };
+  });
   const overdue=result.items.filter(i=>!i.confirmed&&!i.dismissed&&i.on<data.today&&(i.kind==='payment'||i.kind==='goal'));
   const edit=(item:ForecastItem)=>router.push({pathname:'/forecast-edit',params:{item:item.key}});
   const row=(item:ForecastItem)=> <View key={item.key} style={styles.agendaRow}>
@@ -45,16 +53,20 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
   return <Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('cashflow.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('cashflow.description',{timezone})}</ThemedText>
-    <Card>
-      {result.confirmed===null?<ThemedText>{t('cashflow.needBalance')}</ThemedText>:<>
-        <SummaryRow label={t('cashflow.confirmedBalance')} value={money(result.confirmed)}/>
-        <SummaryRow label={t('cashflow.lowest',{date:formatCalendarDate(result.lowestOn,locale)})} value={money(result.lowest!)}/>
-        <SummaryRow label={t('cashflow.projected',{date:formatCalendarDate(result.horizon,locale)})} value={money(result.projected!)}/>
-        {result.low&&<ThemedText accessibilityRole="alert" themeColor="attention">{t('cashflow.lowWarning',{amount:money(result.beforePayday!)})}</ThemedText>}
-      </>}
-      <ThemedText type="small" themeColor="textSecondary">{t('cashflow.estimateHint')}</ThemedText>
-      <Button variant="secondary" title={t('cashflow.setup')} onPress={()=>router.push('/cash-flow-setup')}/>
-    </Card>
+    {result.confirmed === null ? <Card><ThemedText>{t('cashflow.needBalance')}</ThemedText></Card> : <HeroCard
+      title={t('cashflow.confirmedBalance')} value={money(result.confirmed)} icon="wallet"
+      warning={result.low ? t('cashflow.lowWarning',{amount:money(result.beforePayday!)}) : undefined}>
+      <HeroRow label={t('cashflow.lowest',{date:formatCalendarDate(result.lowestOn,locale)})} value={money(result.lowest!)} />
+      <HeroRow label={t('cashflow.projected',{date:formatCalendarDate(result.horizon,locale)})} value={money(result.projected!)} />
+    </HeroCard>}
+    <ThemedText type="small" themeColor="textSecondary">{t('cashflow.estimateHint')}</ThemedText>
+    <Button variant="secondary" title={t('cashflow.setup')} onPress={()=>router.push('/cash-flow-setup')} />
+    {result.confirmed !== null && <Card>
+      <ThemedText type="section" accessibilityRole="header">{t('design.forecastChart')}</ThemedText>
+      <PeriodBarChart items={chartItems} activeId={data.today} reference={result.confirmed}
+        referenceLabel={t('cashflow.confirmedBalance')}
+        summary={t('design.forecastSummary',{details:chartItems.map(item=>`${item.label}: ${item.value}`).join('; ')})} />
+    </Card>}
     {result.gaps.filter(g=>g!=='balance').map(g=><ThemedText key={g} themeColor="attention">{t(`cashflow.gaps.${g}`)}</ThemedText>)}
     <Button title={t('cashflow.myIncome')} variant="secondary" onPress={()=>router.push('/income')}/>
     <View style={styles.monthNav}>

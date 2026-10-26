@@ -7,6 +7,7 @@ import { useLocales } from 'expo-localization';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
+import { ProgressBar } from '@/components/ui/progress-bar';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
@@ -137,6 +138,7 @@ export function BudgetWizard({ data, onReload, reloading }: {
         </ThemedText>
         <ThemedText type="subtitle" accessibilityRole="header">{t(`budget.${stepTitles[step]}`)}</ThemedText>
         <ThemedText themeColor="textSecondary">{t(`budget.${stepDescriptions[step]}`)}</ThemedText>
+        <ProgressBar value={(step + 1) / 4 * 100} label={t('budget.progress', { step: step + 1, total: 4 })} />
       </View>
 
       {step === 0 && <>
@@ -263,7 +265,7 @@ export function BudgetWizard({ data, onReload, reloading }: {
 function Choice({ label, description, selected, disabled, onPress }: {
   label: string; description?: string; selected: boolean; disabled: boolean; onPress: () => void;
 }) {
-  return <Pressable accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: selected, disabled }}
+  return <Pressable accessibilityRole="radio" accessibilityLabel={label} accessibilityHint={description} accessibilityState={{ checked: selected, disabled }}
     disabled={disabled} onPress={onPress}>
     <ThemedView type={selected ? 'backgroundSelected' : 'backgroundElement'} style={styles.choice}>
       <ThemedText type="smallBold" themeColor={selected ? 'accent' : 'text'}>{label}</ThemedText>

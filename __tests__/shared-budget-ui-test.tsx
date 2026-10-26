@@ -21,7 +21,7 @@ beforeEach(() => jest.clearAllMocks());
 it('shows category remaining, the household month and upcoming shared payment windows', async () => {
   const view = await show();
   expect(view.getByText('October 2026')).toBeTruthy();
-  expect(view.getByText('Utilities')).toBeTruthy(); expect(view.getAllByText('$75.00')).toHaveLength(2);
+  expect(view.getByRole('header', { name: 'Utilities' })).toBeTruthy(); expect(view.getAllByText('$75.00')).toHaveLength(3);
   expect(view.getByText('Unpaid · Due soon')).toBeTruthy();
   await fireEvent.press(view.getByRole('button', { name: 'Review Internet' }));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/payment-detail', params: { id: cashflow.payments[0].id } });

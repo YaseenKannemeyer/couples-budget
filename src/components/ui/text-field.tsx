@@ -1,24 +1,28 @@
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type TextFieldProps = TextInputProps & {
   label: string;
   hint?: string;
+  hideLabel?: boolean;
   error?: string;
 };
 
-export function TextField({ label, hint, error, style, ...rest }: TextFieldProps) {
+export function TextField({ label, hint, error, hideLabel, style, ...rest }: TextFieldProps) {
   const theme = useTheme();
 
   return (
     <View style={styles.container}>
-      <ThemedText type="smallBold">{label}</ThemedText>
+      {!hideLabel && <ThemedText type="smallBold">{label}</ThemedText>}
       <TextInput
         accessibilityLabel={label}
         placeholderTextColor={theme.textSecondary}
+        selectionColor={theme.accent}
+        cursorColor={theme.accent}
+        accessibilityHint={error ?? hint}
         style={[
           styles.input,
           {
@@ -44,10 +48,12 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   input: {
-    minHeight: 50,
+    minHeight: 56,
     paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.three,
+    fontFamily: Fonts.sans,
     borderRadius: Radius.small,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     fontSize: 16,
   },
 });

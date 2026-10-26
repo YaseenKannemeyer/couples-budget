@@ -15,7 +15,7 @@ export function QuickLogLauncher({ householdId }: { householdId: string }) {
   if (path === '/quick-log' || path === '/pending-logs') return null;
   const count = queue.entries.filter(entry => entry.status !== 'synced').length;
   const tab = ['/', '/settings', '/shared-budget', '/private-space'].includes(path);
-  return <SpaceContext value={path === '/private-space' ? 'private' : 'shared'}><View style={{ position: 'absolute', right: Spacing.three, bottom: insets.bottom + Spacing.three + (tab ? BottomTabInset : 0) }}>
+  return <SpaceContext value={path === '/private-space' ? 'private' : 'shared'}><View style={{ position: 'absolute', right: Spacing.three, maxWidth: '80%', bottom: insets.bottom + Spacing.three + (tab ? BottomTabInset : 0) }}>
     <Button title={t(count ? 'quickLog.launchPending' : isOffline ? 'quickLog.offlineLaunch' : 'quickLog.launch', { count })}
       onPress={() => router.push('/quick-log')} />
   </View></SpaceContext>;

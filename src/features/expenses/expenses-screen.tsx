@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { CategoryRow } from '@/components/ui/category-row';
 import { Choice, Choices } from '@/components/ui/choices';
 import { Screen } from '@/components/ui/screen';
 import { useCategories } from '@/features/categories/api';
@@ -40,9 +40,8 @@ export function ExpensesScreen() {
     {!rows.length && <ThemedText themeColor="textSecondary">{t('expenses.empty')}</ThemedText>}
     {rows.map((expense) => {
       const category = categories.data.find((value) => value.id === expense.categoryId);
-      return <Card key={expense.id}>
-        <ThemedText type="smallBold">{expense.description || t('expenses.untitled')}</ThemedText>
-        <ThemedText>{format.money(expense.amountMinor, data.household.baseCurrency)}</ThemedText>
+      return <CategoryRow key={expense.id} id={expense.categoryId ?? expense.id} name={expense.description || t('expenses.untitled')}
+        emoji={category?.emoji} value={format.money(expense.amountMinor, data.household.baseCurrency)}>
         <ThemedText themeColor="textSecondary">{formatCalendarDate(expense.occurredOn, locale)}</ThemedText>
         <ThemedText>{category ? categoryLabel(category) : t('common.unknown')}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">{t(`payments.${expense.frequency}`)}</ThemedText>
@@ -51,7 +50,7 @@ export function ExpensesScreen() {
           onPress={() => router.push({ pathname: '/expense-thread', params: { id: expense.id } })} />}
         <Button title={t('expenses.edit')} variant="secondary"
           onPress={() => router.push({ pathname: '/expense-category', params: { id: expense.id, visibility: space } })} />
-      </Card>;
+      </CategoryRow>;
     })}
     {expenses.hasNextPage && <Button title={t('expenses.loadMore')} variant="secondary" loading={expenses.isFetchingNextPage}
       onPress={() => expenses.fetchNextPage()} />}

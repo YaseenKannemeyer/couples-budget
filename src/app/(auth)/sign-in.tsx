@@ -9,7 +9,9 @@ import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { APP_NAME } from '@/constants/app';
-import { Spacing } from '@/constants/theme';
+import { Icon } from '@/components/ui/icon';
+import { useTheme } from '@/hooks/use-theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { errorTranslationKey } from '@/i18n/errors';
 import { supabase } from '@/lib/supabase';
 
@@ -17,6 +19,7 @@ type Mode = 'signIn' | 'signUp';
 
 export default function SignInScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,12 +52,13 @@ export default function SignInScreen() {
 
   return (
     <Screen>
-      <View style={styles.hero}>
-        <ThemedText type="smallBold" themeColor="accent">
+      <View style={[styles.hero, { backgroundColor: theme.hero }]}>
+        <Icon name="wallet" color={theme.heroAccent} size={32} />
+        <ThemedText type="section" themeColor="heroText">
           {APP_NAME}
         </ThemedText>
-        <ThemedText type="subtitle">{t('auth.title')}</ThemedText>
-        <ThemedText themeColor="textSecondary">
+        <ThemedText type="subtitle" themeColor="heroText">{t('auth.title')}</ThemedText>
+        <ThemedText themeColor="heroSecondary">
           {t('auth.description')}
         </ThemedText>
       </View>
@@ -79,8 +83,8 @@ export default function SignInScreen() {
           hint={isSignUp ? t('auth.passwordHint') : undefined}
           onSubmitEditing={submit}
         />
-        {error && <ThemedText themeColor="attention">{t(error)}</ThemedText>}
-        {notice && <ThemedText themeColor="success">{t(notice)}</ThemedText>}
+        {error && <ThemedText accessibilityRole="alert" themeColor="attention">{t(error)}</ThemedText>}
+        {notice && <ThemedText accessibilityLiveRegion="polite" themeColor="success">{t(notice)}</ThemedText>}
         <Button
           title={t(isSignUp ? 'auth.createAccount' : 'auth.signIn')}
           onPress={submit}
@@ -105,6 +109,7 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   hero: {
     gap: Spacing.two,
-    paddingTop: Spacing.five,
+    padding: Spacing.four,
+    borderRadius: Radius.large,
   },
 });

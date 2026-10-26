@@ -7,6 +7,10 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { HeroCard, HeroRow } from '@/components/ui/hero-card';
+import { CategoryRow } from '@/components/ui/category-row';
+import { PillActions } from '@/components/ui/pill-actions';
+import { SpendDonut, MiniGauge } from '@/components/ui/charts';
 import { Screen } from '@/components/ui/screen';
 import { SummaryRow } from '@/components/ui/summary-row';
 import { Spacing } from '@/constants/theme';
@@ -64,24 +68,43 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
       </ThemedText>
       {failed && <Button title={t('common.tryAgain')} onPress={onRefresh} />}
     </View> : <>
+      <HeroCard title={t('dashboard.spent')} value={money(result.spent)}
+        progress={result.hasPlan && result.plan > 0 ? result.spent / result.plan * 100 : null}
+        progressLabel={t('dashboard.progress')}
+        progressSummary={t('dashboard.spentOfPlan', { spent: money(result.spent), plan: money(result.plan) })}
+        warning={result.hasPlan && result.remaining < 0 ? t('dashboard.overPlan', { amount: money(-result.remaining) }) : undefined}>
+        <HeroRow label={t('dashboard.planned')} value={result.hasPlan ? money(result.plan) : t('sharedBudget.noPlan')} />
+        {result.hasPlan && <HeroRow label={t('dashboard.remaining')} value={money(result.remaining)} />}
+      </HeroCard>
+      <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.actualHint')}</ThemedText>
+      {result.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.futureHint')}</ThemedText>}
+      <PillActions actions={[
+        { label: t('budget.review'), icon: 'bill', onPress: () => router.push('/(onboarding)/budget') },
+        { label: t('sharedBudget.assign'), icon: 'chart', onPress: () => router.push('/budget-categories') },
+        { label: t('categories.manage'), icon: 'settings', onPress: () => router.push('/categories') },
+      ]} />
       <Card>
-        <SummaryRow label={t('dashboard.planned')} value={result.hasPlan ? money(result.plan) : t('sharedBudget.noPlan')} />
-        <SummaryRow label={t('dashboard.spent')} value={money(result.spent)} />
-        {result.hasPlan && <SummaryRow label={t('dashboard.remaining')} value={money(result.remaining)} />}
-        {result.hasPlan && result.remaining < 0 && <ThemedText themeColor="attention">
-          {t('dashboard.overPlan', { amount: money(-result.remaining) })}
-        </ThemedText>}
-        <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.actualHint')}</ThemedText>
-        {result.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.futureHint')}</ThemedText>}
-        <Button variant="secondary" title={t('budget.review')} onPress={() => router.push('/(onboarding)/budget')} />
+        <ThemedText type="section" accessibilityRole="header">{t('sharedBudget.categories')}</ThemedText>
+        <SpendDonut label={t('dashboard.spent')} value={money(result.spent)}
+          segments={result.rows.map(row => ({ id: row.category.id, label: categoryLabel(row.category), amount: row.spent }))
+            .concat(result.uncategorisedCount ? [{ id: 'uncategorised', label: t('sharedBudget.uncategorised'), amount: result.uncategorisedSpent }] : [])}
+          summary={t('design.categorySummary', { label: t('sharedBudget.categories'), value: money(result.spent),
+            details: result.rows.map(row => `${categoryLabel(row.category)}: ${money(row.spent)}`)
+              .concat(result.uncategorisedCount ? [`${t('sharedBudget.uncategorised')}: ${money(result.uncategorisedSpent)}`] : []).join('; ') })} />
+        {result.hasPlan && <View style={styles.gauges}>
+          <MiniGauge label={t('sharedBudget.plan')} value={money(result.plan)} summary={`${t('sharedBudget.plan')}: ${money(result.plan)}`} />
+          <MiniGauge label={t('sharedBudget.spent')} value={money(result.spent)} ratio={result.plan > 0 ? result.spent / result.plan : null}
+            summary={t('dashboard.spentOfPlan', { spent: money(result.spent), plan: money(result.plan) })} />
+          <MiniGauge label={t('sharedBudget.remaining')} value={money(result.remaining)} ratio={result.plan > 0 ? result.remaining / result.plan : null}
+            summary={`${t('sharedBudget.remaining')}: ${money(result.remaining)}`} />
+        </View>}
+        <ThemedText type="small" themeColor="textSecondary">{t('design.chartHint')}</ThemedText>
       </Card>
 
       <View style={styles.section}>
-        <ThemedText type="smallBold" accessibilityRole="header">{t('sharedBudget.categories')}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.categoryHint')}</ThemedText>
         {result.rows.length === 0 && <ThemedText themeColor="textSecondary">{t('sharedBudget.emptyCategories')}</ThemedText>}
-        {result.rows.map(row => <View key={row.category.id} style={[styles.category, { borderBottomColor: theme.border }]}>
-          <ThemedText type="smallBold" accessibilityRole="header">{categoryLabel(row.category)}</ThemedText>
+        {result.rows.map(row => <CategoryRow key={row.category.id} id={row.category.id} name={row.category.name} emoji={row.category.emoji}>
           <ThemedText type="small" themeColor="textSecondary">
             {t(`categories.buckets.${row.category.bucket}`)}{row.category.archived ? ` · ${t('payments.archived')}` : ''}
           </ThemedText>
@@ -93,7 +116,7 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
               {t('sharedBudget.categoryOver', { amount: money(-row.remaining!) })}
             </ThemedText>}
           </>}
-        </View>)}
+        </CategoryRow>)}
         {result.uncategorisedCount > 0 && <View style={styles.category}>
           <SummaryRow label={t('sharedBudget.uncategorised')} value={money(result.uncategorisedSpent)} />
         </View>}
@@ -102,12 +125,10 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
           <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.unassignedHint')}</ThemedText>
           {result.unassigned.map(line => <SummaryRow key={line.id} label={line.name} value={money(line.amount_minor)} />)}
         </View>}
-        <Button variant="secondary" title={t('sharedBudget.assign')} onPress={() => router.push('/budget-categories')} />
-        <Button variant="ghost" title={t('categories.manage')} onPress={() => router.push('/categories')} />
       </View>
 
       <View style={styles.section}>
-        <ThemedText type="smallBold" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
+        <ThemedText type="section" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.paymentHint')}</ThemedText>
         {!result.pending.length && <ThemedText themeColor="textSecondary">{t('dashboard.noPayments')}</ThemedText>}
         {result.pending.map(item => {
@@ -133,7 +154,8 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
 }
 
 const styles = StyleSheet.create({
-  webTabSpacer: { height: Spacing.six },
+  webTabSpacer: { height: 0 },
+  gauges: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
   heading: { gap: Spacing.two },
   section: { gap: Spacing.three, paddingVertical: Spacing.two },
   category: { gap: Spacing.two, paddingVertical: Spacing.three, borderBottomWidth: StyleSheet.hairlineWidth },

@@ -10,6 +10,9 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Choice, Choices } from '@/components/ui/choices';
 import { Screen } from '@/components/ui/screen';
+import { AmountEntry } from '@/components/ui/amount-entry';
+import { CategoryPicker } from '@/components/ui/category-picker';
+import { Sheet } from '@/components/ui/sheet';
 import { TextField } from '@/components/ui/text-field';
 import { budgetAmountText, parseBudgetAmount } from '@/features/budget/money-input';
 import { categoryLabel, eligibleCategories } from '@/features/categories/schema';
@@ -114,16 +117,18 @@ export function QuickLogForm({ household, me, members, workspace, space, initial
     <Button title={t('quickLog.queue')} variant="secondary" onPress={() => router.replace('/pending-logs')} />
     <Button title={t('quickLog.done')} variant="ghost" onPress={() => router.back()} />
   </Screen></SpaceContext>;
-  return <SpaceContext value={space}><Screen>
-    <ThemedText type="subtitle" accessibilityRole="header">{t('quickLog.title')}</ThemedText>
+  return <SpaceContext value={space}><Sheet title={t('quickLog.title')}
+    cancel={{ label: t('common.cancel'), disabled: busy, onPress: () => router.back() }}
+    save={{ label: t('quickLog.save'), loading: busy, onPress: submit }}>
+    {attempted && !valid && <ThemedText accessibilityRole="alert" themeColor="attention">{t('quickLog.invalid')}</ThemedText>}
     <ThemedText type="smallBold">{t(`payments.${space}`)}</ThemedText>
     {space === 'private' && <ThemedText themeColor="textSecondary">{t('payments.privacyHint')}</ThemedText>}
     {value && value.baseCurrency !== household.baseCurrency && <ThemedText themeColor="attention">{t('quickLog.currencyChanged')}</ThemedText>}
     {cached && <ThemedText themeColor="attention">{t('quickLog.cached')}</ThemedText>}
     {queue.error && <ThemedText accessibilityRole="alert" themeColor="attention">{t('quickLog.storageError')}</ThemedText>}
-    <TextField label={t('quickLog.amount', { currency: household.baseCurrency })} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!busy} />
+    <AmountEntry label={t('quickLog.amount', { currency: household.baseCurrency })} currency={household.baseCurrency} locale={locale} value={amount} onChange={setAmount} disabled={busy} />
     <TextField label={t('quickLog.description')} value={description} onChangeText={setDescription} maxLength={120} editable={!busy} />
-    <Choices label={t('payments.category')}>{categories.map(c => <Choice key={c.id} label={categoryLabel(c)} selected={categoryId === c.id} disabled={busy} onPress={() => setCategoryId(c.id)} />)}</Choices>
+    <CategoryPicker label={t('payments.category')} value={categoryId} options={categories.map(c => ({ id: c.id, label: categoryLabel(c) }))} disabled={busy} onChange={setCategoryId} />
     {space === 'shared' && <Choices label={t('quickLog.paidBy')}>{members.map(m => <Choice key={m.userId} label={m.displayName} selected={paidBy === m.userId} disabled={busy} onPress={() => setPaidBy(m.userId)} />)}</Choices>}
     <TextField label={t('quickLog.date')} hint={t('cashflow.dateHint')} value={on} onChangeText={setOn} maxLength={10} editable={!busy} />
     <Choices label={t('quickLog.link')}>
@@ -152,9 +157,6 @@ export function QuickLogForm({ household, me, members, workspace, space, initial
     {Platform.OS !== 'web' && <Button title={t('quickLog.camera')} variant="secondary" disabled={busy} onPress={() => choosePhoto(true)} />}
     <ThemedText type="small" themeColor="textSecondary">{t('quickLog.photoHint')}</ThemedText>
     {error != null && <ThemedText accessibilityRole="alert" themeColor="attention">{t(errorTranslationKey(error))}</ThemedText>}
-    {attempted && !valid && <ThemedText accessibilityRole="alert" themeColor="attention">{t('quickLog.invalid')}</ThemedText>}
-    <Button title={t('quickLog.save')} accessibilityLabel={t('quickLog.save')} loading={busy} onPress={submit} />
     {!initial && <Button title={t('quickLog.changeSpace')} variant="ghost" disabled={busy} onPress={onChooseSpace} />}
-    <Button title={t('common.cancel')} variant="ghost" disabled={busy} onPress={() => router.back()} />
-  </Screen></SpaceContext>;
+  </Sheet></SpaceContext>;
 }

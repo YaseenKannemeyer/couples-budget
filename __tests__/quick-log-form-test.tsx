@@ -58,3 +58,18 @@ it('never describes unreadable saved entries as an empty queue', async () => {
   expect(view.getByText(/couldn’t read or update this device/)).toBeTruthy();
   expect(view.queryByText('No expenses waiting to sync.')).toBeNull();
 });
+
+it('steps by whole currency units and preserves invalid input instead of replacing it', async () => {
+  const view = await render(<LocalizationProvider><QuickLogForm {...props} space="shared" /></LocalizationProvider>);
+  const amount = view.getByLabelText('Amount in USD');
+  await fireEvent.changeText(amount, '12.50');
+  await fireEvent.press(view.getByRole('button', { name: 'Increase amount by $1.00' }));
+  expect(amount.props.value).toBe('13.50');
+  await fireEvent.changeText(amount, '123.456');
+  expect(view.getByRole('button', { name: 'Increase amount by $1.00' }).props.accessibilityState.disabled).toBe(true);
+  expect(amount.props.value).toBe('123.456');
+  await fireEvent.changeText(amount, '10000000000.00');
+  expect(view.getByRole('button', { name: 'Increase amount by $1.00' }).props.accessibilityState.disabled).toBe(true);
+  await fireEvent.press(view.getByRole('button', { name: 'Decrease amount by $1.00' }));
+  expect(amount.props.value).toBe('9999999999.00');
+});

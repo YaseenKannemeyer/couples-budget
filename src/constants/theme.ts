@@ -1,118 +1,70 @@
-/**
- * Design tokens. The app has two "spaces" that should feel different on purpose:
- *  - shared:  the household living room — soft sage, warm cream, forest green.
- *  - private: "my personal desk" — warmer paper tones and a clay accent.
- * There is deliberately no harsh red: overspending is flagged with a soft terracotta.
- */
-
+/** Couple Goals finance system. Shared indigo / Private violet; semantic roles in both appearances. */
 import '@/global.css';
-
 import { Platform } from 'react-native';
-
 export type Space = 'shared' | 'private';
 
+const light = {
+  text: '#191B24', textSecondary: '#636675', background: '#F6F7FA',
+  backgroundElement: '#FFFFFF', backgroundSelected: '#EBEDF5', border: '#DCE0EA',
+  accent: '#465CF4', accentSoft: '#E9ECFF', onAccent: '#FFFFFF',
+  attention: '#9A542F', success: '#267654',
+  hero: '#191B24', heroText: '#FFFFFF', heroSecondary: '#BCC0D2', heroTrack: '#373B4D',
+  heroAccent: '#8291FF', heroAttention: '#F0BA94',
+  categoryOrange: '#FFF0DC', categoryBlue: '#E2EEFF', categoryPink: '#FBE5F5', categoryGreen: '#E0F3E9',
+  chartOrange: '#C47A24', chartBlue: '#4385E7', chartPink: '#CA5BAD', chartGreen: '#31906B',
+  scrim: '#00000070',
+};
+const dark = {
+  text: '#F2F3FA', textSecondary: '#ADB2C5', background: '#10121A',
+  backgroundElement: '#1C1F2B', backgroundSelected: '#2C3041', border: '#363B4E',
+  accent: '#9CA9FF', accentSoft: '#2A3156', onAccent: '#151D47',
+  attention: '#F0BA94', success: '#85D8B2',
+  hero: '#202538', heroText: '#FFFFFF', heroSecondary: '#BCC0D2', heroTrack: '#3B425A',
+  heroAccent: '#A2AEFF', heroAttention: '#F0BA94',
+  categoryOrange: '#453321', categoryBlue: '#253A5A', categoryPink: '#442B40', categoryGreen: '#233F35',
+  chartOrange: '#EFB363', chartBlue: '#78AFFF', chartPink: '#EE91D6', chartGreen: '#79CFAD',
+  scrim: '#00000090',
+};
 export const Palettes = {
-  shared: {
-    light: {
-      text: '#2B2A26',
-      textSecondary: '#6B665C',
-      background: '#F7F3EC',
-      backgroundElement: '#EFE8DC',
-      backgroundSelected: '#E4DACA',
-      border: '#E2D9C9',
-      accent: '#2F5D50',
-      accentSoft: '#C9D6C4',
-      onAccent: '#FFFFFF',
-      attention: '#98472C', // Warm clay with body-text contrast on the light surfaces.
-      success: '#3C6247',
-    },
-    dark: {
-      text: '#F2EDE3',
-      textSecondary: '#B4AEA2',
-      background: '#1C1F1C',
-      backgroundElement: '#262A26',
-      backgroundSelected: '#323732',
-      border: '#343934',
-      accent: '#8DB59F',
-      accentSoft: '#3D5247',
-      onAccent: '#14201B',
-      attention: '#E0956F',
-      success: '#8DB59F',
-    },
-  },
+  shared: { light, dark },
   private: {
-    light: {
-      text: '#2E2620',
-      textSecondary: '#615448',
-      background: '#F5EBDD',
-      backgroundElement: '#ECDFCC',
-      backgroundSelected: '#E0CFB6',
-      border: '#E2D3BE',
-      accent: '#87432B',
-      accentSoft: '#EBCBB8',
-      onAccent: '#FFFFFF',
-      attention: '#7A4D20',
-      success: '#3C6247',
-    },
-    dark: {
-      text: '#F3E9DC',
-      textSecondary: '#BBAA97',
-      background: '#211B17',
-      backgroundElement: '#2C241E',
-      backgroundSelected: '#3A3028',
-      border: '#3D332B',
-      accent: '#E39B78',
-      accentSoft: '#5A3A2C',
-      onAccent: '#241610',
-      attention: '#D9A55B',
-      success: '#9CBF8E',
-    },
+    light: { ...light, background: '#F7F6FC', accent: '#7050D5', accentSoft: '#EFE8FF',
+      hero: '#242035', heroAccent: '#B59AFF' },
+    dark: { ...dark, background: '#14121E', accent: '#C5AEFF', onAccent: '#2A194C',
+      accentSoft: '#382B50', hero: '#2C2440', heroAccent: '#C5AEFF' },
   },
 } as const;
-
-export type ThemeColor = keyof typeof Palettes.shared.light;
+export type ThemeColor = keyof typeof light;
 export type ThemeColors = Record<ThemeColor, string>;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const Fonts = {
+  sans: Platform.select({ ios: 'System', web: 'system-ui', default: 'sans-serif' }),
+  display: 'Manrope',
+  serif: Platform.select({ ios: 'Georgia', default: 'serif' }),
+  rounded: Platform.select({ ios: 'System', default: 'sans-serif' }),
+  mono: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+};
+export const Type = {
+  caption: { fontSize: 13, lineHeight: 19 },
+  small: { fontSize: 14, lineHeight: 21 },
+  body: { fontSize: 16, lineHeight: 24 },
+  section: { fontSize: 20, lineHeight: 28 },
+  title: { fontSize: 30, lineHeight: 38 },
+  display: { fontSize: 38, lineHeight: 48 },
 } as const;
+export const Spacing = { half: 2, one: 4, two: 8, three: 16, four: 24, five: 32, six: 64 } as const;
+export const Radius = { small: 12, medium: 18, large: 28, pill: 999 } as const;
+export const Motion = { feedback: 120, change: 220, chart: 480 } as const;
+export const Elevation = { card: { boxShadow: '0px 4px 16px #141B3810' } } as const;
+export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 80 }) ?? 0;
+export const MaxContentWidth = 760;
 
-export const Radius = {
-  small: 10,
-  medium: 16,
-  large: 24,
-} as const;
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+/** Stable across order changes; category hue is decorative, never a privacy signal. */
+export function categoryTone(id: string, theme: ThemeColors) {
+  const index = Array.from(id).reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 4;
+  return [
+    { background: theme.categoryOrange, ink: theme.chartOrange },
+    { background: theme.categoryBlue, ink: theme.chartBlue },
+    { background: theme.categoryPink, ink: theme.chartPink },
+    { background: theme.categoryGreen, ink: theme.chartGreen },
+  ][index];
+}

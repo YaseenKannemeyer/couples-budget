@@ -1,4 +1,4 @@
-# Co-Pilot: Build Plan
+# Couple Goals: Build Plan
 
 A budgeting app for couples. The plan is built around three spaces:
 
@@ -18,18 +18,53 @@ The app's core promises:
 
 ---
 
+## Positioning and launch strategy
+
+**Pitch (use it everywhere: store listing, first screenshot, onboarding, website):**
+
+> Shared money, private spending, fair splits, and no nagging.
+
+The competitors are finance tools with sharing added on. Couple Goals is built to keep the relationship healthy, not just to track the money.
+
+**Competitive landscape (October 2026)**
+
+| App | Strength | Where we differ |
+| --- | --- | --- |
+| Honeydue (free) | Couples-focused, bank sync, chat about purchases | Shares at the account or transaction level. We keep private spending private and show the partner only a balance |
+| Monarch Money (~$99/yr) | Full household finance, bank sync, net worth | General finance tool. No income-based fairness or relationship ritual |
+| YNAB (~$100/yr) | Zero-based method, shared goals | A method, but no ritual for two people |
+| Splitwise (free/paid) | Simple running balances | Not a budget |
+| Manebo (free + IAP) | Receipt scanning, quick splits | No private spaces or income-aware splits |
+
+**Strategy**
+
+1. **One message.** Repeat the pitch everywhere. The first store screenshot shows privacy and fairness, not a feature list.
+2. **Money Date ships at launch.** It's the retention hook and the marketing story ("our monthly money date"). None of the competitors has one, and a budgeting app without a ritual gets dropped in week three. Launch moves to after Phase 2 (see Phase 2.5).
+3. **Manual logging is a selling point, not a gap.** We can't beat Monarch on bank sync, so we don't try yet. Pitch it as mindful logging that works anywhere and in any currency. Logging must take under 5 seconds (step 37). CSV import (step 34) moves forward as a cheap middle step before bank feeds.
+4. **Go after markets the US apps ignore.** Monarch and YNAB are mostly US-focused, especially for bank sync. Launch first where we are the best option rather than the fifth option in the US (step 40).
+5. **Undercut on price, with one plan per couple.** Logging, private spaces and splits are free, so we compete with Honeydue. Money Date, goals and insights are paid, at roughly half the big apps' price and covering both partners (step 28).
+6. **Fix the two-person onboarding problem.** The app is useful solo from day one, and the invite feels like a gift: "I set up your private allowance" (steps 35 and 36).
+
+**What we don't compete on (yet):** net worth, investments, broad bank sync and receipt scanning. Monarch and Manebo do these well. They can come later, once couples stay for the relationship features.
+
+**Known risk:** some users won't consider a budgeting app without bank sync. That narrows the early audience to couples who budget on purpose, who are also the most loyal and most willing to pay. Bank feeds remain the v2 answer (Phase 4).
+
+---
+
 ## Decisions
 
 | Topic     | Decision                                                                                                                        |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Market    | Global from day one: multiple currencies, locale formatting, household timezone                                                 |
-| Bank data | v1 uses manual logging plus a monthly balance check-in. Bank feeds come in v2                                                   |
+| Bank data | v1 uses manual logging, a monthly balance check-in and CSV statement import. Bank feeds come in v2                              |
+| Launch    | Launch after Phase 2 so Money Date ships in v1. First markets are ones the US apps underserve                                   |
+| Pricing   | One subscription per couple. Logging, private spaces and splits free; Money Date, goals and insights paid, at ~half of Monarch/YNAB |
 | Platforms | One Expo codebase for iOS, Android and web. Desktop uses the web app, installable as a PWA. A Tauri wrapper only if ever needed |
 | Backend   | Supabase: Postgres, Auth, Realtime, Row-Level Security, Edge Functions, pg_cron                                                 |
 | Money     | Integer minor units plus an ISO currency code. Never floats                                                                     |
 | Privacy   | Enforced in the database (RLS), not only in the UI. Partners only ever receive aggregates of private data                       |
-| Styling   | Template's `StyleSheet` plus design tokens in `src/constants/theme.ts`. NativeWind was dropped to avoid extra dependency risk   |
-| Tone      | "We" language, never "You overspent". Soft terracotta for warnings, no harsh red                                                |
+| Styling   | `StyleSheet` with semantic finance tokens in `src/constants/theme.ts`: Shared indigo, Private violet, Manrope display and system body type   |
+| Tone      | "We" language, never "You overspent". Calm amber/terracotta warnings, clear financial labels, no harsh red                                                |
 
 ## Tech stack
 
@@ -142,9 +177,32 @@ The app's core promises:
 
 ---
 
-## Phase 1.5: Redesign ⏳
+## Phase 1.5: Redesign 🔜 (implementation complete; final acceptance pending)
 
 **Goal:** replace the current sage/clay look with a crisp, modern finance UI based on the references in `inspo/`. Behaviour, data contracts and privacy rules stay exactly as they are.
+
+**Implementation status — 26 October 2026**
+
+The app is now named **Couple Goals**. `PRODUCT.md`, `DESIGN.md` and `.impeccable/design.json` record the confirmed product and implemented visual system.
+
+| Step | Status | Evidence / remaining work |
+| --- | --- | --- |
+| R1 | ✅ | Product brief confirmed; budgets stay monthly. No unsupported week/year selectors or historical series are shown. |
+| R2 | ✅ | Cool light/dark tokens, Shared indigo / Private violet, bundled Manrope display font and system body text. |
+| R3 | ✅ | Updated base controls plus HeroCard, StatTile, ProgressBar, CategoryRow, PillActions, Sheet, AmountEntry and platform category pickers. iOS uses SF Symbols; other platforms use local SVG icons. Router owns native sheet presentation. |
+| R4 | ✅ | Spending donut with numbered category legend, mini gauges and signed forecast checkpoint bars. Summaries include uncategorised spending; refunds stay in signed totals. No fabricated history or spending-limit feature. |
+| R5 | ✅ | Core dashboards, Quick-log, cash flow, payment detail, lists, onboarding and navigation use the new system. All other screens inherit the updated shared components. Independent source reviews and static web reviews of the core screens plus 21 secondary surfaces passed; screen implementation is complete. Full live-route/native visual acceptance remains under R7. |
+| R6 | ✅ | Reduced-motion-aware progress/arcs/bar updates and amount-change feedback; native press haptics. Native transitions remain platform-owned. Hardware motion verification is pending. |
+| R7 | 🔜 | Lint/typecheck, 199 app tests, 106 database tests and iOS/Android/web export pass. Core synthetic web captures cover 320/430/1440 widths in both appearances; 84 secondary captures cover 320/1440. Independent reviews cleared both static web scopes. Native, large-text and live two-partner checks remain open. |
+
+**Remaining acceptance checks**
+
+- [ ] Run the rebuilt native app on iOS and Android; verify picker labeling, sheet keyboard/dismissal, haptics, reduced motion and system navigation.
+- [ ] Capture every live route in both appearances on small/large phones and web, including full forms, receipts and native/web tab chrome.
+- [ ] Verify large system text, long translated labels/names, maximum amounts, empty/loading/error and offline states on device.
+- [ ] Repeat the live two-partner shared/private flow after the redesign.
+
+No migrations, financial models, API contracts or privacy policies were changed. Synthetic captures are development evidence, not native or real-account verification. Phase 1.5 is **not complete** until the remaining acceptance checks pass.
 
 **How:** run every step with the `/impeccable` skill. This is a redesign, not a polish. The current look is something to replace, not something to refine. Product truth, copy, functions, accessibility and native affordances stay. No new features and no migrations in this phase.
 
@@ -171,21 +229,25 @@ The app's core promises:
 
 **Steps**
 
-- **R1. Product context.** `/impeccable init` to write `PRODUCT.md`: users, the couples angle, tone, privacy promises, platforms. Settle the main tension up front: the references are cool neutrals with indigo, the current brand is warm. Also decide which period filters make sense. Budgets are monthly today, so Hours is dropped; Weeks and Year are added only where existing data supports them, computed client-side.
-- **R2. Visual direction and design system.** Run the `/impeccable` redesign flow with `inspo/` as the reference. Write `DESIGN.md` to replace the sage/clay world, then rewrite the tokens in `src/constants/theme.ts`: colour, type scale, spacing, radius, elevation and motion. Load the chosen fonts with `expo-font`. Update the Styling and Tone rows in **Decisions**.
-- **R3. Component kit.** Rebuild `src/components/ui/` (Card, Button, Choices as a segmented control, SummaryRow, TextField, Screen) and add HeroCard, StatTile, ProgressBar, CategoryRow with icon tile, PillActions and Sheet. Prefer `@expo/ui` for sheets, pickers and switches, `expo-symbols` for icons, and `expo-glass-effect` for glass surfaces on iOS with a solid fallback elsewhere. Use `/impeccable extract` to keep it consistent.
-- **R4. Charts.** Add `react-native-svg` with `npx expo install` (check the SDK 58 docs first). Build SpendDonut, MiniGauge and PeriodBarChart, animated with Reanimated. Each one has a text summary for screen readers and handles empty, zero, single-category and over-budget data.
-- **R5. Screens.** Redesign in this order, running `/impeccable critique` on each before moving on:
-  1. Home dashboard
-  2. Shared budget: hero spending card, period control, category list
-  3. Private Space: the private variant
-  4. Quick-log sheet: amount steppers, category picker, Shared/Private choice
-  5. Payments, payment detail and history, cash-flow calendar and forecast
-  6. Categories, income and expenses lists
-  7. Onboarding wizard, sign-in, setup, settings, offline and pending logs
-  8. Tab bar, native and web
-- **R6. Motion.** `/impeccable animate`: sheet transitions, chart draw-in, number changes and press feedback with haptics (`expo-haptics`, added with `npx expo install`). Everything respects reduced motion.
-- **R7. Quality pass.** `/impeccable audit` (native), then `/impeccable harden` (long names, large amounts, long translations, empty, loading and error states), then `/impeccable polish`. Check light and dark, small and large phones, and web.
+- [x] **R1. Product context.** `/impeccable init` to write `PRODUCT.md`: users, the couples angle, tone, privacy promises, platforms. Settle the main tension up front: the references are cool neutrals with indigo, the current brand is warm. Also decide which period filters make sense. Budgets are monthly today, so Hours is dropped; Weeks and Year are added only where existing data supports them, computed client-side.
+- [x] **R2. Visual direction and design system.** Run the `/impeccable` redesign flow with `inspo/` as the reference. Write `DESIGN.md` to replace the sage/clay world, then rewrite the tokens in `src/constants/theme.ts`: colour, type scale, spacing, radius, elevation and motion. Load the chosen fonts with `expo-font`. Update the Styling and Tone rows in **Decisions**.
+- [x] **R3. Component kit.** Rebuild `src/components/ui/` (Card, Button, Choices as a segmented control, SummaryRow, TextField, Screen) and add HeroCard, StatTile, ProgressBar, CategoryRow with icon tile, PillActions and Sheet. Prefer `@expo/ui` for sheets, pickers and switches, `expo-symbols` for icons, and `expo-glass-effect` for glass surfaces on iOS with a solid fallback elsewhere. Use `/impeccable extract` to keep it consistent.
+- [x] **R4. Charts.** Add `react-native-svg` with `npx expo install` (check the SDK 58 docs first). Build SpendDonut, MiniGauge and PeriodBarChart, animated with Reanimated. Each one has a text summary for screen readers and handles empty, zero, single-category and over-budget data.
+- [x] **R5. Screens.** Redesign in this order, running `/impeccable critique` on each before moving on:
+  1. [x] Home dashboard
+  2. [x] Shared budget: hero spending card, period control, category list
+  3. [x] Private Space: the private variant
+  4. [x] Quick-log sheet: amount steppers, category picker, Shared/Private choice
+  5. [x] Payments, payment detail and history, cash-flow calendar and forecast
+  6. [x] Categories, income and expenses lists
+  7. [x] Onboarding wizard, sign-in, setup, settings, offline and pending logs
+  8. [x] Tab bar, native and web
+- [x] **R6. Motion.** `/impeccable animate`: sheet transitions, chart draw-in, number changes and press feedback with haptics (`expo-haptics`, added with `npx expo install`). Everything respects reduced motion.
+- [ ] **R7. Quality pass (in progress).** `/impeccable audit` (native), then `/impeccable harden` (long names, large amounts, long translations, empty, loading and error states), then `/impeccable polish`. Check light and dark, small and large phones, and web.
+  - [x] Lint and typecheck pass; 199 app tests and 106 database tests pass.
+  - [x] iOS, Android and web exports pass.
+  - [x] Synthetic web captures and independent reviews complete, including the final font and category-picker typography fixes.
+  - [ ] Complete the native, full live-route, large-text, receipt/offline and two-partner acceptance checks listed above.
 
 Spending limits appear in the references, but the feature is Phase 3 (step 24). Design a slot for them in the hero card and leave it hidden until then.
 
@@ -193,9 +255,36 @@ Spending limits appear in the references, but the feature is Phase 3 (step 24). 
 
 ---
 
+## Phase 1.75: Onboarding and guided discovery improvements ⏳
+
+**Goal:** help each partner set up real household finances, then learn the app a little at a time through optional, contextual product tours. The setup wizard handles the work; short overlay walkthroughs explain the relevant features after entering the app. Avoid turning onboarding into a manual for every current and planned feature.
+
+**Placement:** build the onboarding and tour foundation after Phase 1.5. Cover the features that exist then; extend the relevant guides as Phase 2 and later features ship. Refresh the guides before the Phase 2.5 launch.
+
+**Approach:** use `/impeccable onboard` to simplify the journey, `/impeccable clarify` for instructions, and `/impeccable harden` for accessibility and interruptions. Tours must fit the existing native and web app, its design system and its privacy promises. Choose an Expo-compatible implementation during this phase; a browser-only overlay library must not determine the mobile experience.
+
+**Steps**
+
+- **O1. Audit the first-use journey.** Walk through creating a household, joining an existing household, returning to unfinished setup and waiting for a partner. Identify what people need to do now, what can wait and which controls are hard to discover. Define first success as understanding Shared versus Private and being able to log a genuine expense or schedule a bill, without having to learn the whole app first.
+- **O2. Improve the task-based setup wizard.** Keep income/split, allowances, shared costs and payday setup actionable: enter real details, see the result, save and continue. Explain why information is needed beside the field. Separate essential setup from optional details and education; offer “Set up later” where the underlying budget rules allow it. Preserve saved progress, validation, stale-edit protection and the ability to resume from Home or Settings. Missing partner information stays visibly pending. Joining partners review the shared setup and enter their own private details, rather than repeating the creator's work.
+- **O3. Add a short first-visit product tour.** After setup, offer a walkthrough of roughly 3–5 steps covering the household summary, Shared, Private and the expense launcher. Use a spotlight and a short anchored tooltip or accessible instruction sheet to explain one useful action at a time. Show progress such as “Step 2 of 4”, with Back, Next and a clearly visible Skip/Close. Explain that the partner sees allowance totals, not private purchase details. Users can explore immediately without completing the tour.
+- **O4. Teach workflows on the relevant screen.** Offer separate short guides when users first reach Quick-log, scheduled payments, the cash-flow calendar, budget categories and private allowances. Let users tap the actual controls and enter their own details; advance an action step when its expected result occurs, not just when the user taps Next. Opening or advancing a tour never saves an expense, marks a bill paid or changes a budget automatically. Make optional extras such as receipts and foreign currency discoverable at the point of use, rather than adding them all to the first tour. Empty states should explain the next useful action and offer the matching guide.
+- **O5. Make guides optional, resumable and personal.** Provide “Show me around” / “Guides” in Settings or Help, with individual guides users can replay. Persist completion, dismissal and resumable progress per signed-in user and tour version, across restarts and devices, with an offline fallback. Store only guide/step identifiers and status; server-stored progress must be owner-only. One partner's progress never completes or resets the other's. Routine launches and ordinary updates do not restart dismissed tours. A newly shipped feature can offer its own small guide without replaying onboarding.
+- **O6. Build a reusable cross-platform tour system.** Keep translated step content, stable target IDs, route, availability conditions, expected actions and version in a shared tour registry outside route files. Anchor overlays to the actual rendered control and reposition or scroll into view after layout, orientation or keyboard changes. Handle an absent target, loading/error state, offline action, navigation away and app backgrounding by pausing or ending cleanly. Never point to an unavailable feature or cover the control the user is meant to operate. Use the existing tokens and components; keep instructions short, supportive and specific.
+- **O7. Add discovery as features arrive.** Include a small contextual guide and suitable empty-state explanation with joint goals, reconciliation, Money Date and other future workflows. Show guides only when the feature is shipped, enabled and available to that user. Revisit the overall navigation and information hierarchy as the app grows: simplify confusing screens and labels as well as explaining them. Keep advanced and occasional workflows out of the initial tour.
+- **O8. Verify comprehension and accessibility.** Test with people unfamiliar with the app: can they finish setup, explain Shared versus Private, find Quick-log and record an expense without help? Check iOS, Android and web; light/dark; large text, long translations, screen readers, keyboard focus, reduced motion and comfortable touch targets. Overlays must announce their instruction and progress, preserve access to the intended control, and return focus sensibly when closed. Check Skip, Back, replay, interruption, account switching, partner joining and offline recovery. When analytics from step 29 are available, measure setup completion, first successful action and tour drop-off using step identifiers and coarse events, never amounts, notes, income, receipt content or entered field values.
+
+**Done when:** a new user can complete or resume practical setup, enter the app without a compulsory long tour, understand the privacy boundaries, and use short, replayable guides to discover the workflows they need. Tour progress belongs to each partner, unavailable features are never advertised as usable, and guidance works accessibly on iOS, Android and web without performing financial actions on the user's behalf.
+
+---
+
 ## Phase 2: Relationship features ⏳
 
 **Goal:** the features that make this a couples app, not just a budget tracker.
+
+**Build order:** Money Date is the launch feature, so build what it depends on first: 16 (reconciliation), 11 (joint goals), 17 (Money Date), 18 (anti-nag engine), then 12–15.
+
+Each new workflow also adds its contextual guide and empty-state explanation from Phase 1.75; it does not lengthen the initial setup wizard or introduce tour steps for unfinished features.
 
 11. **Joint savings goals.** Target and deadline, proportional monthly targets ("both 100% on track"), progress charts, celebrations. New migration: `goals` and `goal_contributions`, each with a source: scheduled, booster, gift, or variance.
 12. **Leftover Booster.** When a weekly budget line comes in under, the app offers: "We have $40 left in groceries. Add it to Euro Trip 2027?"
@@ -215,6 +304,31 @@ Spending limits appear in the references, but the feature is Phase 3 (step 24). 
 
 ---
 
+## Phase 2.5: Launch ⏳
+
+**Goal:** ship v1 to the stores with Money Date, a clear message, a fair price and an onboarding that works before the partner joins. Steps 26–30 move here from Phase 3, and step 34 from Phase 4.
+
+**Onboarding launch gate:** finish Phase 1.75 and refresh its guides for the features actually shipping, including joint goals and Money Date. Verify both solo setup and the joining partner's journey, with tours that can be skipped, resumed and replayed.
+
+35. **Solo mode.** One partner can set up the household, budget, scheduled payments and logging and get a useful forecast before the other joins. Missing partner data (income, payday) is shown as pending, never guessed. When the partner joins, their own income and private details stay private as today.
+36. **Gift-style invite.** The inviter proposes the partner's private allowance and the shared plan, then sends an invite that reads like a gift ("I set up your private allowance"). The invitee sees what was prepared, confirms or adjusts their allowance on joining, and enters their own income privately. Share via the system share sheet with a deep link that carries the invite code.
+37. **Five-second logging.** Target: launcher tap to saved entry in under 5 seconds for a typical shared or private expense. Remember the last Shared/Private choice and category, put the amount first and keep everything else optional. Measure the time with a PostHog event (step 29) and treat regressions as bugs.
+34. **CSV statement import** (moved from Phase 4). Import a bank statement CSV, map its columns once per bank, and review rows before saving. Matching against manual logs and scheduled payments reuses the rules planned for step 33. Imported private rows stay owner-only.
+26. **Apple and Google sign-in.** Needs developer accounts and a development build.
+27. **Account deletion, data export and leaving a household.** Required by app stores, GDPR and POPIA.
+28. **Subscriptions via RevenueCat.** One plan per couple, valid on every platform. Free: logging, private spaces, splits, scheduled payments and forecast. Paid: Money Date, joint goals and insights. Price at roughly half of Monarch/YNAB (~$100/yr), with regional pricing in launch markets. Either partner can pay; both get access.
+29. **Monitoring.** Sentry and PostHog.
+38. **Messaging.** Use the pitch from **Positioning and launch strategy** in the store listing, onboarding welcome, Home empty state and website. The first store screenshot shows privacy and fairness (Shared vs Private, income-based split). Add an "our monthly money date" screenshot. All copy goes through i18n.
+39. **Website and privacy policy.** A simple landing page with the pitch, a privacy policy and a support contact. Both stores require the privacy policy URL.
+40. **Launch markets.** Choose 1–3 first markets where US apps are weakest (South Africa is the natural first candidate: Stitch, POPIA and local pricing are already in the plan). Localise the store listing, currency defaults and pricing for each. The US comes later.
+30. **App store release.** EAS Build and Submit, privacy labels, store listing. New personal Google Play accounts must run a closed test with 12 testers for 14 days before production, so start it early.
+41. **Legal and compliance.** Complete every item marked "before launch" in the **Legal and compliance checklist** below. The app items (in-app deletion, data export, consent screens, disclaimers) are code work. The rest are business and paperwork tasks.
+42. **Launch plan.** Run the stages and go/no-go gates in [LAUNCH.md](LAUNCH.md): private beta, store closed testing, soft launch in the first market, then expansion.
+
+**Done when:** a couple in a launch market can download the app, set it up solo, invite their partner, log in under 5 seconds, run a Money Date and subscribe once for both of them.
+
+---
+
 ## Phase 3: Polish and growth ⏳
 
 19. **Gamification.** Team streaks for consistent logging, badges for staying under budget, milestone celebrations.
@@ -224,11 +338,8 @@ Spending limits appear in the references, but the feature is Phase 3 (step 24). 
 23. **Shared shopping list.** Create a household grocery list with estimated prices, mark items bought and optionally turn the final list into one categorised transaction.
 24. **Spending limits and gentle alerts.** Set optional category limits and notify the household when a category is approaching its plan, using the app's neutral tone.
 25. **Shared financial snapshot.** Manually track household cash, savings, credit cards and debts before bank feeds arrive, with private accounts remaining private.
-26. **Apple and Google sign-in.** Needs developer accounts and a development build.
-27. **Account deletion, data export and leaving a household.** Required by app stores, GDPR and POPIA.
-28. **Subscriptions via RevenueCat.** One plan per couple, valid on every platform.
-29. **Monitoring.** Sentry and PostHog.
-30. **App store release.** EAS Build and Submit, privacy labels, store listing.
+
+Steps 26–30 moved to Phase 2.5.
 
 ---
 
@@ -237,7 +348,8 @@ Spending limits appear in the references, but the feature is Phase 3 (step 24). 
 31. **Bank-feed adapter interface**, so each provider plugs in the same way.
 32. **Providers by region:** Plaid (US/CA), TrueLayer or GoCardless (UK/EU), Stitch (South Africa).
 33. **Auto-matching.** Imported transactions are matched to manual logs and scheduled payments. Unmatched shared-account transactions feed reconciliation.
-34. **CSV statement import** as a fallback where no bank-feed provider covers the bank.
+
+Step 34 (CSV statement import) moved to Phase 2.5. It remains the fallback where no bank-feed provider covers the bank.
 
 ---
 
@@ -254,6 +366,68 @@ Spending limits appear in the references, but the feature is Phase 3 (step 24). 
 - [ ] Privacy policy, data export, account deletion
 - [ ] Sign in with Apple (required on iOS when other social logins are offered)
 
+## Legal and compliance checklist
+
+Written for a South Africa-first launch (POPIA), with GDPR/UK GDPR in mind for later markets. This is a working checklist, not legal advice: have a South African attorney review the Terms, the Privacy Policy and the business setup before launch.
+
+**Business setup (before launch)**
+
+- [ ] Decide personal or company. Register a (Pty) Ltd with CIPC if possible. Store listings show the seller's legal name, and a company keeps personal liability and your home address separate
+- [ ] Get a D-U-N-S number (free, needed for an Apple organisation account)
+- [ ] Enrol in the Apple Developer Program and Google Play Console as the organisation. Google shows a physical address publicly on monetised apps
+- [ ] Open a business bank account. Complete the tax and banking forms in App Store Connect and the Google Play payments profile
+- [ ] Register with SARS for income tax (provisional tax if trading personally). Track VAT: Apple and Google act as merchant of record and handle VAT for in-app purchases in most countries, but web sales through Stripe make us the seller. Consider leaving web purchases off at launch, or use a merchant-of-record provider (Paddle, Lemon Squeezy) for web
+- [ ] Trademark check for "Couple Goals" in CIPC, WIPO Global Brand Database, USPTO and EUIPO, plus both app stores. It's a common phrase, so confirm we can use it, or rename now while it's cheap. Register the mark in South Africa if it's clear
+- [ ] Register the domain and social handles that match the final name
+
+**POPIA (before launch)**
+
+- [ ] Register the Information Officer with the Information Regulator (by default the CEO or sole director)
+- [ ] Write a POPIA section 51 / PAIA manual and publish it on the website
+- [ ] Record what personal information we process, why, where it's stored and for how long. This covers income, spending, receipts, comments, device tokens and analytics
+- [ ] Retention schedule: closed households, deleted accounts, receipts, logs and backups
+- [ ] Cross-border transfers (POPIA section 72): document the Supabase region and every processor outside South Africa, and make sure each has adequate protection (DPA or standard contractual clauses)
+- [ ] Sign or accept DPAs with Supabase, Expo, Sentry, PostHog and RevenueCat (and Stitch later)
+- [ ] Security safeguards (section 19): RLS privacy tests, encryption in transit and at rest, least-privilege service keys, MFA on all admin accounts, backups (Supabase Pro)
+- [ ] Breach response plan (section 22): who decides, how we notify the Regulator and affected users "as soon as reasonably possible", plus a template notice
+- [ ] Data subject requests: access, correction, deletion and objection handled in-app or by email within a set time
+- [ ] Direct marketing (section 69): marketing emails and push only with opt-in consent, and an unsubscribe in every message
+
+**User-facing documents (before launch)**
+
+- [ ] **Privacy Policy:** plain language, covers both partners and explains exactly what the other partner can and can't see (balances only for private spaces). Linked in both stores, the website, sign-up and Settings
+- [ ] **Terms of Service / EULA:** no financial advice, accuracy of user-entered data, acceptable use, limitation of liability, governing law, how a household is shared, and what happens to shared data when one partner leaves or deletes their account
+- [ ] **Subscription terms:** price, renewal period, auto-renew, how to cancel (through the store), trial terms, and that one subscription covers both partners
+- [ ] **Not financial advice:** forecasts, 50/30/20 insights and budget guidance are informational. Avoid "you should" advice wording so the app stays outside FAIS
+- [ ] **ECTA section 43 disclosures** on the website: legal name, registration number, address, contact details and the Terms
+- [ ] Consent at sign-up: accept the Terms and Privacy Policy (recorded with version and date). Separate opt-ins for marketing and analytics where needed
+- [ ] Open-source and font licences listed in Settings (for example Manrope is under the OFL)
+
+**App store requirements (before launch)**
+
+- [ ] In-app account deletion (Apple guideline 5.1.1(v)), plus a web page for deletion requests (Google Play requirement)
+- [ ] Data export (step 27)
+- [ ] Apple privacy nutrition labels and Google Play Data safety form, matching what Sentry, PostHog and RevenueCat actually collect
+- [ ] iOS privacy manifest covering the app and every SDK
+- [ ] Sign in with Apple if Google sign-in is offered on iOS (step 26)
+- [ ] Age rating questionnaires: set 18+ or 17+, as the app isn't aimed at children
+- [ ] Export compliance: the app uses only standard HTTPS encryption, so set `ITSAppUsesNonExemptEncryption` to false in `app.json`
+- [ ] Subscription screens show price, period and renewal terms before purchase, with Restore Purchases and links to the Terms and Privacy Policy
+- [ ] Notification permission asked in context, with lock-screen privacy (see Global launch checklist)
+- [ ] Review account: a demo household with both partners for Apple and Google reviewers
+
+**Safety (before launch)**
+
+- [ ] Leaving a household is safe for someone in a controlling relationship. Leaving or deleting never notifies the partner with details, and private data is never handed to the remaining partner
+- [ ] A support page with links to financial-abuse resources in each launch market
+
+**Before entering the EU/UK or US (later)**
+
+- [ ] GDPR/UK GDPR: lawful basis for each purpose, an EU and UK representative (Article 27) if there's no establishment there, cookie and analytics consent on web, and the 72-hour breach notification rule
+- [ ] US: state privacy laws (CCPA and others) once over their thresholds. Ask a US attorney whether the FTC Safeguards Rule (GLBA) applies, especially once bank feeds arrive
+- [ ] Bank feeds (Phase 4): provider agreements (Stitch, Plaid, TrueLayer), explicit consent flows, and per-market open-banking rules
+- [ ] Cyber and professional indemnity insurance once revenue starts
+
 ## How we verify each phase
 
 - `npm test`: money and split maths
@@ -263,4 +437,5 @@ Spending limits appear in the references, but the feature is Phase 3 (step 24). 
 - Forecast test: partners with different paydays, a date-window bank payment, a variable bill and an irregular income occurrence
 - Privacy test: partner-visible forecasts and notifications never reveal private payment names, categories, amounts or receipt images
 - From Phase 1.5: a screenshot of each redesigned screen in light and dark mode on a small phone, a large phone and web, compared with `DESIGN.md`
+- From Phase 1.75: first-use and returning-user tests for setup → optional tour → real task, including Skip/Back/replay, per-user progress, missing targets, offline interruption, large text and screen-reader/keyboard operation; tour advancement must never submit a financial change automatically
 - From Phase 2: end-to-end tests (Maestro on mobile, Playwright on web) for onboarding → log → reconcile → Money Date → lock

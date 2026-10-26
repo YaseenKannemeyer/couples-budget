@@ -6,6 +6,8 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { HeroCard, HeroRow } from '@/components/ui/hero-card';
+import { PillActions } from '@/components/ui/pill-actions';
 import { Screen } from '@/components/ui/screen';
 import { SummaryRow } from '@/components/ui/summary-row';
 import { Spacing } from '@/constants/theme';
@@ -71,19 +73,23 @@ function PrivateDesk({ householdId, userId, today, currency, timezone, balance, 
       <ThemedText themeColor="textSecondary">{month}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.privacy')}</ThemedText>
     </View>
-    <Card>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('privateSpace.allowance')}</ThemedText>
-      {ownBalance && !balanceError ? <>
-        <SummaryRow label={t('privateSpace.monthlyAllowance')} value={money(ownBalance.allowance_minor)} />
-        <SummaryRow label={t('privateSpace.spent')} value={money(ownBalance.spent_minor)} />
-        <SummaryRow label={t('privateSpace.remaining')} value={money(ownBalance.remaining_minor)} />
-        {ownBalance.remaining_minor < 0 && <ThemedText themeColor="attention">{t('privateSpace.over', { amount: money(-ownBalance.remaining_minor) })}</ThemedText>}
-        <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.balanceHint')}</ThemedText>
-      </> : <SectionState error={balanceError || (!!balance && !ownBalance)} retry={onRetryBalance} />}
-      <Button title={t('privateSpace.reviewAllowance')} variant="secondary" onPress={() => router.push('/(onboarding)/budget')} />
-    </Card>
+    {ownBalance && !balanceError ? <HeroCard icon="lock" title={t('privateSpace.allowance')}
+      value={money(ownBalance.remaining_minor)} subtitle={t('privateSpace.remaining')}
+      progressLabel={t('design.allowanceUsed')}
+      progressSummary={t('design.allowanceSummary', { spent: money(ownBalance.spent_minor), allowance: money(ownBalance.allowance_minor) })}
+      progress={ownBalance.allowance_minor > 0 ? ownBalance.spent_minor / ownBalance.allowance_minor * 100 : null}
+      warning={ownBalance.remaining_minor < 0 ? t('privateSpace.over', { amount: money(-ownBalance.remaining_minor) }) : undefined}>
+      <HeroRow label={t('privateSpace.monthlyAllowance')} value={money(ownBalance.allowance_minor)} />
+      <HeroRow label={t('privateSpace.spent')} value={money(ownBalance.spent_minor)} />
+      <ThemedText type="small" themeColor="heroSecondary">{t('privateSpace.balanceHint')}</ThemedText>
+    </HeroCard> : <Card><ThemedText type="smallBold">{t('privateSpace.allowance')}</ThemedText>
+      <SectionState error={balanceError || (!!balance && !ownBalance)} retry={onRetryBalance} /></Card>}
+    <PillActions actions={[
+      { label: t('privateSpace.reviewAllowance'), icon: 'lock', onPress: () => router.push('/(onboarding)/budget') },
+      { label: t('privateSpace.addPayment'), icon: 'plus', onPress: () => router.push({ pathname: '/payment', params: { visibility: 'private' } }) },
+    ]} />
     <View style={styles.section}>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('privateSpace.payments')}</ThemedText>
+      <ThemedText type="section" accessibilityRole="header">{t('privateSpace.payments')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.paymentHint')}</ThemedText>
       {schedules && !paymentsError ? <>
         {!pending.length && <ThemedText themeColor="textSecondary">{t('privateSpace.noPayments')}</ThemedText>}
@@ -100,10 +106,9 @@ function PrivateDesk({ householdId, userId, today, currency, timezone, balance, 
         })}
       </> : <SectionState error={paymentsError} retry={onRetryPayments} />}
       <Button title={t('privateSpace.allPayments')} variant="secondary" onPress={() => router.push({ pathname: '/payments', params: { visibility: 'private' } })} />
-      <Button title={t('privateSpace.addPayment')} variant="ghost" onPress={() => router.push({ pathname: '/payment', params: { visibility: 'private' } })} />
     </View>
     <View style={styles.section}>
-      <ThemedText type="smallBold" accessibilityRole="header">{t('privateSpace.spending')}</ThemedText>
+      <ThemedText type="section" accessibilityRole="header">{t('privateSpace.spending')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.spendingHint')}</ThemedText>
       {expenses && !expensesError ? <>
         {!expenses.length && <ThemedText themeColor="textSecondary">{t('privateSpace.noExpenses')}</ThemedText>}
@@ -136,7 +141,7 @@ function SectionState({ error, retry }: { error: boolean; retry: () => unknown }
   </View>;
 }
 const styles = StyleSheet.create({
-  webTabSpacer: { height: Spacing.six },
+  webTabSpacer: { height: 0 },
   section: { gap: Spacing.three },
   entry: { gap: Spacing.two, paddingVertical: Spacing.three, borderBottomWidth: StyleSheet.hairlineWidth },
 });

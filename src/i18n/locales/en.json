@@ -706,5 +706,17 @@
     "adoptRemoval": "Use this version for removal",
     "alreadyRemoved": "This comment was removed elsewhere. You can copy your draft before closing the editor.",
     "removedElsewhere": "This comment was removed elsewhere."
+  },
+  "design": {
+    "categorySummary": "{{label}}: {{value}}. {{details}}",
+    "chartHint": "Arcs show positive net spending by category. Refunds remain included in the totals and category amounts below.",
+    "decreaseAmount": "Decrease amount by {{amount}}",
+    "increaseAmount": "Increase amount by {{amount}}",
+    "forecastChart": "Projected shared balance",
+    "forecastSummary": "Projected shared balances: {{details}}",
+    "monthly": "This month",
+    "amountSpent": "{{amount}} spent",
+    "allowanceUsed": "Monthly allowance used",
+    "allowanceSummary": "{{spent}} spent of {{allowance}} allowance"
   }
 }

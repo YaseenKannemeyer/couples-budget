@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { SummaryRow } from '@/components/ui/summary-row';
 import { Screen } from '@/components/ui/screen';
-import { Spacing } from '@/constants/theme';
 import { useMyHousehold } from '@/features/household/api';
 import { useSession } from '@/hooks/use-session';
 import { supabase } from '@/lib/supabase';
@@ -25,7 +25,7 @@ export default function SettingsScreen() {
       <ThemedText type="subtitle">{t('navigation.settings')}</ThemedText>
 
       <Card>
-        <ThemedText type="smallBold">{t('settings.household')}</ThemedText>
+        <ThemedText type="section" accessibilityRole="header">{t('settings.household')}</ThemedText>
         <Row label={t('settings.name')} value={household.name} />
         <Row label={t('settings.partners')} value={t('common.partners', {
           first: me.displayName,
@@ -40,7 +40,7 @@ export default function SettingsScreen() {
       </Card>
 
       <Card>
-        <ThemedText type="smallBold">{t('settings.account')}</ThemedText>
+        <ThemedText type="section" accessibilityRole="header">{t('settings.account')}</ThemedText>
         <Row label={t('common.email')} value={session?.user.email ?? t('common.unknown')} />
         <Button variant="secondary" title={t('common.signOut')} onPress={() => supabase.auth.signOut()} />
       </Card>
@@ -49,25 +49,11 @@ export default function SettingsScreen() {
 }
 
 function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <ThemedText themeColor="textSecondary">{label}</ThemedText>
-      <ThemedText style={styles.value}>{value}</ThemedText>
-    </View>
-  );
+  return <SummaryRow label={label} value={value} />;
 }
 
 const styles = StyleSheet.create({
   webTabSpacer: {
-    height: Spacing.six,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Spacing.three,
-  },
-  value: {
-    flexShrink: 1,
-    textAlign: 'right',
+    height: 0,
   },
 });
