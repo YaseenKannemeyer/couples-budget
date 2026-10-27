@@ -132,3 +132,27 @@ it('retains a newly saved cost identity when going back to edit it', async () =>
   await fireEvent.press(view.getByRole('button', { name: 'Save and continue' }));
   expect(save).toHaveBeenLastCalledWith({ step: 2, revision: 11, value: [{ id, name: 'Our rent', amountMinor: 150000 }] });
 });
+
+it('lets a joining partner review the saved shared agreement before explicitly changing it', async () => {
+  const view = await show({ ...data, members: [partner, me] });
+  expect(view.getByText('Your partner has started our plan')).toBeTruthy();
+  expect(view.getByRole('radio', { name: 'Equal (50/50)' })).toBeDisabled();
+  await fireEvent.press(view.getByRole('button', { name: 'Change the shared agreement' }));
+  expect(view.getByRole('radio', { name: 'Equal (50/50)' })).toBeEnabled();
+});
+
+it('defers optional paydays without sending a guessed source or discarding saved sources', async () => {
+  const view = await show({ ...data, me: { ...me, budgetSetupStep: 3 }, sources: [
+    { id: '00000000-0000-4000-8000-000000000001', name: 'Saved income', cadence: 'irregular', amountMinor: null, nextPayday: null },
+  ] });
+  await fireEvent.press(view.getByRole('button', { name: 'Set up paydays later' }));
+  expect(save).toHaveBeenLastCalledWith({ step: 'defer', revision: 10 });
+  expect(router.replace).toHaveBeenCalledWith('/');
+});
+
+it('keeps household leftovers pending while a partner has not entered income', async () => {
+  const pending = { ...partner, budgetSetupStep: 0, monthlyIncomeMinor: 0 };
+  const view = await show({ ...data, partner: pending, members: [me, pending], me: { ...me, budgetSetupStep: 2 } });
+  expect(view.getByText('The full household total and leftover will be available after both partners enter their income.')).toBeTruthy();
+  expect(view.queryByText('Left after our plan')).toBeNull();
+});

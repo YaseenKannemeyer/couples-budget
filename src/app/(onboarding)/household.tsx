@@ -9,6 +9,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { TextField } from '@/components/ui/text-field';
 import { Radius, Spacing } from '@/constants/theme';
 import { useCreateHousehold, useJoinHousehold } from '@/features/household/api';
@@ -31,6 +32,7 @@ export default function HouseholdScreen() {
         </ThemedText>
       </View>
 
+      <GuideSlot target="household-start" />
       <ThemedView type="backgroundElement" style={styles.segmented}>
         <Segment label={t('household.start')} selected={path === 'start'} onPress={() => setPath('start')} />
         <Segment label={t('household.joinPartner')} selected={path === 'join'} onPress={() => setPath('join')} />

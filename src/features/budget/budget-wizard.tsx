@@ -35,6 +35,8 @@ export function BudgetWizard({ data, onReload, reloading }: {
   // A draft keeps its input convention if device settings change mid-entry.
   const [locale] = useState(deviceLocale);
   const { household, me } = data;
+  const joining = !me.budgetCompletedAt && data.members[0]?.userId !== me.userId;
+  const [editShared, setEditShared] = useState(!joining);
   const currency = household.baseCurrency;
   const format = useFormatters(household.timezone);
   const edit = (minor: number) => budgetAmountText(minor, currency, locale);
@@ -140,15 +142,29 @@ export function BudgetWizard({ data, onReload, reloading }: {
         <ThemedText themeColor="textSecondary">{t(`budget.${stepDescriptions[step]}`)}</ThemedText>
         <ProgressBar value={(step + 1) / 4 * 100} label={t('budget.progress', { step: step + 1, total: 4 })} />
       </View>
+      {joining && <>
+        <ThemedText type="smallBold">{t('budget.joiningTitle')}</ThemedText>
+        <ThemedText themeColor="textSecondary">{t('budget.joiningHint')}</ThemedText>
+        <Button variant="secondary" title={t(editShared ? 'budget.keepShared' : 'budget.changeShared')} disabled={busy}
+          onPress={() => {
+            if (editShared) {
+              setSplitMode(data.household.splitMode);
+              setAllowances(data.members.map(member => ({ userId: member.userId, name: member.displayName, amount: edit(member.monthlyAllowanceMinor) })));
+              setCosts(data.costs.map(cost => ({ id: cost.id, key: cost.id, name: cost.name, amount: edit(cost.amountMinor) })));
+            }
+            setEditShared(value => !value);
+          }} />
+      </>}
 
       {step === 0 && <>
+        <ThemedText type="small" themeColor="textSecondary">{t('budget.incomeWhy')}</ThemedText>
         <TextField label={t('budget.incomeLabel', { currency })} value={income} onChangeText={setIncome}
           keyboardType="decimal-pad" error={amountError(income)} editable={!busy} />
         <ThemedText type="small" themeColor="textSecondary">{t('budget.incomeVisibility')}</ThemedText>
         <ThemedText type="smallBold">{t('budget.splitTitle')}</ThemedText>
         <View accessibilityRole="radiogroup" accessibilityLabel={t('budget.splitTitle')} style={styles.group}>
           {SPLIT_MODES.map((mode) => <Choice key={mode.mode} label={t(mode.labelKey)} description={t(mode.descriptionKey)}
-            selected={splitMode === mode.mode} disabled={busy} onPress={() => setSplitMode(mode.mode)} />)}
+            selected={splitMode === mode.mode} disabled={busy || !editShared} onPress={() => setSplitMode(mode.mode)} />)}
         </View>
         <Card>
           <ThemedText type="smallBold">{t('budget.ratioTitle')}</ThemedText>
@@ -160,33 +176,35 @@ export function BudgetWizard({ data, onReload, reloading }: {
       </>}
 
       {step === 1 && <>
+        <ThemedText type="small" themeColor="textSecondary">{t('budget.allowanceWhy')}</ThemedText>
         {allowances.map((allowance, index) => <TextField key={allowance.userId}
           label={t('budget.allowanceLabel', { name: allowance.name, currency })}
-          value={allowance.amount} editable={!busy} keyboardType="decimal-pad" error={amountError(allowance.amount)}
+          value={allowance.amount} editable={!busy && editShared} keyboardType="decimal-pad" error={amountError(allowance.amount)}
           onChangeText={(amount) => setAllowances((rows) => rows.map((row, i) => i === index ? { ...row, amount } : row))} />)}
         <Card>
-          <SummaryRow label={t('budget.jointIncome')} value={format.money(incomeTotal, currency)} />
+          <SummaryRow label={t(ratiosReady ? 'budget.jointIncome' : 'budget.partialIncome')} value={format.money(incomeTotal, currency)} />
           <SummaryRow label={t('budget.allowanceTotal')} value={format.money(allowanceTotal, currency)} />
         </Card>
       </>}
 
       {step === 2 && <>
+        <ThemedText type="small" themeColor="textSecondary">{t('budget.costWhy')}</ThemedText>
         {!costs.length && <ThemedText themeColor="textSecondary">{t('budget.emptyCosts')}</ThemedText>}
         {costs.map((cost, index) => <View key={cost.key} style={styles.entry}>
-          <TextField label={t('budget.costName')} value={cost.name} editable={!busy} maxLength={80} error={nameError(cost.name)}
+          <TextField label={t('budget.costName')} value={cost.name} editable={!busy && editShared} maxLength={80} error={nameError(cost.name)}
             onChangeText={(name) => setCosts((rows) => rows.map((row, i) => i === index ? { ...row, name } : row))} />
-          <TextField label={t('budget.costAmount', { currency })} value={cost.amount} editable={!busy}
+          <TextField label={t('budget.costAmount', { currency })} value={cost.amount} editable={!busy && editShared}
             keyboardType="decimal-pad" error={amountError(cost.amount, true)}
             onChangeText={(amount) => setCosts((rows) => rows.map((row, i) => i === index ? { ...row, amount } : row))} />
-          <Button variant="ghost" disabled={busy} title={t('budget.removeCost', { name: cost.name || t('budget.unnamedCost') })}
+          <Button variant="ghost" disabled={busy || !editShared} title={t('budget.removeCost', { name: cost.name || t('budget.unnamedCost') })}
             onPress={() => setCosts((rows) => rows.filter((row) => row.key !== cost.key))} />
         </View>)}
         <View style={styles.suggestions}>
           {(['rent', 'groceries', 'wifi', 'insurance'] as const).map((name) => <Button key={name} variant="secondary"
-            title={t('budget.addStarter', { name: t(`budget.starterCosts.${name}`) })} disabled={busy || costs.length >= 50}
+            title={t('budget.addStarter', { name: t(`budget.starterCosts.${name}`) })} disabled={busy || !editShared || costs.length >= 50}
             onPress={() => setCosts((rows) => [...rows, { key: `new-${++counter.current}`, name: t(`budget.starterCosts.${name}`), amount: '' }])} />)}
         </View>
-        <Button variant="secondary" title={t('budget.addCost')} disabled={busy || costs.length >= 50}
+        <Button variant="secondary" title={t('budget.addCost')} disabled={busy || !editShared || costs.length >= 50}
           onPress={() => setCosts((rows) => [...rows, { key: `new-${++counter.current}`, name: '', amount: '' }])} />
         {costs.length >= 50 && <ThemedText type="small">{t('budget.costLimit')}</ThemedText>}
         <Card>
@@ -194,11 +212,13 @@ export function BudgetWizard({ data, onReload, reloading }: {
           {ratiosReady ? contributions.map((share) => <SummaryRow key={share.id}
             label={t('budget.contribution', { name: data.members.find((member) => member.userId === share.id)!.displayName })}
             value={format.money(share.amountMinor, currency)} />) : <ThemedText themeColor="textSecondary">{t('budget.waitingIncome')}</ThemedText>}
-          <SummaryRow label={t('budget.leftAfterPlan')} value={format.money(remaining, currency)} />
+          {ratiosReady ? <SummaryRow label={t('budget.leftAfterPlan')} value={format.money(remaining, currency)} /> :
+            <ThemedText type="small" themeColor="textSecondary">{t('budget.pendingTotals')}</ThemedText>}
         </Card>
       </>}
 
       {step === 3 && <>
+        <ThemedText themeColor="textSecondary">{t('budget.paydayOptional')}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">{t('budget.paydayPrivacy')}</ThemedText>
         {sources.map((source, index) => {
           function update(patch: Partial<SourceDraft>) {
@@ -237,7 +257,7 @@ export function BudgetWizard({ data, onReload, reloading }: {
         {sources.length >= 10 && <ThemedText type="small">{t('budget.sourceLimit')}</ThemedText>}
       </>}
 
-      {(step === 1 || step === 2) && remaining < 0 && <ThemedText themeColor="attention">{t('budget.overPlan')}</ThemedText>}
+      {(step === 1 || step === 2) && ratiosReady && remaining < 0 && <ThemedText themeColor="attention">{t('budget.overPlan')}</ThemedText>}
       {attempted && !isValid && <ThemedText themeColor="attention" accessibilityRole="alert">{t('budget.checkStep')}</ThemedText>}
       {save.error && <View style={styles.group}>
         <ThemedText themeColor="attention" accessibilityRole="alert">{t(errorTranslationKey(save.error))}</ThemedText>
@@ -247,6 +267,13 @@ export function BudgetWizard({ data, onReload, reloading }: {
         </>}
       </View>}
       <Button title={t(step === 3 ? 'budget.finish' : 'budget.continue')} onPress={next} loading={save.isPending} disabled={reloading} />
+      {step === 3 && <>
+        <Button title={t('budget.deferPaydays')} variant="secondary" disabled={busy} onPress={async () => {
+          try { await save.mutateAsync({ step: 'defer', revision }); router.replace('/'); }
+          catch { /* Preserve the draft and show the same version-aware error below. */ }
+        }} />
+        <ThemedText type="small" themeColor="textSecondary">{t('budget.deferHint')}</ThemedText>
+      </>}
       {step > 0 && <Button title={t('budget.back')} variant="secondary" disabled={busy} onPress={() => {
         // Adopt newly saved line identities before allowing another edit.
         setCosts((draft) => draft.map((cost, index) => {

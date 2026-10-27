@@ -8,8 +8,8 @@ const light = {
   backgroundElement: '#FFFFFF', backgroundSelected: '#EBEDF5', border: '#DCE0EA',
   accent: '#465CF4', accentSoft: '#E9ECFF', onAccent: '#FFFFFF',
   attention: '#9A542F', success: '#267654',
-  hero: '#191B24', heroText: '#FFFFFF', heroSecondary: '#BCC0D2', heroTrack: '#373B4D',
-  heroAccent: '#8291FF', heroAttention: '#F0BA94',
+  hero: '#FFFFFF', heroText: '#191B24', heroSecondary: '#636675', heroTrack: '#EBEDF5',
+  heroAccent: '#465CF4', heroAttention: '#9A542F',
   categoryOrange: '#FFF0DC', categoryBlue: '#E2EEFF', categoryPink: '#FBE5F5', categoryGreen: '#E0F3E9',
   chartOrange: '#C47A24', chartBlue: '#4385E7', chartPink: '#CA5BAD', chartGreen: '#31906B',
   scrim: '#00000070',
@@ -19,8 +19,8 @@ const dark = {
   backgroundElement: '#1C1F2B', backgroundSelected: '#2C3041', border: '#363B4E',
   accent: '#9CA9FF', accentSoft: '#2A3156', onAccent: '#151D47',
   attention: '#F0BA94', success: '#85D8B2',
-  hero: '#202538', heroText: '#FFFFFF', heroSecondary: '#BCC0D2', heroTrack: '#3B425A',
-  heroAccent: '#A2AEFF', heroAttention: '#F0BA94',
+  hero: '#1C1F2B', heroText: '#F2F3FA', heroSecondary: '#ADB2C5', heroTrack: '#2C3041',
+  heroAccent: '#9CA9FF', heroAttention: '#F0BA94',
   categoryOrange: '#453321', categoryBlue: '#253A5A', categoryPink: '#442B40', categoryGreen: '#233F35',
   chartOrange: '#EFB363', chartBlue: '#78AFFF', chartPink: '#EE91D6', chartGreen: '#79CFAD',
   scrim: '#00000090',
@@ -29,9 +29,9 @@ export const Palettes = {
   shared: { light, dark },
   private: {
     light: { ...light, background: '#F7F6FC', accent: '#7050D5', accentSoft: '#EFE8FF',
-      hero: '#242035', heroAccent: '#B59AFF' },
+      hero: '#FFFFFF', heroAccent: '#7050D5' },
     dark: { ...dark, background: '#14121E', accent: '#C5AEFF', onAccent: '#2A194C',
-      accentSoft: '#382B50', hero: '#2C2440', heroAccent: '#C5AEFF' },
+      accentSoft: '#382B50', hero: '#211D30', heroAccent: '#C5AEFF' },
   },
 } as const;
 export type ThemeColor = keyof typeof light;
@@ -47,12 +47,12 @@ export const Type = {
   caption: { fontSize: 13, lineHeight: 19 },
   small: { fontSize: 14, lineHeight: 21 },
   body: { fontSize: 16, lineHeight: 24 },
-  section: { fontSize: 20, lineHeight: 28 },
-  title: { fontSize: 30, lineHeight: 38 },
-  display: { fontSize: 38, lineHeight: 48 },
+  section: { fontSize: 18, lineHeight: 26 },
+  title: { fontSize: 28, lineHeight: 36 },
+  display: { fontSize: 34, lineHeight: 42 },
 } as const;
 export const Spacing = { half: 2, one: 4, two: 8, three: 16, four: 24, five: 32, six: 64 } as const;
-export const Radius = { small: 12, medium: 18, large: 28, pill: 999 } as const;
+export const Radius = { small: 10, medium: 12, large: 16, pill: 12 } as const;
 export const Motion = { feedback: 120, change: 220, chart: 480 } as const;
 export const Elevation = { card: { boxShadow: '0px 4px 16px #141B3810' } } as const;
 export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 80 }) ?? 0;

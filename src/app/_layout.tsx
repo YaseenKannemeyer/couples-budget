@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Palettes, Spacing } from '@/constants/theme';
 import { useMyHousehold } from '@/features/household/api';
 import { QuickLogLauncher } from '@/features/quick-log/launcher';
+import { GuidesProvider } from '@/features/guides/provider';
 import { useQuickLogSync } from '@/features/quick-log/queue';
 import { usePaymentReminderSync } from '@/features/payments/reminders';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -47,9 +48,11 @@ export default function RootLayout() {
     <LocalizationProvider>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
+          <GuidesProvider>
           <ThemeProvider value={navigationTheme}>
             <RootNavigator />
           </ThemeProvider>
+          </GuidesProvider>
         </SessionProvider>
       </QueryClientProvider>
     </LocalizationProvider>
@@ -109,6 +112,7 @@ function RootNavigator() {
         <Stack.Screen name="payment-paid" />
         <Stack.Screen name="payment-history" />
         <Stack.Screen name="categories" />
+        <Stack.Screen name="guides" />
         <Stack.Screen name="category" />
         <Stack.Screen name="cash-flow" />
         <Stack.Screen name="cash-flow-setup" />

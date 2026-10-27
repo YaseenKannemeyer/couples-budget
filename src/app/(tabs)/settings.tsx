@@ -37,6 +37,7 @@ export default function SettingsScreen() {
         <Button title={t(me.budgetCompletedAt ? 'budget.review' : 'budget.resume')}
           variant="secondary" onPress={() => router.push('/budget')} />
         <Button title={t('categories.manage')} variant="secondary" onPress={() => router.push('/categories')} />
+        <Button title={t('guides.title')} variant="secondary" onPress={() => router.push('/guides')} />
       </Card>
 
       <Card>

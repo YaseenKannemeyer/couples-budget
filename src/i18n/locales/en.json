@@ -41,7 +41,7 @@
     "join": "Join household"
   },
   "home": {
-    "greeting": "Hi {{name}} 👋",
+    "greeting": "Hi {{name}}",
     "connected": "You're connected 💚",
     "connectedDescription": "You and {{name}} now share this space. Anything either of you logs to the Shared Bucket shows up for both of you straight away.",
     "comingNext": "Coming next",
@@ -231,7 +231,21 @@
     "partnerPending": "Your part is saved. Your partner still needs to finish their own setup.",
     "summaryDescription": "These are planned monthly amounts. Spending and scheduled payments will be tracked separately.",
     "savedNotice": "Our budget setup is saved.",
-    "cadenceLabel": "Pay frequency for {{name}}"
+    "cadenceLabel": "Pay frequency for {{name}}",
+    "joiningTitle": "Your partner has started our plan",
+    "joiningHint": "Review the shared agreement, then add your own income and payday details. Shared changes affect both partners; private income sources stay yours.",
+    "sharedReview": "Review the saved shared plan",
+    "changeShared": "Change the shared agreement",
+    "keepShared": "Keep the saved agreement",
+    "incomeWhy": "Your monthly total helps calculate a fair share. You can enter zero if you currently have no income.",
+    "allowanceWhy": "This is the amount each person can spend privately each month. Zero is allowed; you can agree a new amount later.",
+    "costWhy": "Add monthly amounts you already know. These are budget plans, not scheduled bills or logged expenses. You can continue with no cost lines and add them later.",
+    "paydayOptional": "Optional: paydays make the forecast more useful. You can set them up later without guessing an amount or date.",
+    "deferPaydays": "Set up paydays later",
+    "deferHint": "This keeps any saved income sources. The forecast will still show missing income until you add it.",
+    "partialIncome": "Income entered so far",
+    "pendingTotals": "The full household total and leftover will be available after both partners enter their income.",
+    "firstSuccess": "You can start with one real expense or an upcoming bill. Setup and guides can wait."
   },
   "payments": {
     "title": "Payments",
@@ -530,7 +544,7 @@
     "noPlan": "No shared monthly plan yet. Add our costs to see what remains.",
     "budgetHint": "Net logged spending this month, including refunds. Scheduled bills and goal reservations appear in the cash-flow forecast.",
     "allowances": "A little room for each of us",
-    "allowancePrivacy": "Remaining monthly allowances only. Private purchases and individual income details stay private. Balances refresh while Home is open.",
+    "allowancePrivacy": "Allowance totals are shared. Private purchases stay private.",
     "unavailable": "Not available",
     "sharedOnly": "Shared payments in the next 90 days, plus unpaid earlier commitments. Open All payments for your private bills.",
     "noPayments": "No pending shared payments in this forecast.",
@@ -628,7 +642,7 @@
     "assign": "Assign planned costs",
     "emptyCategories": "Add a shared category to organise our spending.",
     "uncategorised": "Spending without an available category",
-    "actualHint": "Spending includes shared expenses and refunds dated this month, through today in our household timezone.",
+    "actualHint": "Logged shared expenses and refunds for this month. Future entries count on their date.",
     "futureHint": "Future-dated expenses are excluded until their date arrives.",
     "paymentHint": "The next unpaid cycle per shared schedule, within 90 days, including overdue bills and cash-flow corrections. Expected bills do not count as spent until an expense is logged.",
     "loadError": "We couldn’t refresh our shared budget. Try again to see current totals.",
@@ -718,5 +732,123 @@
     "amountSpent": "{{amount}} spent",
     "allowanceUsed": "Monthly allowance used",
     "allowanceSummary": "{{spent}} spent of {{allowance}} allowance"
+  },
+  "guides": {
+    "title": "Guides",
+    "description": "Short walkthroughs using your own household. Skip, close or replay any guide. Financial changes always need your own action.",
+    "progress": "Step {{step}} of {{total}}",
+    "show": "Start guide: {{name}}",
+    "resume": "Resume: {{name}}",
+    "replay": "Replay: {{name}}",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Finish guide",
+    "skip": "Skip guide",
+    "close": "Close",
+    "noThanks": "No thanks",
+    "useControl": "Use this screen’s controls to complete the step.",
+    "settings": "Back to Settings",
+    "localError": "Guide progress could not be saved on this device. You can continue; try saving again from Guides in Settings.",
+    "syncError": "Guide progress has not synced. Local progress stays on this device; retry from Guides in Settings when connected.",
+    "status": {
+      "in_progress": "Ready to resume",
+      "paused": "Paused",
+      "dismissed": "Skipped",
+      "completed": "Completed"
+    },
+    "firstVisit": {
+      "title": "Show me around",
+      "description": "Find Shared, Private and your first expense in four short steps.",
+      "homeTitle": "Our month at a glance",
+      "homeBody": "See this month’s shared spending against the plan. Income stays provisional until both partners enter it.",
+      "sharedTitle": "The money we manage together",
+      "sharedBody": "Our plan, spending and remaining budget, by category. Both partners can review shared expenses.",
+      "privateTitle": "A space of your own",
+      "privateBody": "Your purchases, categories and receipts stay private. Only allowance totals are shared.",
+      "logTitle": "Ready for a real expense",
+      "logBody": "Use Log expense below to open the form. Choose Shared or Private before entering a real expense."
+    },
+    "quickLog": {
+      "title": "Log an expense",
+      "description": "Choose who can see an expense, then save it with an amount and category.",
+      "spaceTitle": "Choose who can see it",
+      "spaceBody": "Shared entries are visible to both partners. Private entries are visible only to you; your partner sees your allowance total. Choose a space below.",
+      "saveTitle": "Log what actually happened",
+      "saveBody": "Enter an amount and category, then Save expense. Open More details for a bill link, note, receipt or foreign currency. Offline saves stay queued until connected.",
+      "resumeBody": "Choose Shared or Private again to reopen the form and continue this guide. Your guide progress is saved; unsaved expense form values are not.",
+      "changeBody": "To choose a space again, use Start again in another space at the end of this form. Changing spaces clears unsaved form values. The guide never changes visibility for you."
+    },
+    "payments": {
+      "title": "Schedule a bill",
+      "description": "Set an exact date or a payment window, with an optional amount for variable bills.",
+      "listTitle": "Know what is coming",
+      "listBody": "Scheduled bills are commitments, not logged spending. Shared bills are visible to both partners; private bills stay with their owner. Next opens a new, unsaved bill.",
+      "createTitle": "Add a real upcoming bill",
+      "createBody": "Choose visibility, payer, category and an exact date or date window. Leave the amount blank for a variable bill. Use Save payment when ready; this guide never saves or marks a bill paid for you."
+    },
+    "cashflow": {
+      "title": "Read the cash-flow calendar",
+      "description": "Distinguish confirmed money from expected money, then explore a day.",
+      "forecastTitle": "A forecast needs a starting balance",
+      "forecastBody": "The forecast combines your shared closing balance, approved income contributions, bills and plans. Missing information stays unknown. Set a closing balance separately if needed; a forecast is an estimate.",
+      "calendarTitle": "Explore a day",
+      "calendarBody": "Select a date in the calendar below to see its items. Confirmed and expected amounts are labelled. Correcting a forecast item does not change its original schedule."
+    },
+    "categories": {
+      "title": "Organise categories",
+      "description": "Keep shared labels and your own private labels separate.",
+      "spacesTitle": "Labels belong to a space",
+      "spacesBody": "Shared categories are editable by both partners. Private category names remain yours. Categories also use needs, wants or savings for reporting. Next opens a new, unsaved category.",
+      "createTitle": "Create a useful category",
+      "createBody": "Choose Shared or Private, enter a name and select a reporting bucket. Save when ready. This creates a label only; it does not move or log money."
+    },
+    "budgetCategories": {
+      "title": "Assign planned costs",
+      "description": "Connect monthly cost lines to categories without changing their amounts.",
+      "planTitle": "Give each cost a home",
+      "planBody": "A category plan comes from the monthly cost lines assigned to it. Unassigned costs still count in our total plan. If there are no costs yet, add them in budget setup first.",
+      "assignTitle": "Save one assignment",
+      "assignBody": "Choose a category for a cost below and save the assignment. No money moves. If a partner changes the plan first, reload explicitly and review the latest version before trying again.",
+      "emptyTitle": "Add a planned cost first",
+      "emptyBody": "There are no monthly cost lines to assign yet. Open budget setup below and save a cost, then return here and resume this guide. No category assignment is available until a cost exists."
+    },
+    "privateAllowance": {
+      "title": "Understand my allowance",
+      "description": "See what your allowance means and what stays private.",
+      "balanceTitle": "Your allowance is for your month",
+      "balanceBody": "Remaining is your monthly allowance minus your logged private spending. Refunds reduce spending. Unpaid private bills are shown separately and do not reduce it until an expense is logged.",
+      "privacyTitle": "Your purchases stay yours",
+      "privacyBody": "Your partner receives allowance totals only, never private purchase details or receipt photos. Use All my private spending to review your entries. Review allowance opens the shared budget agreement; no changes happen just by opening it."
+    },
+    "closed": "Guide closed. You can continue using this screen.",
+    "welcome": {
+      "title": "Welcome to Couple Goals",
+      "description": "A quick introduction to our shared and private spaces.",
+      "spacesTitle": "Shared money. A space of your own.",
+      "spacesBody": "Shared expenses belong to both of you. Private purchases stay yours; your partner sees only your allowance totals.",
+      "connectTitle": "Start together, or start on your own",
+      "connectBody": "Create a household or join with your partner’s code below. You can set up the budget now and invite your partner later."
+    }
+  },
+  "phase18": {
+    "details": "More details",
+    "hideDetails": "Hide details",
+    "spendingBreakdown": "Spending breakdown",
+    "forecastChart": "Show forecast chart",
+    "quickLogDetails": "Payer, bill link, note, receipt and foreign currency",
+    "categorySearch": "Search categories",
+    "noCategories": "No matching categories. Your current selection is unchanged.",
+    "sharedChoice": "For our shared budget",
+    "privateChoice": "Only my allowance",
+    "lastUsed": "Last used: {{space}}",
+    "today": "Today",
+    "saveHint": "Saved on this device first. Sync status appears after saving.",
+    "payerDate": "Paid by {{name}} · {{date}}",
+    "linkedBill": "Linked bill: {{name}}",
+    "screenGuide": "Show me how",
+    "resumeGuide": "Resume guide",
+    "budgetSettings": "Budget settings",
+    "balanceDetails": "How this balance works",
+    "totalsDetails": "How totals work"
   }
 }

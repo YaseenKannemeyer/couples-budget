@@ -1,3 +1,5 @@
+import { GuideSlot } from '@/features/guides/guide-slot';
+import { useGuideAction } from '@/features/guides/context';
 import { useLocales } from 'expo-localization';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -67,6 +69,7 @@ export function PaymentEditor({ initial, household, me, members, workspace, relo
   const [reminder, setReminder] = useState<number | null>(initial ? initial.reminderDaysBefore : 1);
   const [attempted, setAttempted] = useState(false);
   const action = usePaymentAction(household.id);
+  const guideAction = useGuideAction();
   const value = { name, expectedAmountMinor: amount.trim() ? parseBudgetAmount(amount, household.baseCurrency, locale) ?? Number.NaN : null,
     payerId: visibility === 'private' ? me.userId : payerId, visibility, categoryId, note: note.trim() || null,
     recurrence, dateMode: window ? 'window' : 'exact', dueStart: start, dueEnd: window ? end : start, reminderDaysBefore: reminder };
@@ -79,12 +82,14 @@ export function PaymentEditor({ initial, household, me, members, workspace, relo
     if (!parsed.success || action.isPending) return;
     try {
       await action.mutateAsync({ kind: 'save', id: baseline?.id ?? null, version: baseline?.version ?? null, value: parsed.data });
+      if (!baseline) guideAction('payment-saved');
       router.replace('/payments');
     } catch { /* The mutation error is rendered below. */ }
   }
 
   return <SpaceContext value={visibility === 'private' ? 'private' : 'shared'}><Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t(baseline ? 'payments.edit' : 'payments.new')}</ThemedText>
+    {!baseline && <GuideSlot target="payment-form" />}
     {prefill && <ThemedText themeColor="textSecondary">{t('quickLog.scheduleHint')}</ThemedText>}
     <Choices label={t('payments.visibility')}>
       {(['shared', 'private'] as const).map((space) => <Choice key={space} label={t(`payments.${space}`)} selected={visibility === space}

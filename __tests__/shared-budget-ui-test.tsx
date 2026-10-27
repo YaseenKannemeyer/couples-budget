@@ -21,7 +21,7 @@ beforeEach(() => jest.clearAllMocks());
 it('shows category remaining, the household month and upcoming shared payment windows', async () => {
   const view = await show();
   expect(view.getByText('October 2026')).toBeTruthy();
-  expect(view.getByRole('header', { name: 'Utilities' })).toBeTruthy(); expect(view.getAllByText('$75.00')).toHaveLength(3);
+  expect(view.getByRole('header', { name: 'Utilities' })).toBeTruthy(); expect(view.getAllByText('$75.00')).toHaveLength(2);
   expect(view.getByText('Unpaid · Due soon')).toBeTruthy();
   await fireEvent.press(view.getByRole('button', { name: 'Review Internet' }));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/payment-detail', params: { id: cashflow.payments[0].id } });
@@ -31,6 +31,7 @@ it('keeps unassigned costs visible and opens the allocation page', async () => {
   expect(view.getByText('Plan still to assign')).toBeTruthy();
   expect(view.getByText('Our internet')).toBeTruthy();
   expect(view.getByText('No plan assigned to this category yet.')).toBeTruthy();
+  await fireEvent.press(view.getByRole('button', { name: 'Budget settings' }));
   await fireEvent.press(view.getByRole('button', { name: 'Assign planned costs' }));
   expect(router.push).toHaveBeenCalledWith('/budget-categories');
 });

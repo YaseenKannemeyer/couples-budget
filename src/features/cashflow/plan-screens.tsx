@@ -1,3 +1,4 @@
+import { useGuideAction } from '@/features/guides/context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,6 +52,7 @@ function Setup(props:Props){
 }
 export function BudgetLink({data,householdId,currency,timezone,budget,onSaved,onReload,unassignedLabel}:{budget:Workspace['budgets'][number];onSaved?:()=>void;onReload?:()=>void;unassignedLabel?:string}&Props){
   const {t}=useTranslation(); const {money}=useFlowMoney(currency,timezone);const save=useCashflowAction(householdId);
+  const guideAction = useGuideAction();
   const [initial]=useState(budget);const [category,setCategory]=useState(budget.category_id);
   return <Card>
     <ThemedText type="smallBold">{budget.name} · {money(budget.amount_minor)}</ThemedText>
@@ -61,7 +63,7 @@ export function BudgetLink({data,householdId,currency,timezone,budget,onSaved,on
     <FlowError error={save.error} onReload={onReload} reloadLabel={onReload?t('categories.reload'):undefined}/>
     <Button title={t('cashflow.saveLink')} variant="secondary" loading={save.isPending} disabled={category===initial.category_id}
       onPress={()=>save.mutate({kind:'plan',type:'budget',id:budget.id,version:initial.version,values:category?{categoryId:category}:null},
-        {onSuccess:()=>onSaved?onSaved():router.replace('/cash-flow')})}/>
+        {onSuccess:()=>{guideAction('budget-linked');return onSaved?onSaved():router.replace('/cash-flow');}})}/>
   </Card>;
 }
 export function ForecastGoalScreen(){

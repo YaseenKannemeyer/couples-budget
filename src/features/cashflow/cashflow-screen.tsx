@@ -1,3 +1,6 @@
+import { Disclosure } from '@/components/ui/disclosure';
+import { GuideSlot } from '@/features/guides/guide-slot';
+import { useGuideAction } from '@/features/guides/context';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -24,6 +27,7 @@ export function CashflowScreen() {
     refreshing={query.isFetching} onRefresh={()=>query.refetch()}/>;
 }
 export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefresh}:{data:Workspace;currency:string;timezone:string;refreshing?:boolean;onRefresh:()=>unknown}) {
+  const guideAction = useGuideAction();
   const {t}=useTranslation(); const {money}=useFlowMoney(currency,timezone); const locale=useLocales()[0]?.languageTag??'en';
   const [calendarWidth,setCalendarWidth]=useState(336);
   const [selected,setSelected]=useState(data.today); const month=selected.slice(0,7);
@@ -53,6 +57,7 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
   return <Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('cashflow.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('cashflow.description',{timezone})}</ThemedText>
+    <GuideSlot target="cashflow-summary" offer="cashflow" />
     {result.confirmed === null ? <Card><ThemedText>{t('cashflow.needBalance')}</ThemedText></Card> : <HeroCard
       title={t('cashflow.confirmedBalance')} value={money(result.confirmed)} icon="wallet"
       warning={result.low ? t('cashflow.lowWarning',{amount:money(result.beforePayday!)}) : undefined}>
@@ -61,14 +66,15 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
     </HeroCard>}
     <ThemedText type="small" themeColor="textSecondary">{t('cashflow.estimateHint')}</ThemedText>
     <Button variant="secondary" title={t('cashflow.setup')} onPress={()=>router.push('/cash-flow-setup')} />
-    {result.confirmed !== null && <Card>
+    {result.confirmed !== null && <Disclosure title={t('phase18.forecastChart')}>
       <ThemedText type="section" accessibilityRole="header">{t('design.forecastChart')}</ThemedText>
       <PeriodBarChart items={chartItems} activeId={data.today} reference={result.confirmed}
         referenceLabel={t('cashflow.confirmedBalance')}
         summary={t('design.forecastSummary',{details:chartItems.map(item=>`${item.label}: ${item.value}`).join('; ')})} />
-    </Card>}
+    </Disclosure>}
     {result.gaps.filter(g=>g!=='balance').map(g=><ThemedText key={g} themeColor="attention">{t(`cashflow.gaps.${g}`)}</ThemedText>)}
     <Button title={t('cashflow.myIncome')} variant="secondary" onPress={()=>router.push('/income')}/>
+    <GuideSlot target="cashflow-calendar" />
     <View style={styles.monthNav}>
       <Button title={t('cashflow.previous')} variant="ghost" disabled={month<=data.today.slice(0,7)} onPress={()=>setSelected(`${nextMonth(month,-1)}-01`)}/>
       <ThemedText type="smallBold">{new Intl.DateTimeFormat(locale,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${month}-15T12:00:00Z`))}</ThemedText>
@@ -88,7 +94,7 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
         const date=`${month}-${String(index+1).padStart(2,'0')}`;
         const number=result.items.filter(i=>i.on===date&&!i.dismissed).length;
         return <Pressable key={date} style={styles.cell} accessibilityRole="button" accessibilityLabel={`${formatCalendarDate(date,locale)} · ${t('cashflow.itemCount',{count:number})}`}
-          accessibilityState={{selected:date===selected,disabled:date>result.horizon}} disabled={date>result.horizon} onPress={()=>setSelected(date)}>
+          accessibilityState={{selected:date===selected,disabled:date>result.horizon}} disabled={date>result.horizon} onPress={()=>{setSelected(date);guideAction('day-selected');}}>
           <ThemedView type={date===selected?'backgroundSelected':'backgroundElement'} style={styles.day}>
             <ThemedText type="smallBold" themeColor={date===selected?'accent':'text'}>{new Intl.NumberFormat(locale).format(index+1)}</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">{number?new Intl.NumberFormat(locale).format(number):'–'}</ThemedText>

@@ -1,3 +1,5 @@
+import { StyleSheet, View } from 'react-native';
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -8,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { useFormatters } from '@/hooks/use-formatters';
-import { SpaceContext } from '@/hooks/use-theme';
+import { SpaceContext, useTheme } from '@/hooks/use-theme';
 
 import { dueState, useHouseholdToday } from './dates';
 import { useDevicePaymentReminders } from './reminders';
@@ -19,6 +21,7 @@ export function PaymentsScreen() {
   const { visibility: routeVisibility } = useLocalSearchParams<{ visibility?: string }>();
   const [visibility, setVisibility] = useState<'all' | 'shared' | 'private'>(routeVisibility === 'private' || routeVisibility === 'shared' ? routeVisibility : 'all');
   const { t } = useTranslation();
+  const theme = useTheme();
   const { household, workspace } = usePaymentData();
   const locale = useLocales()[0]?.languageTag ?? 'en';
   const format = useFormatters(household?.household.timezone);
@@ -41,6 +44,7 @@ export function PaymentsScreen() {
   return <SpaceContext value={visibility === 'private' ? 'private' : 'shared'}><Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('payments.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('payments.description')}</ThemedText>
+    <GuideSlot target="payments-list" offer="payments" />
     <Button title={t('payments.add')} onPress={() => router.push({ pathname: '/payment', params: { visibility: visibility === 'private' ? 'private' : 'shared' } })} />
     <Button title={t('payments.history')} variant="secondary" onPress={() => router.push('/payment-history')} />
     <Choices label={t('payments.visibility')}>
@@ -51,7 +55,7 @@ export function PaymentsScreen() {
         label={t(`payments.${value}`)} selected={status === value} onPress={() => setStatus(value)} />)}
     </Choices>
     {!schedules.length && <ThemedText themeColor="textSecondary">{t('payments.empty')}</ThemedText>}
-    {schedules.map((schedule) => <SpaceContext key={schedule.id} value={schedule.visibility === 'private' ? 'private' : 'shared'}><Card>
+    {schedules.map((schedule) => <SpaceContext key={schedule.id} value={schedule.visibility === 'private' ? 'private' : 'shared'}><View style={{gap:8,paddingVertical:16,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:theme.border}}>
       <ThemedText type="smallBold">{schedule.name}</ThemedText>
       <ThemedText themeColor="textSecondary">{t(`payments.${schedule.visibility}`)} · {t(`payments.${schedule.recurrence}`)}</ThemedText>
       <ThemedText>{dueLabel(schedule, locale)}</ThemedText>
@@ -70,7 +74,7 @@ export function PaymentsScreen() {
           {t(schedule.paidThisMonth ? 'payments.paidThisMonth' : 'payments.unpaidThisMonth')}
         </ThemedText>}
       <Button title={t('payments.view')} variant="secondary" onPress={() => router.push({ pathname: '/payment-detail', params: { id: schedule.id } })} />
-    </Card></SpaceContext>)}
+    </View></SpaceContext>)}
     <Card>
       <ThemedText type="smallBold">{t('payments.reminder')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t(reminders.available ? 'payments.reminderDeviceHint' : 'payments.reminderWeb')}</ThemedText>

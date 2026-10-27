@@ -1,3 +1,4 @@
+import { GuideContext } from '@/features/guides/context';
 import { fireEvent, render } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { useCashflowAction } from '@/features/cashflow/api';
@@ -78,4 +79,23 @@ it('keeps a selected allocation and its captured version through background fail
   expect(view.getByRole('radio', { name: 'Utilities' }).props.accessibilityState.checked).toBe(true);
   await fireEvent.press(view.getByRole('button', { name: 'Save category link' }));
   expect(mutate.mock.calls[0][0].version).toBe(3);
+});
+
+it('shows a setup recovery guide instead of an unavailable assignment when no costs exist', async () => {
+  const register = jest.fn(() => jest.fn());
+  jest.mocked(useFlowData).mockReturnValue({ household: { household, me, partner: null, members: [me] },
+    query: { data: { ...data, budgets: [] }, isError: false, refetch: jest.fn() } } as unknown as ReturnType<typeof useFlowData>);
+  const context = {
+    active: 'budget-categories', path: '/budget-categories', ready: true, localError: false, syncError: false,
+    rows: { 'budget-categories': { guide_id: 'budget-categories', guide_version: 1, step_id: 'assign', status: 'in_progress' as const,
+      revision: 1, request_id: '00000000-0000-4000-8000-000000000001', pending: false } },
+    start: jest.fn(), close: jest.fn(), dismiss: jest.fn(), move: jest.fn(), signal: jest.fn(), retry: jest.fn(), register,
+  };
+  const view = await render(<LocalizationProvider><GuideContext value={context}><BudgetCategoriesScreen /></GuideContext></LocalizationProvider>);
+  expect(view.getByText('Add a planned cost first')).toBeTruthy();
+  expect(view.queryByRole('button', { name: 'Save category link' })).toBeNull();
+  expect(register).toHaveBeenCalledWith('budget-categories-empty');
+  expect(register).not.toHaveBeenCalledWith('budget-categories');
+  await fireEvent.press(view.getByRole('button', { name: 'Review our budget' }));
+  expect(router.push).toHaveBeenCalledWith('/(onboarding)/budget');
 });

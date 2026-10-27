@@ -52,7 +52,8 @@ type StepInput =
   | { step: 0; value: z.input<typeof incomeInput> }
   | { step: 1; value: z.input<typeof allowancesInput> }
   | { step: 2; value: z.input<typeof costsInput> }
-  | { step: 3; value: z.input<typeof sourcesInput> };
+  | { step: 3; value: z.input<typeof sourcesInput> }
+  | { step: 'defer' };
 
 export function useSaveBudgetStep(householdId: string) {
   const queryClient = useQueryClient();
@@ -61,6 +62,9 @@ export function useSaveBudgetStep(householdId: string) {
       const params = { p_household_id: householdId, p_revision: input.revision };
       let result;
       switch (input.step) {
+        case 'defer':
+          result = await supabase.rpc('defer_budget_paydays', params);
+          break;
         case 0: {
           const income = incomeInput.parse(input.value);
           result = await supabase.rpc('save_budget_income', {

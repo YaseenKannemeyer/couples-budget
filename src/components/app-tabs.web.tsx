@@ -47,7 +47,8 @@ export default function AppTabs() {
 export function TabButton({ children, isFocused, icon, ref: _ref, ...props }: TabTriggerSlotProps & { icon: IconName }) {
   const theme = useTheme();
   return (
-    <Pressable {...props} style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
+    <Pressable {...props} accessibilityRole="tab" accessibilityState={{ selected: !!isFocused }}
+      style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
@@ -62,9 +63,10 @@ export function TabButton({ children, isFocused, icon, ref: _ref, ...props }: Ta
 
 export function CustomTabList(props: TabListProps) {
   const { width, fontScale } = useWindowDimensions();
+  const desktop = width / fontScale >= 900;
   return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
+    <View {...props} style={[styles.tabListContainer, desktop && styles.desktop]}>
+      <ThemedView type="backgroundElement" style={[styles.innerContainer, desktop && styles.desktopInner]}>
         {width / fontScale >= 600 && <ThemedText type="smallBold" themeColor="accent" style={styles.brandText}>
           {APP_NAME}
         </ThemedText>}
@@ -86,9 +88,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   innerContainer: {
-    paddingVertical: Spacing.two,
+    paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.two,
-    borderRadius: Radius.large,
+    borderRadius: Radius.medium,
     flexDirection: 'row',
     alignItems: 'center',
     flexGrow: 1,
@@ -98,6 +100,8 @@ const styles = StyleSheet.create({
   brandText: {
     marginRight: 'auto',
   },
+  desktop: { top: 0, bottom: 'auto', minHeight: 72, padding: 0 },
+  desktopInner: { maxWidth: '100%', borderRadius: 0, paddingHorizontal: Spacing.four, gap: Spacing.three },
   pressed: {
     opacity: 0.7,
   },

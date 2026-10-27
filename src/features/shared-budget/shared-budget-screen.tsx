@@ -1,3 +1,5 @@
+import { Disclosure } from '@/components/ui/disclosure';
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
@@ -6,11 +8,10 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { HeroCard, HeroRow } from '@/components/ui/hero-card';
 import { CategoryRow } from '@/components/ui/category-row';
 import { PillActions } from '@/components/ui/pill-actions';
-import { SpendDonut, MiniGauge } from '@/components/ui/charts';
+import { SpendDonut } from '@/components/ui/charts';
 import { Screen } from '@/components/ui/screen';
 import { SummaryRow } from '@/components/ui/summary-row';
 import { Spacing } from '@/constants/theme';
@@ -68,6 +69,7 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
       </ThemedText>
       {failed && <Button title={t('common.tryAgain')} onPress={onRefresh} />}
     </View> : <>
+      <GuideSlot target="shared-summary" />
       <HeroCard title={t('dashboard.spent')} value={money(result.spent)}
         progress={result.hasPlan && result.plan > 0 ? result.spent / result.plan * 100 : null}
         progressLabel={t('dashboard.progress')}
@@ -78,12 +80,12 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
       </HeroCard>
       <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.actualHint')}</ThemedText>
       {result.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.futureHint')}</ThemedText>}
-      <PillActions actions={[
+      <Disclosure title={t('phase18.budgetSettings')}><PillActions actions={[
         { label: t('budget.review'), icon: 'bill', onPress: () => router.push('/(onboarding)/budget') },
         { label: t('sharedBudget.assign'), icon: 'chart', onPress: () => router.push('/budget-categories') },
         { label: t('categories.manage'), icon: 'settings', onPress: () => router.push('/categories') },
-      ]} />
-      <Card>
+      ]} /></Disclosure>
+      <Disclosure title={t('phase18.spendingBreakdown')}>
         <ThemedText type="section" accessibilityRole="header">{t('sharedBudget.categories')}</ThemedText>
         <SpendDonut label={t('dashboard.spent')} value={money(result.spent)}
           segments={result.rows.map(row => ({ id: row.category.id, label: categoryLabel(row.category), amount: row.spent }))
@@ -91,15 +93,8 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
           summary={t('design.categorySummary', { label: t('sharedBudget.categories'), value: money(result.spent),
             details: result.rows.map(row => `${categoryLabel(row.category)}: ${money(row.spent)}`)
               .concat(result.uncategorisedCount ? [`${t('sharedBudget.uncategorised')}: ${money(result.uncategorisedSpent)}`] : []).join('; ') })} />
-        {result.hasPlan && <View style={styles.gauges}>
-          <MiniGauge label={t('sharedBudget.plan')} value={money(result.plan)} summary={`${t('sharedBudget.plan')}: ${money(result.plan)}`} />
-          <MiniGauge label={t('sharedBudget.spent')} value={money(result.spent)} ratio={result.plan > 0 ? result.spent / result.plan : null}
-            summary={t('dashboard.spentOfPlan', { spent: money(result.spent), plan: money(result.plan) })} />
-          <MiniGauge label={t('sharedBudget.remaining')} value={money(result.remaining)} ratio={result.plan > 0 ? result.remaining / result.plan : null}
-            summary={`${t('sharedBudget.remaining')}: ${money(result.remaining)}`} />
-        </View>}
         <ThemedText type="small" themeColor="textSecondary">{t('design.chartHint')}</ThemedText>
-      </Card>
+      </Disclosure>
 
       <View style={styles.section}>
         <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.categoryHint')}</ThemedText>

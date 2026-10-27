@@ -1,3 +1,5 @@
+import { GuideSlot } from '@/features/guides/guide-slot';
+import { useGuideAction } from '@/features/guides/context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +49,7 @@ export function CategoryEditor({ householdId, userId, categories, initial, initi
   const [archiving, setArchiving] = useState(false);
   const [replacementId, setReplacementId] = useState('');
   const action = useCategoryAction(householdId);
+  const guideAction = useGuideAction();
   const parsed = categoryInput.safeParse({ name, emoji: emoji.trim() || null, bucket, visibility: space });
   const replacements = baseline ? replacementCategories(categories, baseline, userId) : [];
 
@@ -55,6 +58,7 @@ export function CategoryEditor({ householdId, userId, categories, initial, initi
     if (!parsed.success || action.isPending) return;
     try {
       await action.mutateAsync({ kind: 'save', id: baseline?.id ?? null, version: baseline?.version ?? null, value: parsed.data });
+      if (!baseline) guideAction('category-saved');
       router.replace({ pathname: '/categories', params: { visibility: space } });
     } catch { /* The translated mutation error stays on screen. */ }
   }
@@ -74,6 +78,7 @@ export function CategoryEditor({ householdId, userId, categories, initial, initi
 
   return <SpaceContext value={space}><Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t(baseline ? 'categories.edit' : 'categories.add')}</ThemedText>
+    {!baseline && <GuideSlot target="category-form" />}
     <Choices label={t('payments.visibility')}>
       {(['shared', 'private'] as const).map((value) => <Choice key={value} label={t(`payments.${value}`)} selected={space === value}
         disabled={action.isPending || !!baseline} onPress={() => setSpace(value)} />)}

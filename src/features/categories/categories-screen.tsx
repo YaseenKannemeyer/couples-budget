@@ -1,3 +1,4 @@
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +38,7 @@ export function CategoriesView({ householdId, categories, reload, initialVisibil
   return <SpaceContext value={space}><Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('categories.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('categories.description')}</ThemedText>
+    <GuideSlot target="categories-list" offer="categories" />
     <Choices label={t('payments.visibility')}>
       {(['shared', 'private'] as const).map((value) => <Choice key={value} label={t(`payments.${value}`)} selected={space === value}
         disabled={action.isPending} onPress={() => setSpace(value)} />)}

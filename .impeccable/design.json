@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-26T12:18:04.359Z",
+  "generatedAt": "2026-10-26T18:29:56.414289Z",
   "title": "Design System: Couple Goals",
   "extensions": {
     "colorMeta": {
@@ -50,14 +50,14 @@
         "role": "neutral",
         "displayName": "Shared Light Background Element",
         "tonalRamp": [
-          "oklch(15% 0.0000 89.88)",
-          "oklch(26% 0.0000 89.88)",
-          "oklch(38% 0.0000 89.88)",
-          "oklch(49% 0.0000 89.88)",
-          "oklch(61% 0.0000 89.88)",
-          "oklch(72% 0.0000 89.88)",
-          "oklch(84% 0.0000 89.88)",
-          "oklch(95% 0.0000 89.88)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
       "shared-light-background-selected": {
@@ -120,14 +120,14 @@
         "role": "primary",
         "displayName": "Shared Light On Accent",
         "tonalRamp": [
-          "oklch(15% 0.0000 89.88)",
-          "oklch(26% 0.0000 89.88)",
-          "oklch(38% 0.0000 89.88)",
-          "oklch(49% 0.0000 89.88)",
-          "oklch(61% 0.0000 89.88)",
-          "oklch(72% 0.0000 89.88)",
-          "oklch(84% 0.0000 89.88)",
-          "oklch(95% 0.0000 89.88)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
       "shared-light-attention": {
@@ -162,6 +162,20 @@
         "role": "neutral",
         "displayName": "Shared Light Hero",
         "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "shared-light-hero-text": {
+        "role": "neutral",
+        "displayName": "Shared Light Hero Text",
+        "tonalRamp": [
           "oklch(15% 0.0178 275.08)",
           "oklch(26% 0.0178 275.08)",
           "oklch(38% 0.0178 275.08)",
@@ -172,74 +186,60 @@
           "oklch(95% 0.0178 275.08)"
         ]
       },
-      "shared-light-hero-text": {
-        "role": "neutral",
-        "displayName": "Shared Light Hero Text",
-        "tonalRamp": [
-          "oklch(15% 0.0000 89.88)",
-          "oklch(26% 0.0000 89.88)",
-          "oklch(38% 0.0000 89.88)",
-          "oklch(49% 0.0000 89.88)",
-          "oklch(61% 0.0000 89.88)",
-          "oklch(72% 0.0000 89.88)",
-          "oklch(84% 0.0000 89.88)",
-          "oklch(95% 0.0000 89.88)"
-        ]
-      },
       "shared-light-hero-secondary": {
         "role": "neutral",
         "displayName": "Shared Light Hero Secondary",
         "tonalRamp": [
-          "oklch(15% 0.0256 275.83)",
-          "oklch(26% 0.0256 275.83)",
-          "oklch(38% 0.0256 275.83)",
-          "oklch(49% 0.0256 275.83)",
-          "oklch(61% 0.0256 275.83)",
-          "oklch(72% 0.0256 275.83)",
-          "oklch(84% 0.0256 275.83)",
-          "oklch(95% 0.0256 275.83)"
+          "oklch(15% 0.0239 276.57)",
+          "oklch(26% 0.0239 276.57)",
+          "oklch(38% 0.0239 276.57)",
+          "oklch(49% 0.0239 276.57)",
+          "oklch(61% 0.0239 276.57)",
+          "oklch(72% 0.0239 276.57)",
+          "oklch(84% 0.0239 276.57)",
+          "oklch(95% 0.0239 276.57)"
         ]
       },
       "shared-light-hero-track": {
         "role": "neutral",
         "displayName": "Shared Light Hero Track",
         "tonalRamp": [
-          "oklch(15% 0.0317 274.92)",
-          "oklch(26% 0.0317 274.92)",
-          "oklch(38% 0.0317 274.92)",
-          "oklch(49% 0.0317 274.92)",
-          "oklch(61% 0.0317 274.92)",
-          "oklch(72% 0.0317 274.92)",
-          "oklch(84% 0.0317 274.92)",
-          "oklch(95% 0.0317 274.92)"
+          "oklch(15% 0.0109 274.89)",
+          "oklch(26% 0.0109 274.89)",
+          "oklch(38% 0.0109 274.89)",
+          "oklch(49% 0.0109 274.89)",
+          "oklch(61% 0.0109 274.89)",
+          "oklch(72% 0.0109 274.89)",
+          "oklch(84% 0.0109 274.89)",
+          "oklch(95% 0.0109 274.89)"
         ]
       },
       "shared-light-hero-accent": {
         "role": "primary",
         "displayName": "Shared Light Hero Accent",
         "tonalRamp": [
-          "oklch(15% 0.1612 275.53)",
-          "oklch(26% 0.1612 275.53)",
-          "oklch(38% 0.1612 275.53)",
-          "oklch(49% 0.1612 275.53)",
-          "oklch(61% 0.1612 275.53)",
-          "oklch(72% 0.1612 275.53)",
-          "oklch(84% 0.1612 275.53)",
-          "oklch(95% 0.1612 275.53)"
+          "oklch(15% 0.2266 270.59)",
+          "oklch(26% 0.2266 270.59)",
+          "oklch(38% 0.2266 270.59)",
+          "oklch(49% 0.2266 270.59)",
+          "oklch(61% 0.2266 270.59)",
+          "oklch(72% 0.2266 270.59)",
+          "oklch(84% 0.2266 270.59)",
+          "oklch(95% 0.2266 270.59)"
         ]
       },
       "shared-light-hero-attention": {
         "role": "secondary",
         "displayName": "Shared Light Hero Attention",
         "tonalRamp": [
-          "oklch(15% 0.0806 56.47)",
-          "oklch(26% 0.0806 56.47)",
-          "oklch(38% 0.0806 56.47)",
-          "oklch(49% 0.0806 56.47)",
-          "oklch(61% 0.0806 56.47)",
-          "oklch(72% 0.0806 56.47)",
-          "oklch(84% 0.0806 56.47)",
-          "oklch(95% 0.0806 56.47)"
+          "oklch(15% 0.1060 47.08)",
+          "oklch(26% 0.1060 47.08)",
+          "oklch(38% 0.1060 47.08)",
+          "oklch(49% 0.1060 47.08)",
+          "oklch(61% 0.1060 47.08)",
+          "oklch(72% 0.1060 47.08)",
+          "oklch(84% 0.1060 47.08)",
+          "oklch(95% 0.1060 47.08)"
         ]
       },
       "shared-light-category-orange": {
@@ -526,70 +526,70 @@
         "role": "neutral",
         "displayName": "Shared Dark Hero",
         "tonalRamp": [
-          "oklch(15% 0.0363 272.45)",
-          "oklch(26% 0.0363 272.45)",
-          "oklch(38% 0.0363 272.45)",
-          "oklch(49% 0.0363 272.45)",
-          "oklch(61% 0.0363 272.45)",
-          "oklch(72% 0.0363 272.45)",
-          "oklch(84% 0.0363 272.45)",
-          "oklch(95% 0.0363 272.45)"
+          "oklch(15% 0.0234 273.63)",
+          "oklch(26% 0.0234 273.63)",
+          "oklch(38% 0.0234 273.63)",
+          "oklch(49% 0.0234 273.63)",
+          "oklch(61% 0.0234 273.63)",
+          "oklch(72% 0.0234 273.63)",
+          "oklch(84% 0.0234 273.63)",
+          "oklch(95% 0.0234 273.63)"
         ]
       },
       "shared-dark-hero-text": {
         "role": "neutral",
         "displayName": "Shared Dark Hero Text",
         "tonalRamp": [
-          "oklch(15% 0.0000 89.88)",
-          "oklch(26% 0.0000 89.88)",
-          "oklch(38% 0.0000 89.88)",
-          "oklch(49% 0.0000 89.88)",
-          "oklch(61% 0.0000 89.88)",
-          "oklch(72% 0.0000 89.88)",
-          "oklch(84% 0.0000 89.88)",
-          "oklch(95% 0.0000 89.88)"
+          "oklch(15% 0.0094 279.69)",
+          "oklch(26% 0.0094 279.69)",
+          "oklch(38% 0.0094 279.69)",
+          "oklch(49% 0.0094 279.69)",
+          "oklch(61% 0.0094 279.69)",
+          "oklch(72% 0.0094 279.69)",
+          "oklch(84% 0.0094 279.69)",
+          "oklch(95% 0.0094 279.69)"
         ]
       },
       "shared-dark-hero-secondary": {
         "role": "neutral",
         "displayName": "Shared Dark Hero Secondary",
         "tonalRamp": [
-          "oklch(15% 0.0256 275.83)",
-          "oklch(26% 0.0256 275.83)",
-          "oklch(38% 0.0256 275.83)",
-          "oklch(49% 0.0256 275.83)",
-          "oklch(61% 0.0256 275.83)",
-          "oklch(72% 0.0256 275.83)",
-          "oklch(84% 0.0256 275.83)",
-          "oklch(95% 0.0256 275.83)"
+          "oklch(15% 0.0276 274.00)",
+          "oklch(26% 0.0276 274.00)",
+          "oklch(38% 0.0276 274.00)",
+          "oklch(49% 0.0276 274.00)",
+          "oklch(61% 0.0276 274.00)",
+          "oklch(72% 0.0276 274.00)",
+          "oklch(84% 0.0276 274.00)",
+          "oklch(95% 0.0276 274.00)"
         ]
       },
       "shared-dark-hero-track": {
         "role": "neutral",
         "displayName": "Shared Dark Hero Track",
         "tonalRamp": [
-          "oklch(15% 0.0421 271.73)",
-          "oklch(26% 0.0421 271.73)",
-          "oklch(38% 0.0421 271.73)",
-          "oklch(49% 0.0421 271.73)",
-          "oklch(61% 0.0421 271.73)",
-          "oklch(72% 0.0421 271.73)",
-          "oklch(84% 0.0421 271.73)",
-          "oklch(95% 0.0421 271.73)"
+          "oklch(15% 0.0310 274.20)",
+          "oklch(26% 0.0310 274.20)",
+          "oklch(38% 0.0310 274.20)",
+          "oklch(49% 0.0310 274.20)",
+          "oklch(61% 0.0310 274.20)",
+          "oklch(72% 0.0310 274.20)",
+          "oklch(84% 0.0310 274.20)",
+          "oklch(95% 0.0310 274.20)"
         ]
       },
       "shared-dark-hero-accent": {
         "role": "primary",
         "displayName": "Shared Dark Hero Accent",
         "tonalRamp": [
-          "oklch(15% 0.1166 276.86)",
-          "oklch(26% 0.1166 276.86)",
-          "oklch(38% 0.1166 276.86)",
-          "oklch(49% 0.1166 276.86)",
-          "oklch(61% 0.1166 276.86)",
-          "oklch(72% 0.1166 276.86)",
-          "oklch(84% 0.1166 276.86)",
-          "oklch(95% 0.1166 276.86)"
+          "oklch(15% 0.1243 276.46)",
+          "oklch(26% 0.1243 276.46)",
+          "oklch(38% 0.1243 276.46)",
+          "oklch(49% 0.1243 276.46)",
+          "oklch(61% 0.1243 276.46)",
+          "oklch(72% 0.1243 276.46)",
+          "oklch(84% 0.1243 276.46)",
+          "oklch(95% 0.1243 276.46)"
         ]
       },
       "shared-dark-hero-attention": {
@@ -778,28 +778,28 @@
         "role": "neutral",
         "displayName": "Private Light Hero",
         "tonalRamp": [
-          "oklch(15% 0.0392 292.17)",
-          "oklch(26% 0.0392 292.17)",
-          "oklch(38% 0.0392 292.17)",
-          "oklch(49% 0.0392 292.17)",
-          "oklch(61% 0.0392 292.17)",
-          "oklch(72% 0.0392 292.17)",
-          "oklch(84% 0.0392 292.17)",
-          "oklch(95% 0.0392 292.17)"
+          "oklch(15% 0.0000 0.00)",
+          "oklch(26% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
         ]
       },
       "private-light-hero-accent": {
         "role": "primary",
         "displayName": "Private Light Hero Accent",
         "tonalRamp": [
-          "oklch(15% 0.1441 294.99)",
-          "oklch(26% 0.1441 294.99)",
-          "oklch(38% 0.1441 294.99)",
-          "oklch(49% 0.1441 294.99)",
-          "oklch(61% 0.1441 294.99)",
-          "oklch(72% 0.1441 294.99)",
-          "oklch(84% 0.1441 294.99)",
-          "oklch(95% 0.1441 294.99)"
+          "oklch(15% 0.1945 289.27)",
+          "oklch(26% 0.1945 289.27)",
+          "oklch(38% 0.1945 289.27)",
+          "oklch(49% 0.1945 289.27)",
+          "oklch(61% 0.1945 289.27)",
+          "oklch(72% 0.1945 289.27)",
+          "oklch(84% 0.1945 289.27)",
+          "oklch(95% 0.1945 289.27)"
         ]
       },
       "private-dark-background": {
@@ -862,14 +862,14 @@
         "role": "neutral",
         "displayName": "Private Dark Hero",
         "tonalRamp": [
-          "oklch(15% 0.0512 296.12)",
-          "oklch(26% 0.0512 296.12)",
-          "oklch(38% 0.0512 296.12)",
-          "oklch(49% 0.0512 296.12)",
-          "oklch(61% 0.0512 296.12)",
-          "oklch(72% 0.0512 296.12)",
-          "oklch(84% 0.0512 296.12)",
-          "oklch(95% 0.0512 296.12)"
+          "oklch(15% 0.0360 293.22)",
+          "oklch(26% 0.0360 293.22)",
+          "oklch(38% 0.0360 293.22)",
+          "oklch(49% 0.0360 293.22)",
+          "oklch(61% 0.0360 293.22)",
+          "oklch(72% 0.0360 293.22)",
+          "oklch(84% 0.0360 293.22)",
+          "oklch(95% 0.0360 293.22)"
         ]
       },
       "private-dark-hero-accent": {
@@ -962,6 +962,10 @@
       {
         "name": "bar-chart-full-row-legend",
         "value": "600px"
+      },
+      {
+        "name": "web-desktop-navigation-effective-width",
+        "value": "900px"
       }
     ]
   },
@@ -972,7 +976,7 @@
       "refersTo": "button-primary",
       "description": "Shared light appearance; loading/disabled native behavior is documented in DESIGN.md.",
       "html": "<button class=\"ds-button\">Continue</button>",
-      "css": ".ds-button{border:0;border-radius:999px;min-height:50px;padding:8px 16px;font:600 15px/21px system-ui,sans-serif;cursor:pointer}.ds-button:hover{opacity:.9}.ds-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.ds-button:active{opacity:.78;transform:scale(.985)}.ds-button:disabled{opacity:.55;cursor:default}.ds-button:disabled:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-button:active{transform:none}}.ds-button{background:#465CF4;color:#FFFFFF}"
+      "css": ".ds-button{border:0;border-radius:12px;min-height:50px;padding:8px 16px;font:600 15px/21px system-ui,sans-serif;cursor:pointer}.ds-button:hover{opacity:.9}.ds-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.ds-button:active{opacity:.78;transform:scale(.985)}.ds-button:disabled{opacity:.55;cursor:default}.ds-button:disabled:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-button:active{transform:none}}.ds-button{background:#465CF4;color:#FFFFFF}"
     },
     {
       "name": "Secondary Button",
@@ -980,7 +984,7 @@
       "refersTo": "button-secondary",
       "description": "Shared light appearance; loading/disabled native behavior is documented in DESIGN.md.",
       "html": "<button class=\"ds-button\">Continue</button>",
-      "css": ".ds-button{border:0;border-radius:999px;min-height:50px;padding:8px 16px;font:600 15px/21px system-ui,sans-serif;cursor:pointer}.ds-button:hover{opacity:.9}.ds-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.ds-button:active{opacity:.78;transform:scale(.985)}.ds-button:disabled{opacity:.55;cursor:default}.ds-button:disabled:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-button:active{transform:none}}.ds-button{background:#E9ECFF;color:#465CF4}"
+      "css": ".ds-button{border:0;border-radius:12px;min-height:50px;padding:8px 16px;font:600 15px/21px system-ui,sans-serif;cursor:pointer}.ds-button:hover{opacity:.9}.ds-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.ds-button:active{opacity:.78;transform:scale(.985)}.ds-button:disabled{opacity:.55;cursor:default}.ds-button:disabled:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-button:active{transform:none}}.ds-button{background:#E9ECFF;color:#465CF4}"
     },
     {
       "name": "Ghost Button",
@@ -988,7 +992,7 @@
       "refersTo": "button-ghost",
       "description": "Shared light appearance; loading/disabled native behavior is documented in DESIGN.md.",
       "html": "<button class=\"ds-button\">Continue</button>",
-      "css": ".ds-button{border:0;border-radius:999px;min-height:50px;padding:8px 16px;font:600 15px/21px system-ui,sans-serif;cursor:pointer}.ds-button:hover{opacity:.9}.ds-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.ds-button:active{opacity:.78;transform:scale(.985)}.ds-button:disabled{opacity:.55;cursor:default}.ds-button:disabled:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-button:active{transform:none}}.ds-button{background:transparent;color:#636675}"
+      "css": ".ds-button{border:0;border-radius:12px;min-height:50px;padding:8px 16px;font:600 15px/21px system-ui,sans-serif;cursor:pointer}.ds-button:hover{opacity:.9}.ds-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.ds-button:active{opacity:.78;transform:scale(.985)}.ds-button:disabled{opacity:.55;cursor:default}.ds-button:disabled:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-button:active{transform:none}}.ds-button{background:transparent;color:#636675}"
     },
     {
       "name": "Text Field",
@@ -996,7 +1000,7 @@
       "refersTo": "field",
       "description": "Labelled field with real helper text; browser focus is retained.",
       "html": "<label class=\"ds-field\">Description<input class=\"ds-input\" placeholder=\"Description\"><span class=\"ds-hint\">Add a short description.</span></label>",
-      "css": ".ds-field{display:grid;gap:4px;font:600 14px/21px system-ui,sans-serif;color:#191B24}.ds-input{min-height:56px;padding:16px;border:1px solid #DCE0EA;border-radius:12px;background:#FFFFFF;color:#191B24;font:400 16px system-ui,sans-serif}.ds-input::placeholder{color:#636675}.ds-input:hover{border-color:#636675}.ds-input:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-hint{font-weight:400;color:#636675}"
+      "css": ".ds-field{display:grid;gap:4px;font:600 14px/21px system-ui,sans-serif;color:#191B24}.ds-input{min-height:50px;padding:12px 16px;border:1px solid #DCE0EA;border-radius:10px;background:#FFFFFF;color:#191B24;font:400 16px system-ui,sans-serif}.ds-input::placeholder{color:#636675}.ds-input:hover{border-color:#636675}.ds-input:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-hint{font-weight:400;color:#636675}"
     },
     {
       "name": "Selected Choice",
@@ -1004,7 +1008,7 @@
       "refersTo": "choice-selected",
       "description": "A selected radio choice within the wrapping Choices group.",
       "html": "<div class=\"ds-choices\" role=\"radiogroup\" aria-label=\"Space\"><button class=\"ds-choice\" role=\"radio\" aria-checked=\"true\">Shared</button><button class=\"ds-choice ds-choice-idle\" role=\"radio\" aria-checked=\"false\">Private</button></div>",
-      "css": ".ds-choices{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:18px;background:#EBEDF5}.ds-choice{flex:1;min-height:48px;padding:8px 16px;border:1px solid #DCE0EA;border-radius:12px;background:#FFFFFF;color:#465CF4;font:600 14px/21px system-ui,sans-serif}.ds-choice-idle{background:transparent;color:#636675;border-color:transparent}.ds-choice:hover{opacity:.9}.ds-choice:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-choice:active{opacity:.72}"
+      "css": ".ds-choices{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:12px;background:#EBEDF5}.ds-choice{flex:1;min-height:48px;padding:8px 16px;border:1px solid #DCE0EA;border-radius:10px;background:#FFFFFF;color:#465CF4;font:600 14px/21px system-ui,sans-serif}.ds-choice-idle{background:transparent;color:#636675;border-color:transparent}.ds-choice:hover{opacity:.9}.ds-choice:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-choice:active{opacity:.72}"
     },
     {
       "name": "Card",
@@ -1012,46 +1016,45 @@
       "refersTo": "card",
       "description": "Flat related-content surface without an automatic shadow.",
       "html": "<section class=\"ds-card\"><h2 class=\"ds-card-title\">Categories</h2><p class=\"ds-card-copy\">Your shared monthly plan.</p></section>",
-      "css": ".ds-card{display:grid;gap:16px;border-radius:28px;background:#FFFFFF;padding:24px;color:#191B24}.ds-card-title{margin:0;font:600 20px/28px system-ui,sans-serif;letter-spacing:-.3px}.ds-card-copy{margin:0;color:#636675;font:400 16px/24px system-ui,sans-serif}"
+      "css": ".ds-card{display:grid;gap:8px;border-radius:16px;background:#FFFFFF;padding:16px;color:#191B24}.ds-card-title{margin:0;font:600 18px/26px system-ui,sans-serif;letter-spacing:-.3px}.ds-card-copy{margin:0;color:#636675;font:400 16px/24px system-ui,sans-serif}"
     },
     {
       "name": "Web Tab Navigation",
       "kind": "nav",
       "refersTo": "web-tabs",
-      "description": "Web translation of the existing bottom tabs; native tabs remain platform-rendered.",
+      "description": "Shared light navigation: desktop top bar at effective width 900; narrower web retains bottom tabs. The CSS preview media query assumes font scale 1; native tabs remain platform-rendered.",
       "html": "<nav class=\"ds-nav\" aria-label=\"Main\"><button class=\"ds-tab ds-tab-active\" aria-current=\"page\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" aria-hidden=\"true\"><path d=\"m3 10 9-7 9 7m-16-1v12h5v-7h4v7h5V9\"/></svg>Home</button><button class=\"ds-tab\">Shared Budget</button><button class=\"ds-tab\">Private Space</button><button class=\"ds-tab\">Settings</button></nav>",
-      "css": ".ds-nav{display:flex;gap:4px;max-width:760px;padding:8px;border-radius:28px;background:#FFFFFF}.ds-tab{display:flex;flex:1;min-width:0;min-height:56px;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:4px 8px;border:0;border-radius:16px;background:#FFFFFF;color:#636675;font:600 12px/21px system-ui,sans-serif}.ds-tab-active{background:#EBEDF5;color:#465CF4}.ds-tab:hover{opacity:.9}.ds-tab:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-tab:active{opacity:.7}"
+      "css": ".ds-nav{display:flex;gap:4px;max-width:760px;padding:4px 8px;border-radius:12px;background:#FFFFFF}.ds-tab{display:flex;flex:1;min-width:0;min-height:56px;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:4px 8px;border:0;border-radius:16px;background:#FFFFFF;color:#636675;font:600 12px/21px system-ui,sans-serif}.ds-tab-active{background:#EBEDF5;color:#465CF4}.ds-tab:hover{opacity:.9}.ds-tab:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-tab:active{opacity:.7}@media(min-width:900px){.ds-nav{max-width:none;padding:4px 24px;gap:16px;border-radius:0}}"
     },
     {
-      "name": "Financial Hero",
+      "name": "Financial Summary",
       "kind": "custom",
       "refersTo": "hero-card",
-      "description": "Shared light financial summary with unavailable preview values; no invented balance.",
-      "html": "<section class=\"ds-hero\"><h2 class=\"ds-hero-label\">Monthly spending</h2><p class=\"ds-hero-amount\">—</p><p class=\"ds-hero-copy\">Spent</p><div class=\"ds-hero-row\"><span>Planned</span><strong>—</strong></div></section>",
-      "css": ".ds-hero{display:grid;gap:16px;padding:24px;border-radius:28px;background:#191B24;color:#FFFFFF}.ds-hero-label{margin:0;font:600 14px/21px system-ui,sans-serif}.ds-hero-amount{margin:0;font:700 38px/48px Manrope,system-ui,sans-serif;letter-spacing:-1px;font-variant-numeric:tabular-nums}.ds-hero-copy{margin:0;color:#BCC0D2;font:400 14px/21px system-ui,sans-serif}.ds-hero-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;color:#BCC0D2;font:400 14px/21px system-ui,sans-serif}.ds-hero-row strong{color:#FFFFFF;font-weight:600}"
+      "description": "Shared light appearance uses a white surface and normal ink; the summary follows dark appearance when resolved there. Unavailable preview values are not a household balance.",
+      "html": "<section class=\"ds-hero\"><h2 class=\"ds-hero-label\">Monthly spending</h2><p class=\"ds-hero-amount\">\u2014</p><p class=\"ds-hero-copy\">Spent</p><div class=\"ds-hero-row\"><span>Planned</span><strong>\u2014</strong></div></section>",
+      "css": ".ds-hero{display:grid;gap:8px;padding:16px;border-radius:16px;background:#FFFFFF;color:#191B24}.ds-hero-label{margin:0;font:600 14px/21px system-ui,sans-serif}.ds-hero-amount{margin:0;font:700 34px/42px Manrope,system-ui,sans-serif;letter-spacing:-1px;font-variant-numeric:tabular-nums}.ds-hero-copy{margin:0;color:#636675;font:400 14px/21px system-ui,sans-serif}.ds-hero-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;color:#636675;font:400 14px/21px system-ui,sans-serif}.ds-hero-row strong{color:#191B24;font-weight:600}"
     },
     {
       "name": "Category Row",
       "kind": "custom",
       "refersTo": "category-tile-orange",
       "description": "Decorative stable-hue tile with wrapping label and signed amount slot.",
-      "html": "<div class=\"ds-category\"><span class=\"ds-category-tile\" aria-hidden=\"true\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M12 3v9h9M9 4a9 9 0 1 0 11 11M15 3a9 9 0 0 1 6 6h-6V3Z\"/></svg></span><span class=\"ds-category-name\">Category</span><strong class=\"ds-category-amount\">—</strong></div>",
-      "css": ".ds-category{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid #DCE0EA;color:#191B24;font:600 14px/21px system-ui,sans-serif}.ds-category-tile{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#FFF0DC;color:#C47A24}.ds-category-name{flex:1 1 100px}.ds-category-amount{font-variant-numeric:tabular-nums}"
+      "html": "<div class=\"ds-category\"><span class=\"ds-category-tile\" aria-hidden=\"true\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M12 3v9h9M9 4a9 9 0 1 0 11 11M15 3a9 9 0 0 1 6 6h-6V3Z\"/></svg></span><span class=\"ds-category-name\">Category</span><strong class=\"ds-category-amount\">\u2014</strong></div>",
+      "css": ".ds-category{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid #DCE0EA;color:#191B24;font:600 14px/21px system-ui,sans-serif}.ds-category-tile{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:#FFF0DC;color:#C47A24}.ds-category-name{flex:1 1 100px}.ds-category-amount{font-variant-numeric:tabular-nums}"
     },
     {
-      "name": "Progress Track",
+      "name": "Progressive Detail",
       "kind": "custom",
-      "refersTo": "progress-track",
-      "description": "Empty preview track; real usage supplies bounded progress and an accessible money summary.",
-      "html": "<div class=\"ds-progress\" role=\"progressbar\" aria-label=\"Monthly spending\" aria-valuetext=\"Preview; no household data\"><span class=\"ds-progress-fill\"></span></div>",
-      "css": ".ds-progress{height:9px;overflow:hidden;border-radius:999px;background:#EBEDF5}.ds-progress-fill{display:block;width:0;height:100%;border-radius:999px;background:#465CF4}"
+      "description": "An in-flow detail group; browser details preserves descendant input state when collapsed, corresponding to mounted Disclosure children.",
+      "html": "<details class=\"ds-details\"><summary class=\"ds-disclosure\">More details</summary><div class=\"ds-detail-content\"><label>Note<input class=\"ds-note\" placeholder=\"Optional note\"></label></div></details>",
+      "css": ".ds-details{color:#191B24;font:400 14px/21px system-ui,sans-serif}.ds-disclosure{min-height:48px;display:flex;align-items:center;padding:8px 0;border-top:1px solid #DCE0EA;color:#465CF4;font-weight:600;cursor:pointer}.ds-disclosure:hover{opacity:.9}.ds-disclosure:active{opacity:.7}.ds-disclosure:focus-visible,.ds-note:focus-visible{outline:2px solid #465CF4;outline-offset:2px}.ds-detail-content{display:grid;gap:16px;padding-top:8px}.ds-note{display:block;min-height:50px;padding:12px 16px;border:1px solid #DCE0EA;border-radius:10px;color:#191B24;background:#FFFFFF;font:400 16px system-ui,sans-serif}"
     }
   ],
   "narrative": {
     "northStar": "Shared clarity, private confidence",
-    "overview": "Couple Goals places clear financial summaries on cool, quiet surfaces. Rounded white cards, a near-black spending hero, indigo progress and small category color tiles follow the five confirmed finance references in `inspo/`. Private keeps the same structure with a violet accent and dark violet hero. Familiar system body text supports quick logging; Manrope makes headings and real amounts distinct.\n\nThis is a scan of the Phase 1.5 implementation, derived from `src/constants/theme.ts`, `src/components/ui/`, navigation and current screens. It records the implemented world, not future product features. Native device checks are unavailable; this document does not mark Phase 1.5 fully verified.",
+    "overview": "Couple Goals places clear financial summaries and compact rows on a calm canvas. Financial summaries follow the current appearance: white in light mode and near-black in dark mode, with normal readable ink. Shared indigo and Private violet identify the space without dominating it. Familiar system body text supports quick logging; bundled Manrope distinguishes headings and real amounts.\n\nThis scan records the user-approved Phase 1.8 simplification from `src/constants/theme.ts`, `src/components/ui/`, navigation and current screens. It supersedes the Phase 1.5 large inverted spending-card direction, including the historical surface brief. Reuse the quieter native-scale hierarchy, fewer independent containers and progressive detail. Synthetic browser evidence is available; native runtime, live two-person behavior and new-user comprehension acceptance remain pending. No task-time or performance measurements have been made.",
     "keyCharacteristics": [
-      "Cool surfaces with a dark financial anchor.",
+      "Calm surfaces, compact rows and one prominent financial summary per task.",
       "Shared indigo and Private violet, reinforced with labels and privacy copy.",
       "Readable numbers, wrapping rows and restrained motion.",
       "Real data and recoverable states before decoration."
@@ -1076,11 +1079,13 @@
     "dos": [
       "Do resolve palette roles from both the current space and system appearance.",
       "Do retain visible labels, signed amounts, chart summaries and numbered category markers.",
+      "Do group related rows once and disclose occasional detail without clearing entered state.",
       "Do wrap long names and localized amounts, preserve text scaling and keep controls at least 48 units tall.",
       "Do display unknown, missing, cached and failed data honestly with the existing recovery actions.",
       "Do keep monthly budget labels monthly and distinguish forecast checkpoints from spending history."
     ],
     "donts": [
+      "Don't restore large inverted summary cards or repeated decorative metric containers from the superseded Phase 1.5 direction.",
       "Don't expose partner-private categories or transactions in shared summaries.",
       "Don't fabricate balances, chart history, spending limits or weekly/annual budget views.",
       "Don't copy reference-screen controls whose data contracts are absent.",

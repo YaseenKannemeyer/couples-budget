@@ -1,3 +1,5 @@
+import { Disclosure } from '@/components/ui/disclosure';
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -73,6 +75,7 @@ function PrivateDesk({ householdId, userId, today, currency, timezone, balance, 
       <ThemedText themeColor="textSecondary">{month}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.privacy')}</ThemedText>
     </View>
+    {ownBalance && !balanceError && <GuideSlot target="private-summary" offer="private-allowance" />}
     {ownBalance && !balanceError ? <HeroCard icon="lock" title={t('privateSpace.allowance')}
       value={money(ownBalance.remaining_minor)} subtitle={t('privateSpace.remaining')}
       progressLabel={t('design.allowanceUsed')}
@@ -81,9 +84,9 @@ function PrivateDesk({ householdId, userId, today, currency, timezone, balance, 
       warning={ownBalance.remaining_minor < 0 ? t('privateSpace.over', { amount: money(-ownBalance.remaining_minor) }) : undefined}>
       <HeroRow label={t('privateSpace.monthlyAllowance')} value={money(ownBalance.allowance_minor)} />
       <HeroRow label={t('privateSpace.spent')} value={money(ownBalance.spent_minor)} />
-      <ThemedText type="small" themeColor="heroSecondary">{t('privateSpace.balanceHint')}</ThemedText>
     </HeroCard> : <Card><ThemedText type="smallBold">{t('privateSpace.allowance')}</ThemedText>
       <SectionState error={balanceError || (!!balance && !ownBalance)} retry={onRetryBalance} /></Card>}
+    <Disclosure title={t('phase18.balanceDetails')}><ThemedText type="small" themeColor="textSecondary">{t('privateSpace.balanceHint')}</ThemedText></Disclosure>
     <PillActions actions={[
       { label: t('privateSpace.reviewAllowance'), icon: 'lock', onPress: () => router.push('/(onboarding)/budget') },
       { label: t('privateSpace.addPayment'), icon: 'plus', onPress: () => router.push({ pathname: '/payment', params: { visibility: 'private' } }) },

@@ -519,6 +519,34 @@ check that retries do not duplicate a post or toggle a reaction twice. Native ke
 text, accessibility, live Realtime and two-person checks remain pending. Synthetic web smoke
 checks used 390×844 and 1280×900 and do not provide native signoff.
 
+## Onboarding and guides (Phase 1.75)
+
+Apply [`20261026170000_guided_discovery.sql`](supabase/migrations/20261026170000_guided_discovery.sql) after the existing migrations, then reload. No new dependency or native rebuild is needed for this phase.
+
+- Joining partners review the saved split, allowances and costs. **Change the shared agreement** enables editing; version checks still reject stale drafts. Each partner enters only their own income and payday sources.
+- **Finish later** preserves previously saved steps. On the last step, **Set up paydays later** completes setup without inventing income/date values or removing saved sources. Missing partner totals and household leftover stay pending.
+- Phase 1.8 starts **Show me around** automatically on first eligible Home entry. Short guides are offered on Quick-log, payments, cash flow, categories, category allocation and Private. All are optional; **Settings → Guides** can replay or resume each one.
+- Instructions appear in the normal scroll flow beside controls. Back, Next, Skip and Close do not log expenses, mark bills paid, save categories or change budgets. Action steps wait for the real result. Quick-log completes its action step after an expense is durably queued, with the existing queue status showing whether it has synced.
+- Guide progress stores only guide/version/step/status and concurrency metadata. The server table is owner-only, is not published to household Realtime, and cascades with auth-account deletion. Local caches include the Supabase project and account ID. Partners never share tour progress.
+- Progress saves locally before sync. Sync retries on foreground/reconnect/browser focus and every 30 seconds while active. A newer remote revision wins a conflict, including dismissal; explicit replay is available. A lost acknowledgement reuses its request ID. Storage and sync failures are shown, and Guides offers retry.
+- Account changes clear the active guide immediately. A remembered offline drafting identity can read/update only its local guide cache; no progress transport runs until a real session returns. Guides pause on background/navigation away or unavailable targets. Guide progress persists; unsaved financial form values keep their existing lifecycle and are not stored in guide state.
+- Empty category allocation explains that a cost must be created first and links to budget setup. Unshipped goals, reconciliation and Money Date have no guide entries.
+
+For acceptance, create a household and exit setup after a saved step, then resume it. Join as the second partner and confirm that shared changes require an explicit edit choice. Defer paydays and verify that no source is guessed or deleted. Start, skip, close, resume and replay each guide; perform action steps only with genuine intended entries. Test the same account across devices and two different partner accounts, interrupted responses, offline restart, remote dismissal and account switching. Verify native keyboard/Back, screen readers, focus return, long translations, large text, light/dark and small screens. These live/native checks and comprehension tests with new people remain pending.
+
+## Calm interface and first-sign-in guidance (Phase 1.8)
+
+Apply [`20261026180000_first_sign_in_guidance.sql`](supabase/migrations/20261026180000_first_sign_in_guidance.sql) after the Phase 1.75 migration, then reload. No dependency or native rebuild is required for these changes.
+
+- First authenticated household entry starts a short Shared/Private introduction automatically. The first eligible Home entry starts Show me around; finishing its logging step hands off to Quick-log guidance. Start waits for saved progress to load and a real target to mount. Anonymous/offline identities do not start authenticated introductions. Existing Skip, Close and completion records are respected; regular launches do not reset a tour. Other contextual help stays available through Show me how and Settings → Guides.
+- Summaries use the current appearance's surface instead of large inverted cards. Compact list groups and actions replace icon-heavy tiles/bands. Desktop web uses top navigation; narrow web/native retains bottom tabs. Guidance scrolls clear of navigation and safe areas.
+- Shared spending charts, forecast charts and budget settings are expandable. This changes information hierarchy, not totals or available data. Private purchase details stay private.
+- Quick-log shows amount, description, category, payer/date summary and Save expense on the common path. More details exposes payer/date editing, scheduled cycles, frequency, notes, currency and receipt options. Collapsing details preserves entered values. Blocked entries open their details for review. Queued/synced/review status and idempotent transport retain their existing behavior.
+- A successful local queue save remembers only the last space and each space's category ID, scoped to project/account/household. The next entry still asks Shared or Private explicitly and revalidates category eligibility. Storage failure for these optional preferences never turns an expense save into an error. Amounts, notes and photos are not stored in these preferences.
+- Long category menus offer search while retaining the current selection. A no-match search never silently changes the category or switches visibility.
+
+Verification and remaining native/live/new-person checks are in `.impeccable/review/phase18/VERIFICATION.md`. No interaction latency, cross-device sync SLA or native usability result is claimed from synthetic browser captures.
+
 ## Where things live
 
 | Path | What |

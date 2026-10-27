@@ -34,7 +34,7 @@ beforeEach(async () => {
 it('renders bundled English immediately, including regional variants and interpolated names', async () => {
   const view = await render(<LocalizationProvider><Copy /></LocalizationProvider>);
   expect(view.getByText('Home')).toBeTruthy();
-  expect(view.getByText('Hi <Alex & Sam> 👋')).toBeTruthy();
+  expect(view.getByText('Hi <Alex & Sam>')).toBeTruthy();
   expect(view.getByText(/Copy .env.example to .env.local and paste/)).toBeTruthy();
 });
 

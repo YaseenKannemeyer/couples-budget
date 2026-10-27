@@ -13,7 +13,7 @@ export function HeroCard({ title, value, subtitle, progress, progressLabel, prog
 }) {
   const theme = useTheme();
   return <View style={[styles.card, { backgroundColor: theme.hero }]}>
-    <View style={styles.heading}><View style={[styles.icon, { backgroundColor: theme.heroTrack }]}><Icon name={icon} color={theme.heroText} size={20} /></View>
+    <View style={styles.heading}><Icon name={icon} color={theme.accent} size={18} />
       <ThemedText type="smallBold" accessibilityRole="header" themeColor="heroText" style={{ flex: 1 }}>{title}</ThemedText></View>
     <AnimatedAmount type="amount" themeColor="heroText">{value}</AnimatedAmount>
     {subtitle && <ThemedText type="small" themeColor="heroSecondary">{subtitle}</ThemedText>}
@@ -27,8 +27,7 @@ export function HeroRow({ label, value }: { label: string; value: string }) {
     <ThemedText type="smallBold" themeColor="heroText" style={{ fontVariant: ['tabular-nums'] }}>{value}</ThemedText></View>;
 }
 const styles = StyleSheet.create({
-  card: { padding: Spacing.four, gap: Spacing.three, borderRadius: Radius.large },
+  card: { padding: Spacing.three, gap: Spacing.two, borderRadius: Radius.large },
   heading: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  icon: { width: 38, height: 38, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: Spacing.two },
 });

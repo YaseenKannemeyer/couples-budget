@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { cacheRaw, readCached } from '@/features/quick-log/local';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useGuideAction } from '@/features/guides/context';
 import { useEffect, useId } from 'react';
 
 import {
@@ -96,6 +97,7 @@ export function useMyHousehold() {
 
 export function useCreateHousehold() {
   const queryClient = useQueryClient();
+  const guideAction = useGuideAction();
   return useMutation({
     mutationFn: async (input: CreateHouseholdInput) => {
       const values = createHouseholdInput.parse(input);
@@ -106,6 +108,7 @@ export function useCreateHousehold() {
         p_display_name: values.displayName,
       });
       if (error) throw error;
+      guideAction('household-connected');
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
   });
@@ -113,6 +116,7 @@ export function useCreateHousehold() {
 
 export function useJoinHousehold() {
   const queryClient = useQueryClient();
+  const guideAction = useGuideAction();
   return useMutation({
     mutationFn: async (input: JoinHouseholdInput) => {
       const values = joinHouseholdInput.parse(input);
@@ -121,6 +125,7 @@ export function useJoinHousehold() {
         p_display_name: values.displayName,
       });
       if (error) throw error;
+      guideAction('household-connected');
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
   });

@@ -33,6 +33,7 @@ it('queues a fully validated shared expense with the selected actual payer', asy
   const view = await render(<LocalizationProvider><QuickLogForm {...props} space="shared" /></LocalizationProvider>);
   await fireEvent.changeText(view.getByLabelText('Amount in USD'), '123.45');
   await fireEvent.changeText(view.getByLabelText('What was it for?'), 'Our groceries');
+  await fireEvent.press(view.getByRole('button', { name: 'More details' }));
   await fireEvent.press(view.getByRole('radio', { name: partner.displayName }));
   await fireEvent.press(view.getByRole('button', { name: 'Save expense' }));
   expect(enqueue).toHaveBeenCalledWith('00000000-0000-4000-8000-000000000090', expect.objectContaining({ visibility: 'shared', amountMinor: 12345, paidBy: partner.userId, description: 'Our groceries' }));
@@ -40,6 +41,7 @@ it('queues a fully validated shared expense with the selected actual payer', asy
 it('keeps a linked cycle’s original version/due date and never lets its frequency change', async () => {
   const view = await render(<LocalizationProvider><QuickLogForm {...props} space="shared" /></LocalizationProvider>);
   await fireEvent.changeText(view.getByLabelText('Amount in USD'), '75');
+  await fireEvent.press(view.getByRole('button', { name: 'More details' }));
   await fireEvent.press(view.getByRole('radio', { name: 'Internet' }));
   expect(view.getByRole('radio', { name: 'One time' }).props.accessibilityState.disabled).toBe(true);
   await fireEvent.press(view.getByRole('button', { name: 'Save expense' }));
@@ -72,4 +74,16 @@ it('steps by whole currency units and preserves invalid input instead of replaci
   expect(view.getByRole('button', { name: 'Increase amount by $1.00' }).props.accessibilityState.disabled).toBe(true);
   await fireEvent.press(view.getByRole('button', { name: 'Decrease amount by $1.00' }));
   expect(amount.props.value).toBe('9999999999.00');
+});
+
+it('keeps optional details out of the routine path and preserves them when collapsed', async () => {
+  const view=await render(<LocalizationProvider><QuickLogForm {...props} space="shared"/></LocalizationProvider>);
+  expect(view.queryByLabelText('Note (optional)')).toBeNull();
+  await fireEvent.press(view.getByRole('button',{name:'More details'}));
+  await fireEvent.press(view.getByRole('radio',{name:partner.displayName}));
+  await fireEvent.changeText(view.getByLabelText('Expense date'), 'not-a-date');
+  expect(view.getByText(/Enter a real date as YYYY-MM-DD/)).toBeTruthy();
+  await fireEvent.changeText(view.getByLabelText('Expense date'), '2026-10-26');
+  await fireEvent.press(view.getByRole('button',{name:'More details'}));
+  expect(view.getByText(/Paid by Sam/)).toBeTruthy();
 });

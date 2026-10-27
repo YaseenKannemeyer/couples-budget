@@ -1,3 +1,5 @@
+import { Disclosure } from '@/components/ui/disclosure';
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { useMemo, type ReactNode } from 'react';
@@ -55,10 +57,11 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
     <View style={styles.heading}>
       <ThemedText type="subtitle" accessibilityRole="header">{t('home.greeting', { name: me.displayName })}</ThemedText>
       <ThemedText themeColor="textSecondary">{household.name}</ThemedText>
-      {partner && <ThemedText type="small" themeColor="textSecondary">{t('home.connectedDescription', { name: partner.displayName })}</ThemedText>}
     </View>
     {!partner && invite}
 
+    {usable && <GuideSlot target="home-summary" offer="first-visit" />}
+    {!me.budgetCompletedAt && <ThemedText themeColor="textSecondary">{t('budget.firstSuccess')}</ThemedText>}
     {usable ? <>
       <HeroCard title={t('dashboard.month', { month })} value={money(model.spent)} subtitle={t('dashboard.spent')}
         progress={model.progress} progressLabel={t('dashboard.progress')}
@@ -74,7 +77,7 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
         <StatTile icon="bill" label={t('dashboard.commitments')} value={money(model.commitments)}
           hint={model.unknownCommitments ? t('dashboard.unknownCommitments') : undefined} />
       </View>
-      <ThemedText type="small" themeColor="textSecondary">{t('dashboard.budgetHint')}</ThemedText>
+      <Disclosure title={t('phase18.totalsDetails')}><ThemedText type="small" themeColor="textSecondary">{t('dashboard.budgetHint')}</ThemedText></Disclosure>
     </> : <Card><ThemedText type="smallBold">{t('dashboard.month', { month })}</ThemedText><SectionState error={flowError} retry={onRetryFlow} /></Card>}
     <PillActions actions={[
       { label: budgetTitle, icon: 'bill', onPress: reviewBudget },
@@ -84,11 +87,11 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
     <View style={styles.section}>
       <ThemedText type="section" accessibilityRole="header">{t('dashboard.allowances')}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">{t('dashboard.allowancePrivacy')}</ThemedText>
-      {activity && !activityError ? <View style={styles.tiles}>{members.map(member => {
+      {activity && !activityError ? <Card>{members.map(member => {
         const balance = activity.allowances.find(a => a.user_id === member.userId);
-        return <StatTile key={member.userId} icon="lock" label={member.displayName}
+        return <SummaryRow key={member.userId} label={member.displayName}
           value={balance ? money(balance.remaining_minor) : t('dashboard.unavailable')} />;
-      })}</View> : <SectionState error={activityError} retry={onRetryActivity} />}
+      })}</Card> : <SectionState error={activityError} retry={onRetryActivity} />}
     </View>
 
     <View style={styles.section}>
