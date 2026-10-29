@@ -14,6 +14,7 @@ export const householdSchema = z
     money_date_day: z.number(),
     invite_code: z.string(),
     budget_revision: z.number().int(),
+    invite_allowance_minor: z.coerce.number().int().nullable().optional(),
   })
   .transform((row) => ({
     id: row.id,
@@ -24,6 +25,7 @@ export const householdSchema = z
     moneyDateDay: row.money_date_day,
     inviteCode: row.invite_code,
     budgetRevision: row.budget_revision,
+    ...(row.invite_allowance_minor !== undefined ? { inviteAllowanceMinor: row.invite_allowance_minor } : {}),
   }));
 
 export const memberSchema = z
@@ -76,6 +78,19 @@ export const joinHouseholdInput = z.object({
 
 export type CreateHouseholdInput = z.input<typeof createHouseholdInput>;
 export type JoinHouseholdInput = z.input<typeof joinHouseholdInput>;
+
+export const invitePreviewSchema = z.object({
+  household_id: z.uuid(), name: z.string(), base_currency: z.string(),
+  split_mode: z.enum(['proportional', 'equal', 'combined']), revision: z.number().int(),
+  inviter_name: z.string(), allowance_minor: z.coerce.number().int().nullable(),
+  costs: z.array(z.object({ name: z.string(), amount_minor: z.coerce.number().int() })),
+});
+export type InvitePreview = z.output<typeof invitePreviewSchema>;
+
+export const reviewedJoinInput = joinHouseholdInput.extend({
+  revision: z.number().int().nonnegative(),
+  allowanceMinor: z.number().int().min(0).max(1_000_000_000_000),
+});
 
 /** Formats an invite code for reading aloud: "ABCD-EFGH". */
 export function formatInviteCode(code: string) {

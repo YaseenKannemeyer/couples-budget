@@ -82,6 +82,9 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
     <PillActions actions={[
       { label: budgetTitle, icon: 'bill', onPress: reviewBudget },
       { label: t('sharedBudget.title'), icon: 'chart', onPress: () => router.push('/shared-budget') },
+      { label: t('reconciliation.title'), icon: 'bill', onPress: () => router.push('/reconciliation') },
+      { label: t('moneyDate.title'), icon: 'bill', onPress: () => router.push('/money-date') },
+      { label: t('goals.title'), icon: 'chart', onPress: () => router.push('/goals') },
     ]} />
 
     <View style={styles.section}>
@@ -132,6 +135,7 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
         {model.unknownCommitments && <ThemedText themeColor="attention">{t('dashboard.unknownCommitments')}</ThemedText>}
         {model.projection.lowest === null ? <ThemedText themeColor="textSecondary">{t('cashflow.needBalance')}</ThemedText> : <>
           <SummaryRow label={t('cashflow.confirmedBalance')} value={money(model.projection.confirmed!)} />
+          {model.projection.reservedSavings > 0 && <SummaryRow label={t('goals.reserved')} value={money(model.projection.reservedSavings)} />}
           <SummaryRow label={t('cashflow.lowest', { date: displayDate(model.projection.lowestOn) })} value={money(model.projection.lowest)} />
           {model.projection.low && <ThemedText accessibilityRole="alert" themeColor="attention">{t('cashflow.lowWarning', { amount: money(model.projection.beforePayday!) })}</ThemedText>}
         </>}

@@ -52,7 +52,8 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
     <ThemedText>{item.amount===null?t('payments.unknownAmount'):money(item.kind==='payment'||item.kind==='budget'||item.kind==='goal'?-item.amount:item.amount)}</ThemedText>
     {item.end&&item.end!==item.originalOn&&item.on===item.originalOn&&<ThemedText type="small">{t('cashflow.window',{date:formatCalendarDate(item.end,locale)})}</ThemedText>}
     {item.late&&<ThemedText themeColor="attention">{t('cashflow.lateIncome')}</ThemedText>}
-    {!item.confirmed&&item.kind!=='transaction'&&<Button variant="ghost" title={t('cashflow.correct')} onPress={()=>edit(item)}/>}
+    {!item.confirmed&&item.kind!=='transaction'&&!item.readOnly&&<Button variant="ghost" title={t('cashflow.correct')} onPress={()=>edit(item)}/>}
+    {item.readOnly&&<Button variant="ghost" title={t('goals.reviewGoal')} onPress={()=>router.push('/goals')}/>}
   </View>;
   return <Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('cashflow.title')}</ThemedText>
@@ -63,9 +64,11 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
       warning={result.low ? t('cashflow.lowWarning',{amount:money(result.beforePayday!)}) : undefined}>
       <HeroRow label={t('cashflow.lowest',{date:formatCalendarDate(result.lowestOn,locale)})} value={money(result.lowest!)} />
       <HeroRow label={t('cashflow.projected',{date:formatCalendarDate(result.horizon,locale)})} value={money(result.projected!)} />
+      {result.reservedSavings > 0 && <HeroRow label={t('goals.reserved')} value={money(result.reservedSavings)} />}
     </HeroCard>}
     <ThemedText type="small" themeColor="textSecondary">{t('cashflow.estimateHint')}</ThemedText>
     <Button variant="secondary" title={t('cashflow.setup')} onPress={()=>router.push('/cash-flow-setup')} />
+    {result.reservedSavings > 0 && <ThemedText type="small" themeColor="textSecondary">{t('goals.forecastHint')}</ThemedText>}
     {result.confirmed !== null && <Disclosure title={t('phase18.forecastChart')}>
       <ThemedText type="section" accessibilityRole="header">{t('design.forecastChart')}</ThemedText>
       <PeriodBarChart items={chartItems} activeId={data.today} reference={result.confirmed}

@@ -12,9 +12,10 @@ import { Screen } from '@/components/ui/screen';
 import { GuideSlot } from '@/features/guides/guide-slot';
 import { TextField } from '@/components/ui/text-field';
 import { Radius, Spacing } from '@/constants/theme';
-import { useCreateHousehold, useJoinHousehold } from '@/features/household/api';
-import { createHouseholdInput, joinHouseholdInput } from '@/features/household/schema';
+import { useCreateHousehold } from '@/features/household/api';
+import { createHouseholdInput } from '@/features/household/schema';
 import { errorTranslationKey } from '@/i18n/errors';
+import { JoinHouseholdForm } from '@/features/household/join-form';
 import { supabase } from '@/lib/supabase';
 
 type Path = 'start' | 'join';
@@ -38,7 +39,7 @@ export default function HouseholdScreen() {
         <Segment label={t('household.joinPartner')} selected={path === 'join'} onPress={() => setPath('join')} />
       </ThemedView>
 
-      {path === 'start' ? <StartForm /> : <JoinForm />}
+      {path === 'start' ? <StartForm /> : <JoinHouseholdForm />}
 
       <Button variant="ghost" title={t('common.signOut')} onPress={() => supabase.auth.signOut()} />
     </Screen>
@@ -80,43 +81,6 @@ function StartForm() {
             // Awaiting the mutation survives this form unmounting when the
             // household query refreshes and the protected route changes.
             await create.mutateAsync({ displayName, name, baseCurrency, timezone });
-            router.replace('/budget');
-          } catch {
-            // The mutation exposes the translated error above.
-          }
-        }}
-      />
-    </Card>
-  );
-}
-
-function JoinForm() {
-  const { t } = useTranslation();
-  const [displayName, setDisplayName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
-  const join = useJoinHousehold();
-  const isValid = joinHouseholdInput.safeParse({ displayName, inviteCode }).success;
-
-  return (
-    <Card>
-      <TextField label={t('household.firstName')} value={displayName} onChangeText={setDisplayName} autoComplete="given-name" />
-      <TextField
-        label={t('household.inviteCode')}
-        value={inviteCode}
-        onChangeText={setInviteCode}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        placeholder={t('household.invitePlaceholder')}
-        hint={t('household.inviteHint')}
-      />
-      {join.error && <ThemedText themeColor="attention">{t(errorTranslationKey(join.error))}</ThemedText>}
-      <Button
-        title={t('household.join')}
-        disabled={!isValid}
-        loading={join.isPending}
-        onPress={async () => {
-          try {
-            await join.mutateAsync({ displayName, inviteCode });
             router.replace('/budget');
           } catch {
             // The mutation exposes the translated error above.

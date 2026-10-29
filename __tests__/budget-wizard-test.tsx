@@ -156,3 +156,23 @@ it('keeps household leftovers pending while a partner has not entered income', a
   expect(view.getByText('The full household total and leftover will be available after both partners enter their income.')).toBeTruthy();
   expect(view.queryByText('Left after our plan')).toBeNull();
 });
+
+it('lets a solo partner finish without inventing partner income, allowances or fair shares', async () => {
+  const view = await show({ ...data, members: [me], partner: null });
+  await fireEvent.changeText(view.getByLabelText('Your monthly income (USD)'), '6000');
+  expect(view.queryByText('Alex · 100%')).toBeNull();
+  await fireEvent.press(view.getByRole('button', { name: 'Save and continue' }));
+  expect(view.queryByLabelText('Sam’s allowance (USD)')).toBeNull();
+  await fireEvent.changeText(view.getByLabelText('Alex’s allowance (USD)'), '300');
+  await fireEvent.press(view.getByRole('button', { name: 'Save and continue' }));
+  expect(save).toHaveBeenLastCalledWith({step:1,revision:11,value:[{userId:me.userId,amountMinor:30000}]});
+  await fireEvent.press(view.getByRole('button', { name: 'Add Rent' }));
+  await fireEvent.changeText(view.getByLabelText('Monthly amount (USD)'), '1500');
+  expect(view.queryByText('Alex’s contribution')).toBeNull();
+  await fireEvent.press(view.getByRole('button', { name: 'Save and continue' }));
+  await fireEvent.changeText(view.getByLabelText('Expected amount per payday (USD)'), '6000');
+  await fireEvent.changeText(view.getByLabelText('Next payday (YYYY-MM-DD)'), '2026-11-25');
+  await fireEvent.press(view.getByRole('button', { name: 'Save our budget' }));
+  expect(save).toHaveBeenLastCalledWith({step:3,revision:13,value:[{name:'My income',amountMinor:600000,cadence:'monthly',nextPayday:'2026-11-25'}]});
+  expect(router.replace).toHaveBeenCalledWith('/');
+});

@@ -21,7 +21,8 @@ export function useOwnAllowance(householdId?: string, today?: string) {
     const refresh = () => client.invalidateQueries({ queryKey: ['allowance-balances', householdId, userId] });
     const channel = supabase.channel(`private-balance:${householdId}:${userId}:${id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_transactions', filter: `owner_id=eq.${userId}` }, refresh)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'members', filter: `user_id=eq.${userId}` }, refresh).subscribe();
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'members', filter: `user_id=eq.${userId}` }, refresh)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'households', filter: `id=eq.${householdId}` }, refresh).subscribe();
     const state = AppState.addEventListener('change', value => { if (value === 'active') void refresh(); });
     return () => { state.remove(); void supabase.removeChannel(channel); };
   }, [householdId, userId, client, id]);

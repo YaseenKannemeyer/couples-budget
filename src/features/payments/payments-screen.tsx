@@ -13,7 +13,6 @@ import { useFormatters } from '@/hooks/use-formatters';
 import { SpaceContext, useTheme } from '@/hooks/use-theme';
 
 import { dueState, useHouseholdToday } from './dates';
-import { useDevicePaymentReminders } from './reminders';
 import type { Schedule } from './schema';
 import { Choice, Choices, dueLabel, PaymentLoading, usePaymentData } from './ui';
 
@@ -26,20 +25,9 @@ export function PaymentsScreen() {
   const locale = useLocales()[0]?.languageTag ?? 'en';
   const format = useFormatters(household?.household.timezone);
   const today = useHouseholdToday(household?.household.timezone ?? 'UTC');
-  const reminders = useDevicePaymentReminders(household?.me.userId);
-  const [reminderBusy, setReminderBusy] = useState(false);
-  const [denied, setDenied] = useState(false);
   const [status, setStatus] = useState<Schedule['status']>('active');
   if (!household || !workspace.data || workspace.isError) return <PaymentLoading error={workspace.isError} onRetry={() => workspace.refetch()} />;
   const schedules = workspace.data.schedules.filter((schedule) => schedule.status === status && (visibility === 'all' || schedule.visibility === visibility) && (schedule.visibility === 'shared' || schedule.ownerId === household.me.userId));
-
-  async function toggleReminders() {
-    setReminderBusy(true);
-    setDenied(false);
-    try { setDenied(!await reminders.setEnabled(!reminders.enabled)); }
-    catch { setDenied(true); }
-    finally { setReminderBusy(false); }
-  }
 
   return <SpaceContext value={visibility === 'private' ? 'private' : 'shared'}><Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('payments.title')}</ThemedText>
@@ -75,16 +63,9 @@ export function PaymentsScreen() {
         </ThemedText>}
       <Button title={t('payments.view')} variant="secondary" onPress={() => router.push({ pathname: '/payment-detail', params: { id: schedule.id } })} />
     </View></SpaceContext>)}
-    <Card>
-      <ThemedText type="smallBold">{t('payments.reminder')}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t(reminders.available ? 'payments.reminderDeviceHint' : 'payments.reminderWeb')}</ThemedText>
-      {reminders.available && <>
-        <Button variant="secondary" title={t(reminders.enabled ? 'payments.disableDeviceReminders' : 'payments.enableDeviceReminders')}
-          onPress={toggleReminders} loading={reminderBusy} />
-        <ThemedText type="small" themeColor="textSecondary">{t('payments.reminderLocalLimit')}</ThemedText>
-      </>}
-      {denied && <ThemedText themeColor="attention">{t('payments.reminderDenied')}</ThemedText>}
-      {reminders.hasError && <ThemedText themeColor="attention">{t('payments.reminderFailed')}</ThemedText>}
+    <Card><ThemedText type="smallBold">{t('nudges.title')}</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary">{t('nudges.paymentEntry')}</ThemedText>
+      <Button title={t('nudges.manage')} variant="secondary" onPress={()=>router.push('/reminders')}/>
     </Card>
     <Button variant="ghost" title={t('payments.home')} onPress={() => router.replace('/')} />
   </Screen></SpaceContext>;

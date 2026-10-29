@@ -32,6 +32,9 @@ it('rejects unknown guides, future versions and unknown step identifiers',()=>{
 it('keeps registries limited to shipped workflows and gives every step a route and stable anchor',()=>{
  expect(new Set(guides.map(g=>g.id)).size).toBe(guides.length);
  expect(guides.find(g=>g.id==='first-visit')?.steps).toHaveLength(4);
- expect(guides.some(g=>/goal|reconcil|money-date/.test(g.id))).toBe(false);
+ expect(guides.find(g=>g.id==='reconciliation')?.steps.map(s=>s.id)).toEqual(['compare','check']);
+ expect(guides.find(g=>g.id==='goals')?.steps.map(s=>s.id)).toEqual(['overview','create']);
+ expect(guides.find(g=>g.id==='money-date')?.steps.map(s=>s.id)).toEqual(['review','close']);
+ expect(guides.find(g=>g.id==='money-date')?.steps[1].action).toBe('month-closed');
  for(const guide of guides)for(const step of guide.steps){expect(step.target).toBeTruthy();expect(step.paths.length).toBeGreaterThan(0);}
 });

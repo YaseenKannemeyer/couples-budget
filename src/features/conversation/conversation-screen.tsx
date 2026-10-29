@@ -95,6 +95,7 @@ export function Conversation({ expense, userId, householdId, members, currency, 
       <ThemedText themeColor="textSecondary">{formatCalendarDate(expense.occurredOn, locale)}</ThemedText>
     </Card>}
     <ThemedText type="small" themeColor="textSecondary">{t('conversation.sharedHint')}</ThemedText>
+    <Button title={t('relationships.billSplit')} variant="secondary" onPress={() => router.push({ pathname: '/bill-split', params: { id: expense.id } })} />
     <View style={styles.section}>
       <ThemedText type="smallBold" accessibilityRole="header">{t('conversation.reactions')}</ThemedText>
       {scopedReactions && !reactionsError ? <View style={styles.reactions}>

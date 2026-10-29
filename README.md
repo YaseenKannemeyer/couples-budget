@@ -122,19 +122,15 @@ is denied so foreign-key failures cannot reveal private usage. Category manageme
 
 ### Device reminders
 
-Expo Notifications is now installed and configured. Create a new development build for native
-testing after this dependency change; no native project directories need hand editing.
-In **Payments**, choose **Enable reminders on this device** and allow notifications. Each bill
-can remind its payer on the due date or 1, 3 or 7 days before the window starts, at 9 am in the
-household timezone. Permission is requested only after that explicit action. The browser shows
-upcoming payments but does not schedule system notifications.
+Expo Notifications is installed and configured. The current Settings → Reminders flow is the
+Phase 2 server engine described in the Anti-nag section below. It needs its migration,
+Edge/Vault/Cron activation, native push credentials and each person's explicit opt-in.
+Web can review saved choices but does not register push delivery.
 
-Reminders are local to each opted-in iOS/Android device, cover its next 50 future unpaid reminders,
-and never include payment names, amounts, categories or notes. Past reminder times are not
-replayed. Managed reminders are reconciled after payment, schedule/status edits, disabling,
-sign-out, account changes and foreground refresh; unrelated app notifications are preserved.
-Open the app to refresh changes made on another device. Background server-driven reminders
-and cross-device cancellation while the app stays closed are Phase 2's anti-nag engine.
+The earlier device-only payment scheduler is retired by this build. On startup, the upgraded
+native app cancels only its previously managed local reminders and preserves unrelated ones.
+An older installation can retain its local schedules until upgraded/opened; do not treat that
+legacy behavior as confirmation that the new server engine is deployed.
 
 Automated checks cover schedule/history privacy, actual transaction fields, stale/duplicate
 writes, monthly clamping and editing, deletion retaining history, estimates, notification payloads,
@@ -547,6 +543,47 @@ Apply [`20261026180000_first_sign_in_guidance.sql`](supabase/migrations/20261026
 
 Verification and remaining native/live/new-person checks are in `.impeccable/review/phase18/VERIFICATION.md`. No interaction latency, cross-device sync SLA or native usability result is claimed from synthetic browser captures.
 
+## Shared balance checks (Phase 2, step 16)
+
+Apply [`20261027180000_reconciliation.sql`](supabase/migrations/20261027180000_reconciliation.sql) after the existing migrations, then reload the app. There are no new packages or native modules for this feature.
+
+Open **Check our shared balance** from Home, Shared or Private. Use the combined closing balance of the same shared funds each time. With no prior cash-flow closing balance, the first check establishes an opening observation; the app does not infer a discrepancy from zero.
+
+Later checks compare the observed amount with the preceding closing balance, plus **confirmed** shared contributions and minus signed logged shared expenses/refunds after the preceding closing date and through the check date. A closing balance already includes activity on its own date. Expected contributions, planned bills, forecast corrections, reservations and private purchases never enter this calculation. Dates follow the household timezone, cannot be in the future or more than 365 days old, and cannot precede the current closing balance. A locked budget period rejects new checks and resolutions.
+
+- **Missing expense:** open Quick-log, record the genuine shared expense with the correct date, return and refresh. A durably queued offline entry affects reconciliation only after it reaches the shared ledger. When the gap reaches zero, explicitly review and confirm the match.
+- **Own allowance:** review the whole shortfall and explicitly confirm it. This reduces that check date's monthly allowance; it can make the remaining allowance negative.
+- **Split:** review the suggested shares from the chosen household split, or enter a custom own share. Missing income setup is never guessed. The proposer approves only their own share. The other partner reviews and approves theirs; no allowance is charged until every share is approved. A changed gap requires cancellation/review of a new proposal. Either partner can cancel an unapplied proposal.
+- **Extra money:** review shared records first, or explicitly retain a positive difference as a balance correction. No expense, refund or income is fabricated.
+
+Resolved checks update the shared cash-flow closing balance atomically and preserve its low-balance threshold. Replaced unresolved checks stay in history and never charge their proposed shares. Original observations and final resolved comparisons are retained; the screen shows the ten latest resolved/replaced checks. Saving a check does not lock a month or issue next month's allowances; those are Money Date work.
+
+`balance_checkins` and `balance_checkin_shares` contain shared observations and explicitly agreed shared-gap allocations, never partner-private spending details. `reconciliation_requests` is owner-only. Direct writes and internal-helper calls are revoked. The existing `allowance_balances()` result shape is preserved: `spent_minor` now includes approved, resolved reconciliation shares as well as net private spending, aggregated separately to avoid multiplied totals. Private labels say **Allowance used this month** and explain this distinction.
+
+Financial actions require a connection. Unsaved text remains in the mounted form on refresh errors; it is not an offline reconciliation queue. Retries in that form reuse the original actor/request/revision after an uncertain response. Revision conflicts require a refreshed review. After a restart, load the saved server state before attempting another action. Shared changes refresh through household Realtime, focus/foreground recovery and a 30-second focused fallback. Private-only income/purchase edits do not publish reconciliation signals. Settings → Guides includes an optional reconciliation guide; opening/advancing it never saves money.
+
+For live acceptance, use two partners: establish a dated balance, log shared spending and a refund, confirm one contribution while leaving another expected, and save a shortfall check. Verify that private spending does not affect the comparison. Try logging a genuine missing expense, then a separate own-allowance allocation, then a split approved from the other account. Before the second approval neither allowance may change. Repeat stale simultaneous edits, interrupted responses, account switching and reconnect. Check negative/zero/surplus balances, past-month allocations, matched checks and replaced baselines. Confirm the forecast uses the new actual balance once, both partners see only the shared check, and private purchases/receipts remain owner-only. Native accessibility, keyboard, large text and the live migration/two-device flow still require acceptance for this new feature.
+
+## Joint savings goals (Phase 2, step 11)
+
+Apply [`20261027190000_joint_goals.sql`](supabase/migrations/20261027190000_joint_goals.sql) after the reconciliation migration, then reload. No new package or native rebuild is required for goals. The user reports applying reconciliation; the new goals migration has not been applied by this implementation.
+
+Open **Our savings goals** from Home or Shared. Create a named target in the household currency, choose a deadline and shared category, then explicitly review/save. Existing forecast-only goal reservations stay separate unless one is explicitly selected for replacement. Replacement removes that reservation atomically; it never turns planned money into saved money.
+
+Monthly targets divide the amount still needed at the start of the month by calendar months through the deadline, rounding the household target upward in minor units. This month's snapshot is stable as contributions arrive. Equal splits use equal weights; proportional and combined use the shared monthly income totals. Numeric largest-remainder allocation preserves the exact total, including large money and odd minor units. Both partners can reach 100% of their own different shares. Missing partner information or an undefined income ratio stays pending. **Review this month’s fair shares** explicitly refreshes the current snapshot after setup changes; past monthly snapshots are preserved. Target/date edits, restoration and entry corrections also review the current plan.
+
+Record only money already earmarked **within the shared funds tracked by the app**. A contribution is attributed to the signed-in person and cannot exceed the remaining target. The date must be real, between the goal's start and today, and within the past 365 days. This is a bookkeeping allocation, not a bank transfer, shared expense or private-allowance charge. Keep earmarked funds included in the actual closing balance used for reconciliation. A funded goal shows a celebration and stops offering further contributions.
+
+The forecast keeps the actual confirmed balance intact. It subtracts saved earmarks from projected available money, then reserves remaining current/future monthly targets. Current-month savings allocations and future goal targets consume the same linked category plan, preventing double reservations, including at month end. Derived goal targets are reviewed through Goals, rather than editable forecast overrides. Archiving pauses future targets but does not release saved money; restoring prepares the current month again.
+
+Contribution history is shared, paginated by timestamp/UUID in batches of 50. Only the original contributor can correct their mistaken positive entry. A correction appends an exact negative reversal on the original contribution date, once; it never deletes the original history or changes another person's entry. Locked periods reject changes. Genuine goal releases use the jointly reviewed Money Date flow. The relationship extension below enables reviewed boosters and allowance gifts through distinct actions; ordinary shared contribution input cannot forge another source. Gift corrections also restore the giver's original allowance month, while booster corrections return the original week's earmark. Locked periods and weeks stay protected.
+
+All goal financial actions require a connection and an explicit review. Mounted drafts survive query failures; unsaved goal forms do not use the expense offline queue. Actor/request/revision checks make uncertain-response retries safe, including after a background refresh. Queries and history are scoped to household/account and recover through household Realtime signals, focus/foreground and 30-second focused polling. Only shared summaries and identifiers appear in guidance; private purchases, receipt images, gross salary sources and private employer names never enter goal responses or signals.
+
+`goals`, `goal_contributions`, `goal_months` and owner-only `goal_requests` have RLS with direct writes revoked. `get_cashflow()` and category archival retain their public contracts through protected internal wrappers; old wrapper helpers and monthly snapshot helpers are not executable by ordinary clients. No new raw goal/private-income tables are published to Realtime.
+
+Before device signoff, create a goal from one partner, inspect it from the other, record each person's intended contribution and compare their relative progress. Test missed income setup, explicit replan, exact odd-unit splits, a funded/overdue/archived goal, owner correction, stale simultaneous edits, lost responses, reconnect and account switching. Check that reconciliation and allowances stay unchanged by earmarking, while forecast availability and linked category reservations change once. Verify manual reservation replacement and native accessibility, safe areas, keyboard, large text and reduced motion. Automated/local browser evidence is in `.impeccable/review/goals/`; it does not establish live two-person or native behavior.
+
 ## Where things live
 
 | Path | What |
@@ -558,3 +595,70 @@ Verification and remaining native/live/new-person checks are in `.impeccable/rev
 | `src/constants/theme.ts` | Colours for the shared and private spaces |
 | `supabase/migrations/` | Database tables and row-level security |
 | `test/db/` | Database privacy tests |
+
+
+### Phase 2 · Money Date (step 17)
+
+Apply `supabase/migrations/20261027200000_money_date.sql` **after** reconciliation and joint goals. No new dependency is needed. This migration is prepared locally; this work does not apply it to hosted Supabase or close real household periods.
+
+Home and Shared → **Money Date** opens five steps: wins → clean-up → look ahead → adjust together → agree and close. Next/Back and the guide only navigate; financial actions require a separate review and confirmation. Both current partners approve the same shared facts after each confirms their queued shared/private entries have synced. A changed shared plan, ledger, goal, forecast, balance comparison or proposal invalidates old approvals. Either partner can withdraw their own approval. Closing requires both approvals, a completed recorded month, a closing observation, resolved gaps and earlier recorded months closed first.
+
+Monthly plans begin when this migration is applied (and when later months are first read or edited). Current open-month budget/default changes update that month's plan; later changes never rewrite prior plans. Old months with no recorded plan stay unknown and cannot be closed here. Historic allowance grants absent for a later-joining partner remain unknown, not zero. Month boundaries use the household timezone and exclusive period ends.
+
+The closing observation is dated the month's final day. Its comparison uses the latest known observed balance at/before that date plus subsequent confirmed shared contributions minus signed shared expenses/refunds. Without an earlier observation it is explicitly a starting point, not a verified zero gap. Recording it supersedes unresolved checks within the month but retains their history. A later independent resolved check requires refreshing the observation, so the same gap cannot charge an allowance twice. Negative gaps use explicit reviewed allocations; positive gaps use an explicit balance correction. Neither creates a private purchase or invents income. A newer live cash checkpoint is preserved rather than rewound.
+
+Optional split overrides apply to the next calendar month only, including its goal shares and reconciliation suggestions, and then expire. Settings and the budget editor distinguish the temporary split from the permanent agreement. Goal releases are append-only negative `variance` entries dated when the review closes, linked to the closed period, capped by saved earmarks and committed only at joint close. They release reservations without changing actual cash, logging an expense or debiting an allowance. They are excluded from personal fair-share contribution credit and current category contribution reservations. Real purchases still need logging. Later corrections cannot make saved money negative.
+
+Closing snapshots the shared review and **only aggregate** private allowance/spending totals; raw private purchases, categories, descriptions, notes, receipts and employer names never enter shared review facts, hashes or new signals. Private spending itself does not invalidate an approval, avoiding a private-activity side channel; each partner explicitly acknowledges syncing before approving. A private financial write still locks the household row to serialize with closing, without broadcasting activity. Closed financial amounts/dates reject edits/inserts/deletes across expenses, confirmed shared income, paid records, goal entries and old cash checkpoints; category/description corrections remain possible without changing the saved snapshot. Old queued expenses enter the existing blocked/review state rather than retry forever. There is no in-app reopen action.
+
+The close transaction records a resolved reconciliation observation, approved gap allocations, releases/overrides and a fixed snapshot, then issues next-month allowance grants once. Existing grants and next-month purchases are kept. Repeated requests after an uncertain response return the original result before checking freshness. Guide progress stores no financial values and finishes only on a successful close response. Confetti is finite, with a static reduced-motion success message; opening closed history does not replay it.
+
+Source/browser review and screenshots: `.impeccable/review/money-date/REVIEW.md`. Hosted concurrent transactions, migration deployment, real two-partner/account-switching/queued-expense flows, calendar rollover and native assistive technology/keyboard/gesture/text-scale checks remain acceptance work. The anti-nag implementation follows in the next section. Boosters, gifts, sinking funds and per-expense splits are implemented in the relationship extension described below.
+
+
+### Phase 2 · Anti-nag reminders (step 18)
+
+The user reports the Money Date migration applied on 28 October and asked not to check again. This work accepts that report and makes no further live migration query.
+
+Settings → Reminders and the Payments entry point now expose each person's own opt-in controls, delivery device, household-timezone hour and status history. Native registration asks permission only after an explicit action; web/Expo Go do not register endpoints. Each partner owns their choices. A contextual guide waits for a real preference save.
+
+The implementation includes `20261028100000_anti_nag.sql`, the service-only `anti-nag` Edge worker, a separate Vault/Cron activation script and native token/tap handling. A user/date outbox, cycle/weekly cooldowns, final eligibility checks and an irreversible sending state prevent repeated server submissions. Unknown results are not automatically resent. Generic messages carry no names, amounts, private purchase details or partner logging activity. A shared pure forecast module drives both the app and worker. The previous managed local payment schedules are cancelled in the updated app.
+
+**Activation requires more than running SQL.** Follow [ANTI_NAG_DEPLOYMENT.md](supabase/setup/ANTI_NAG_DEPLOYMENT.md) in order: migration → Edge secret/deploy → FCM/APNs and an installed EAS build → matching Vault secrets → Cron → each person's own opt-in. `app.config.ts` accepts `GOOGLE_SERVICES_JSON` for the native Android Firebase client file; `eas.json` supplies internal preview and store production profiles. No dependency was added and no native source directory was created. No new worker, Cron job or real push was deployed/sent by this implementation.
+
+Tests: `npm test -- --runInBand`, `npm run test:db`, `npm run test:edge`, `npm run lint`, `npm run typecheck`. Browser fixtures are synthetic; hosted concurrent delivery, real credentials, permission/revocation/account switching, notification cold starts, native accessibility and month/timezone rollover still require acceptance. The remaining Phase 2 implementation follows in the relationship extension below.
+
+
+### Phase 2 · Boosters, gifts, sinking funds and expense splits (steps 12–15)
+
+The [`relationship migration`](supabase/migrations/20261029100000_relationship_features.sql) was applied to Supabase project `ucacfgmmygffqcniqryf` on 29 October 2026, after the existing anti-nag database prerequisites. All seven hosted schema/permission checks passed. Money Date was not independently rechecked. No dependency was added. See `.impeccable/review/phase2/DEPLOYMENT.md` for the transaction, source hash and verification evidence. For another environment, apply migrations in their existing order, with anti-nag before this file.
+
+- **Goals → Leftover Booster:** set explicit weekly Shared category limits from a future Monday. Limits repeat until a reviewed change or zero-amount pause takes effect. The last eight completed weeks are reviewed against signed shared spending and existing earmarks. Refunds cannot create more than the weekly limit. Both partners' expenses must be checked as synced before confirmation. An earmark is not a bank transfer, income, expense or allowance charge; later spending can reduce a historical leftover and may require an explicit correction. Locked weeks reject both boosts and reversals. Pooled boosters credit the saved partner-share proportions, rather than rewarding whoever pressed Save.
+- **Goal → Give from my private allowance:** a reviewed gift debits only the authenticated giver's latest available allowance and creates a shared earmark in one transaction. The gift payload/history/celebration contains no private remainder or purchases. Household allowance aggregates retain the pre-existing visibility contract. An owner-only correction restores the original month; month locks prevent rewriting closed gifts. Money Date captures aggregate gift debits without manufacturing private purchase records, and the next month's spending remains separate. Ensure earmarked money is available in shared funds: the app never transfers bank money.
+- **Goals → Create a sinking fund:** a dated predictable cost uses the real goal ledger and shows saved, remaining and a rounded-up integer monthly provision. Planning alone never increases saved money. Existing fair shares, forecast reservations, archives, corrections and joint releases apply.
+- **Shared expense → Split this shared expense:** review equal, income, percentage (basis points), fixed or whole-weight custom shares. Amounts reconcile exactly, including signed refunds. These are expected contributions, separate from the recorded payer and any actual payment. Changed financial facts, missing income/partners and locked periods have explicit states. Plans become part of Money Date's reviewed and frozen shared facts.
+
+The new tables use RLS and deny direct client writes. Financial RPCs lock the household, verify the actor, recheck current facts and bind retries to an owner-scoped stable request. Uncertain outcomes must retry that exact decision before another one; a final gift's review stays mounted through completion refresh. Queries and screen drafts are account/household scoped. Source/browser review and limitations are in `.impeccable/review/phase2/`.
+
+Rollout and the complete-month acceptance gate are tracked in [`PHASE2_ACCEPTANCE.md`](supabase/setup/PHASE2_ACCEPTANCE.md). Phase 2 implementation is complete locally; production reminder activation and live/native acceptance are **not** certified by automated tests or synthetic previews.
+
+### Phase 2.5 · Solo setup and gift-style invitations (steps 35–36)
+
+Phase 2.5 has started with the first launch slice. A solo partner can complete setup,
+plan payments, log expenses and forecast from their own supplied figures; the other
+partner's income/paydays and two-person shares stay pending. Home now offers an
+optional saved monthly allowance proposal. The invite includes a deep link and a code;
+sharing never includes the allowance amount. Web falls back to copying the full invite.
+
+The invitee signs in on `/join`, requests a limited shared-plan preview, then confirms
+or adjusts their own allowance before joining. The preview contains no income,
+private purchases, receipts, balance or payday sources. The server checks the reviewed
+plan revision and two-member limit. Retrying a committed join cannot reset an allowance.
+Income/payday setup remains the joining person's next step. Existing shared aggregate
+visibility is unchanged. No money is transferred.
+
+Apply `20261029120000_launch_invites.sql` after the relationship migration before using
+this client to join. It is prepared locally and **has not been deployed**. Runtime checks,
+link limitations and remaining phase work are in
+[PHASE25_ACCEPTANCE.md](supabase/setup/PHASE25_ACCEPTANCE.md). This slice adds no dependency,
+sends no real invites and does not certify launch/native/live acceptance.

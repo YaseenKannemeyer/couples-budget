@@ -95,7 +95,7 @@ export function ForecastEditScreen(){
   const {item}=useLocalSearchParams<{item?:string}>();const {household,query}=useFlowData();
   if(!household||!query.data||query.isError)return <FlowLoading error={query.isError} retry={()=>query.refetch()}/>;
   const target=forecast(query.data).items.find(i=>i.key===item);
-  if(!target||target.confirmed||target.kind==='transaction')return <Unavailable/>;
+  if(!target||target.confirmed||target.kind==='transaction'||target.readOnly)return <Unavailable/>;
   return <Correction data={query.data} householdId={household.household.id} currency={household.household.baseCurrency} timezone={household.household.timezone} itemKey={target.key}/>;
 }
 function Correction({data,householdId,currency,timezone,itemKey}:Props&{itemKey:string}){

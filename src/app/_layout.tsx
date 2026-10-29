@@ -15,6 +15,7 @@ import { useMyHousehold } from '@/features/household/api';
 import { QuickLogLauncher } from '@/features/quick-log/launcher';
 import { GuidesProvider } from '@/features/guides/provider';
 import { useQuickLogSync } from '@/features/quick-log/queue';
+import { useNudgeSync } from '@/features/nudges/api';
 import { usePaymentReminderSync } from '@/features/payments/reminders';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SessionProvider, useSession } from '@/hooks/use-session';
@@ -69,6 +70,7 @@ function RootNavigator() {
   const { session, isLoading, isOffline } = useSession();
   const household = useMyHousehold();
   usePaymentReminderSync(household.data?.household);
+  useNudgeSync(household.data?.household.id);
   useQuickLogSync(household.data?.household.id);
 
   const isSignedIn = !!session;
@@ -103,6 +105,7 @@ function RootNavigator() {
       <Stack.Protected guard={isSignedIn && !hasHousehold}>
         <Stack.Screen name="(onboarding)/household" />
       </Stack.Protected>
+      <Stack.Screen name="join" />
       <Stack.Protected guard={isSignedIn && hasHousehold}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(onboarding)/budget" />
@@ -113,6 +116,14 @@ function RootNavigator() {
         <Stack.Screen name="payment-history" />
         <Stack.Screen name="categories" />
         <Stack.Screen name="guides" />
+        <Stack.Screen name="boosters" options={{ title: t('relationships.boosters') }} />
+        <Stack.Screen name="bill-split" options={{ title: t('relationships.billSplit') }} />
+        <Stack.Screen name="reconciliation" />
+        <Stack.Screen name="reminders" options={{ title: t('nudges.title') }} />
+              <Stack.Screen name="money-date" options={{ title: t('moneyDate.title') }} />
+              <Stack.Screen name="goals" />
+        <Stack.Screen name="goal" />
+        <Stack.Screen name="goal-edit" />
         <Stack.Screen name="category" />
         <Stack.Screen name="cash-flow" />
         <Stack.Screen name="cash-flow-setup" />

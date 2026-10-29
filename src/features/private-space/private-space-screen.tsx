@@ -90,6 +90,7 @@ function PrivateDesk({ householdId, userId, today, currency, timezone, balance, 
     <PillActions actions={[
       { label: t('privateSpace.reviewAllowance'), icon: 'lock', onPress: () => router.push('/(onboarding)/budget') },
       { label: t('privateSpace.addPayment'), icon: 'plus', onPress: () => router.push({ pathname: '/payment', params: { visibility: 'private' } }) },
+      { label: t('reconciliation.title'), icon: 'bill', onPress: () => router.push('/reconciliation') },
     ]} />
     <View style={styles.section}>
       <ThemedText type="section" accessibilityRole="header">{t('privateSpace.payments')}</ThemedText>

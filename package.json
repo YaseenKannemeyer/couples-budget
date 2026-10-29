@@ -62,14 +62,16 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "test:db": "node --test \"test/db/*.test.mjs\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:edge": "node --test \"test/edge/*.test.mjs\""
   },
   "private": true,
   "jest": {
     "preset": "jest-expo",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/test/db/"
+      "/test/db/",
+      "/test/edge/"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"

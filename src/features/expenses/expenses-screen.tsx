@@ -16,6 +16,7 @@ import { formatCalendarDate } from '@/features/payments/dates';
 import { useFormatters } from '@/hooks/use-formatters';
 import { SpaceContext } from '@/hooks/use-theme';
 
+import { GuideSlot } from '@/features/guides/guide-slot';
 import { useExpenses } from './api';
 
 export function ExpensesScreen() {
@@ -37,6 +38,7 @@ export function ExpensesScreen() {
       {(['shared', 'private'] as const).map((value) => <Choice key={value} label={t(`payments.${value}`)} selected={space === value}
         onPress={() => setSpace(value)} />)}
     </Choices>
+    {space === 'shared' && <GuideSlot target="expense-shares-entry" offer="bill-split" />}
     {!rows.length && <ThemedText themeColor="textSecondary">{t('expenses.empty')}</ThemedText>}
     {rows.map((expense) => {
       const category = categories.data.find((value) => value.id === expense.categoryId);
@@ -46,6 +48,8 @@ export function ExpensesScreen() {
         <ThemedText>{category ? categoryLabel(category) : t('common.unknown')}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">{t(`payments.${expense.frequency}`)}</ThemedText>
         {expense.scheduledPaymentRef && <ThemedText type="small" themeColor="textSecondary">{t('expenses.linked')}</ThemedText>}
+        {space === 'shared' && <Button title={t('relationships.billSplit')} variant="secondary"
+          onPress={() => router.push({ pathname: '/bill-split', params: { id: expense.id } })} />}
         {space === 'shared' && <Button title={t('conversation.open')} variant="ghost"
           onPress={() => router.push({ pathname: '/expense-thread', params: { id: expense.id } })} />}
         <Button title={t('expenses.edit')} variant="secondary"

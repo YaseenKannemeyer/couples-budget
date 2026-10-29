@@ -8,6 +8,8 @@ Each stage ends with a **go/no-go gate**. We move on when the gate passes, not o
 
 ---
 
+Engineering status, 29 October 2026: Phase 2.5 has started with local solo-setup and gift-invitation work. The new migration is undeployed. The business, beta and store gates below remain open; see [the first-slice acceptance checks](supabase/setup/PHASE25_ACCEPTANCE.md).
+
 ## Stage 0: Groundwork
 
 Starts now, alongside Phase 2. Most of it is paperwork with long waits, so it shouldn't wait for the code.

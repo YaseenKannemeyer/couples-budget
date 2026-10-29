@@ -79,6 +79,9 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
         {result.hasPlan && <HeroRow label={t('dashboard.remaining')} value={money(result.remaining)} />}
       </HeroCard>
       <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.actualHint')}</ThemedText>
+      <Button title={t('reconciliation.title')} variant="secondary" onPress={() => router.push('/reconciliation')} />
+      <Button title={t('moneyDate.title')} variant="secondary" onPress={() => router.push('/money-date')} />
+      <Button title={t('goals.title')} variant="ghost" onPress={() => router.push('/goals')} />
       {result.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.futureHint')}</ThemedText>}
       <Disclosure title={t('phase18.budgetSettings')}><PillActions actions={[
         { label: t('budget.review'), icon: 'bill', onPress: () => router.push('/(onboarding)/budget') },

@@ -8,8 +8,9 @@ import { useEffect, useId } from 'react';
 import {
   createHouseholdInput,
   householdSchema,
-  joinHouseholdInput,
   memberSchema,
+  invitePreviewSchema,
+  reviewedJoinInput,
   type CreateHouseholdInput,
   type JoinHouseholdInput,
 } from '@/features/household/schema';
@@ -118,14 +119,43 @@ export function useJoinHousehold() {
   const queryClient = useQueryClient();
   const guideAction = useGuideAction();
   return useMutation({
-    mutationFn: async (input: JoinHouseholdInput) => {
-      const values = joinHouseholdInput.parse(input);
-      const { error } = await supabase.rpc('join_household', {
+    mutationFn: async (input: JoinHouseholdInput & { revision: number; allowanceMinor: number }) => {
+      const values = reviewedJoinInput.parse(input);
+      const { error } = await supabase.rpc('join_household_reviewed', {
         p_invite_code: values.inviteCode,
         p_display_name: values.displayName,
+        p_revision: values.revision,
+        p_allowance_minor: values.allowanceMinor,
       });
       if (error) throw error;
       guideAction('household-connected');
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
+  });
+}
+
+export function useInvitePreview(code: string | null, attempt = 0) {
+  const { accountId, session } = useSession();
+  return useQuery({
+    queryKey: ['invite-preview', accountId, code, attempt], enabled: !!session && !!code,
+    staleTime: 0, gcTime: 0, retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('preview_household_invite', { p_invite_code: code });
+      if (error) throw error;
+      return invitePreviewSchema.parse(data);
+    },
+  });
+}
+
+export function useSaveInviteAllowance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { householdId: string; revision: number; amountMinor: number | null }) => {
+      const amount = z.number().int().min(0).max(1_000_000_000_000).nullable().parse(input.amountMinor);
+      const { error } = await supabase.rpc('save_invite_allowance', {
+        p_household_id: input.householdId, p_revision: input.revision, p_amount_minor: amount,
+      });
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['household'] }),
   });

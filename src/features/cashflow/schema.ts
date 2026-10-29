@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isCalendarDate, MAX_BUDGET_MINOR } from '@/features/budget/schema';
 import { categoryRow } from '@/features/categories/schema';
+import { goalMoney } from '@/features/goals/schema';
 const date = z.string().refine(isCalendarDate);
 const money = z.coerce.number().int().min(-MAX_BUDGET_MINOR).max(MAX_BUDGET_MINOR);
 export const balanceRow = z.object({ as_of_on: date, amount_minor: money, low_threshold_minor: money, version: z.number().int() });
@@ -11,6 +12,10 @@ export const occurrence = z.object({ id: z.uuid(), name: z.string(), expected_on
   shared_on: date.nullable(), shared_amount_minor: money, shared_received: z.boolean(), version: z.number().int(), overridden: z.boolean() });
 export const ownIncome = z.object({ sources: z.array(source), occurrences: z.array(occurrence) });
 export const workspace = z.object({ today: date, balance: balanceRow.nullable(),
+  savings: z.object({ reserved_minor: goalMoney.refine(n => n >= 0),
+    month_allocations: z.array(z.object({ category_id: z.uuid(), amount_minor: goalMoney.refine(n => n >= 0) })),
+    plans: z.array(z.object({ id: z.uuid(), month_on: date, name: z.string(), category_id: z.uuid(), due_on: date, amount_minor: goalMoney.refine(n => n > 0) })),
+  }).optional(),
   income: z.array(z.object({ on_date: date, confirmed: z.boolean(), amount_minor: z.coerce.number().int().nonnegative() })),
   payments: z.array(z.object({ id: z.uuid(), name: z.string(), category_id: z.uuid(), recurrence: z.enum(['one_time','monthly']),
     due_start: date, due_end: date, anchor_start_day: z.number().int(), anchor_end_day: z.number().int(), estimate_minor: money.nullable() })),

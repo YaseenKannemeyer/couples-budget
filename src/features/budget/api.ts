@@ -24,6 +24,7 @@ export function useBudgetSetup(householdId: string | undefined) {
       if (error) throw error;
       const result = z.object({
         household: householdSchema, members: z.array(memberSchema),
+        month_split: z.object({ month_on: z.string(), mode: z.enum(['equal', 'proportional', 'combined']), temporary: z.boolean() }).optional(),
         costs: z.array(costRow), sources: z.array(sourceRow),
       }).parse(data);
       const me = result.members.find((member) => member.userId === userId);

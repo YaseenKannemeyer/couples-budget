@@ -1,0 +1,5 @@
+project_id = "couples-budget"
+
+# A dedicated Vault/Edge secret authenticates the scheduler before any work.
+[functions.anti-nag]
+verify_jwt = false

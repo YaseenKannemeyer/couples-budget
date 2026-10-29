@@ -142,6 +142,7 @@ export function BudgetWizard({ data, onReload, reloading }: {
         <ThemedText themeColor="textSecondary">{t(`budget.${stepDescriptions[step]}`)}</ThemedText>
         <ProgressBar value={(step + 1) / 4 * 100} label={t('budget.progress', { step: step + 1, total: 4 })} />
       </View>
+      {!data.partner && <ThemedText themeColor="textSecondary">{t('budget.soloHint')}</ThemedText>}
       {joining && <>
         <ThemedText type="smallBold">{t('budget.joiningTitle')}</ThemedText>
         <ThemedText themeColor="textSecondary">{t('budget.joiningHint')}</ThemedText>
@@ -156,6 +157,7 @@ export function BudgetWizard({ data, onReload, reloading }: {
           }} />
       </>}
 
+      {data.month_split?.temporary && <ThemedText themeColor="attention">{t('moneyDate.temporarySplitNotice', { mode: t(`split.${data.month_split.mode}.label`), month: data.month_split.month_on.slice(0, 7) })}</ThemedText>}
       {step === 0 && <>
         <ThemedText type="small" themeColor="textSecondary">{t('budget.incomeWhy')}</ThemedText>
         <TextField label={t('budget.incomeLabel', { currency })} value={income} onChangeText={setIncome}

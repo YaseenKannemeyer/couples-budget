@@ -40,6 +40,7 @@ export function useHomeActivity(householdId: string | undefined, today: string) 
       .on('postgres_changes', { event: '*', schema: 'public', table: 'shared_transactions', filter: `household_id=eq.${householdId}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_records', filter: `household_id=eq.${householdId}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'members', filter: `household_id=eq.${householdId}` }, refresh)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'households', filter: `id=eq.${householdId}` }, refresh)
       .subscribe();
     const appState = AppState.addEventListener('change', state => { if (state === 'active') void refresh(); });
     return () => { appState.remove(); void supabase.removeChannel(channel); };

@@ -6,7 +6,7 @@ export function Choice({ label, selected, disabled = false, onPress }: {
   label: string; selected: boolean; disabled?: boolean; onPress: () => void;
 }) {
   const theme = useTheme();
-  return <Pressable accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: selected, disabled }}
+  return <Pressable accessibilityRole="radio" accessibilityLabel={label} aria-checked={selected} accessibilityState={{ checked: selected, disabled }}
     disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.choice,
       { backgroundColor: selected ? theme.backgroundElement : 'transparent', opacity: disabled ? 0.55 : pressed ? 0.72 : 1 },
       selected && { borderColor: theme.border, borderWidth: StyleSheet.hairlineWidth }]}>
@@ -23,6 +23,6 @@ export function Choices({ label, children }: { label: string; children: React.Re
 const styles = StyleSheet.create({
   group: { gap: Spacing.two },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one, padding: Spacing.one, borderRadius: Radius.medium },
-  choice: { flexGrow: 1, flexBasis: 'auto', minHeight: 48, justifyContent: 'center', paddingVertical: Spacing.two,
+  choice: { flexGrow: 1, flexShrink: 1, flexBasis: 'auto', minWidth: 0, maxWidth: '100%', minHeight: 48, justifyContent: 'center', paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three, borderRadius: Radius.small },
 });
