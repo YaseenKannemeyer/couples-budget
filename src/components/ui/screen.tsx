@@ -1,14 +1,21 @@
 import { createContext, useCallback, useRef, type ComponentRef, type ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { ActionBarInset, BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export const RevealInScreen = createContext<(view: ComponentRef<typeof View>) => void>(() => {});
 
-/** Scrollable, keyboard-aware page with a comfortable reading width on desktop. */
-export function Screen({ children, withTabBar = false }: { children: ReactNode; withTabBar?: boolean }) {
+/**
+ * Scrollable, keyboard-aware page with a comfortable reading width on desktop.
+ * `withAction` reserves room for the floating + Add expense button; `onRefresh` adds pull-to-refresh.
+ */
+export function Screen({ children, withTabBar = false, withAction = false, refreshing = false, onRefresh }: {
+  children: ReactNode; withTabBar?: boolean; withAction?: boolean; refreshing?: boolean; onRefresh?: () => unknown;
+}) {
+  const theme = useTheme();
   const { width, fontScale } = useWindowDimensions();
   const desktopTabs = withTabBar && Platform.OS === 'web' && width / fontScale >= 900;
   const insets = useSafeAreaInsets();
@@ -34,10 +41,13 @@ export function Screen({ children, withTabBar = false }: { children: ReactNode; 
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             showsVerticalScrollIndicator={false}
+            refreshControl={onRefresh && Platform.OS !== 'web' ? <RefreshControl refreshing={refreshing} onRefresh={() => { void onRefresh(); }}
+              tintColor={theme.textSecondary} colors={[theme.accent]} /> : undefined}
             contentContainerStyle={[
               styles.content,
               { paddingHorizontal: width < 380 ? Spacing.three : 20 },
               withTabBar && { paddingBottom: desktopTabs ? Spacing.six + Spacing.four : BottomTabInset + Spacing.six },
+              withAction && { paddingBottom: (withTabBar && !desktopTabs ? BottomTabInset : 0) + ActionBarInset + Spacing.five },
               desktopTabs && { paddingTop: 88 },
             ]}>
             {children}
@@ -58,6 +68,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     padding: Spacing.four,
     paddingBottom: Spacing.six + Spacing.five,
-    gap: 20,
+    gap: Spacing.four,
   },
 });

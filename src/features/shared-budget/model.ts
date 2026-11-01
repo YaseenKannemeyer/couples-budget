@@ -57,3 +57,23 @@ export function sharedBudgetModel(data: Workspace) {
     pending: [...nextPayments.values()],
   };
 }
+
+/**
+ * Income / Total spending / Net balance for the Spending budget detail. Every figure uses the same
+ * household month and the same cutoff (today): received shared contributions only, and net logged
+ * shared spending including refunds. Net is recorded movement, never bank cash or budget remaining.
+ */
+export function spendingSummary(data: Workspace) {
+  const month = data.today.slice(0, 7);
+  const inPeriod = (on: string) => on.slice(0, 7) === month && on <= data.today;
+  const income = sum(data.income.filter(entry => entry.confirmed && inPeriod(entry.on_date)).map(entry => entry.amount_minor));
+  const spending = sum(data.transactions.filter(entry => inPeriod(entry.on_date)).map(entry => entry.amount_minor));
+  return { income, spending, net: sum([income, -spending]) };
+}
+
+/** The wheel only represents ordinary positive totals; anything signed or nonpositive uses the signed list. */
+export function wheelMode(rows: { spent: number }[], total: number): 'wheel' | 'signed' | 'empty' {
+  const nonzero = rows.filter(row => row.spent !== 0);
+  if (!nonzero.length && total === 0) return 'empty';
+  return total > 0 && nonzero.every(row => row.spent > 0) ? 'wheel' : 'signed';
+}

@@ -108,6 +108,8 @@ function RootNavigator() {
       <Stack.Screen name="join" />
       <Stack.Protected guard={isSignedIn && hasHousehold}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="shared-budget" />
+        <Stack.Screen name="settings" />
         <Stack.Screen name="(onboarding)/budget" />
         <Stack.Screen name="payments" />
         <Stack.Screen name="payment" />
@@ -120,8 +122,8 @@ function RootNavigator() {
         <Stack.Screen name="bill-split" options={{ title: t('relationships.billSplit') }} />
         <Stack.Screen name="reconciliation" />
         <Stack.Screen name="reminders" options={{ title: t('nudges.title') }} />
-              <Stack.Screen name="money-date" options={{ title: t('moneyDate.title') }} />
-              <Stack.Screen name="goals" />
+        <Stack.Screen name="money-date" options={{ title: t('moneyDate.title') }} />
+        <Stack.Screen name="goals" />
         <Stack.Screen name="goal" />
         <Stack.Screen name="goal-edit" />
         <Stack.Screen name="category" />

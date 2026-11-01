@@ -1,509 +1,167 @@
-# Couple Goals: Build Plan
+# Couple Goals: active product and build plan
 
-A budgeting app for couples. The plan is built around three spaces:
+Updated 1 November 2026. The user approved a simpler, professional banking-style concept. **Core banking layouts are implemented locally; BR5, BR8 and BR9 are partial; BR10 device/live acceptance remains open.** The [current review](docs/redesign/REVIEW-2026-11-01.md) inventories all 40 screens and identifies unfinished secondary layouts. See [flow.md](flow.md) for the implemented app journeys.
 
-- **Shared Bucket:** rent, groceries, bills and joint goals. Both partners can see and edit it.
-- **Partner A's Private Space:** guilt-free allowance. The partner sees only the balance.
-- **Partner B's Private Space:** the same, for the other partner.
+This plan supersedes the visual/navigation instructions from Phases 1.5, 1.75 and 1.8. Their implementation and outstanding acceptance work remain part of the project history.
 
-The app's core promises:
+Read alongside [BUGS.md](BUGS.md), [PRODUCT.md](PRODUCT.md) and [LAUNCH.md](LAUNCH.md). “Implemented” means local code exists, not necessarily deployed, device-tested or accepted by users.
 
-- **Fair-share split:** shared costs are divided by income, 50/50, or fully combined.
-- **Anti-nag reminders:** the app reminds you, so your partner never has to.
-- **Tidy shared books:** every shared expense is logged, and unexplained gaps are moved into a private allowance.
-- **Money Date:** a guided monthly review.
-- **Joint goals:** goals grow from leftovers and gifts.
+## Product direction
 
-**Status key:** ✅ done · 🔜 next · ⏳ later
+**Shared money, private spending, fair contributions.** The interface should feel as clear and dependable as a banking app: factual labels, readable amounts, predictable navigation and short tasks. It remains a budgeting app; recording a bill, contribution or allowance gift does not initiate a bank transfer.
 
----
+Everyday use should answer: How much of our shared monthly budget remains? What needs attention next? How do I record a purchase quickly?
 
-## Positioning and launch strategy
+Retain monthly budgets, fair-share contributions, private allowances, bills, forecasts, goals, reconciliation and joint monthly approval. Put occasional tasks inside their relevant sections rather than on the first screen.
 
-**Pitch (use it everywhere: store listing, first screenshot, onboarding, website):**
+## Approved visual concept
 
-> Shared money, private spending, fair splits, and no nagging.
+- Overview, Plan and Personal
+- Add expense and Monthly review
+- Refinement: coloured icons across the main screens
+- Refinement: spending wheel and financial summary
 
-The competitors are finance tools with sharing added on. Couple Goals is built to keep the relationship healthy, not just to track the money.
+**30 October refinement:** retain the approved layout, box radii, white/navy base and three-tab flow. Incorporate the rounded solid icons, coloured category tiles and spending-wheel palette throughout the relevant UI.
 
-**Competitive landscape (October 2026)**
+Images establish hierarchy and appearance. Names, balances and dates are illustrative, not real account data or implemented features.
 
-| App | Strength | Where we differ |
+| Element | Target |
+| --- | --- |
+| Surfaces | White `#FFFFFF`, cool grey `#F4F6F8`; flat rows and fine dividers |
+| Identity | Navy `#102A43`, one blue action accent `#175CD3` |
+| Text | Slate `#243746`, secondary `#526574`; verify contrast in actual states |
+| Typography | Readable system body, restrained headings, tabular financial numerals; reuse bundled fonts only where useful |
+| Hierarchy | One dominant summary per main screen, compact lists and clear section titles |
+| Shapes | Restrained corners around 12 units; avoid nested cards and decorative gauges |
+| Financial states | Explicit remaining, over plan, expected, recorded and pending labels; never colour alone |
+| Shared/Personal | Persistent labels within one visual system; replace the separate violet identity |
+| Accessibility | 48-unit targets, system text scaling, screen-reader names, logical focus, reduced motion |
+
+Use blue, orange, pink and mint accents for identifiable categories/features, with consistent rounded solid glyphs. Place the multicolour spending wheel and Income / Total spending / Net balance summary in Spending budget; keep Overview focused. Small circular finance badges are icon holders unless an explicitly defined ratio supports a real gauge. Preserve actual-versus-planned meaning and owner-only Personal details.
+
+Design a matching dark appearance before release. Preserve native navigation, safe areas and keyboard behaviour. Address empty/loading/error/offline/stale-data states; an unavailable balance must never look like zero.
+
+## Navigation
+
+Three tabs: **Overview · Plan · Personal**. Settings opens from the profile button. Keep Add expense visible and easy to reach from each main tab.
+
+| Destination | Content | Route strategy |
 | --- | --- | --- |
-| Honeydue (free) | Couples-focused, bank sync, chat about purchases | Shares at the account or transaction level. We keep private spending private and show the partner only a balance |
-| Monarch Money (~$99/yr) | Full household finance, bank sync, net worth | General finance tool. No income-based fairness or relationship ritual |
-| YNAB (~$100/yr) | Zero-based method, shared goals | A method, but no ritual for two people |
-| Splitwise (free/paid) | Simple running balances | Not a budget |
-| Manebo (free + IAP) | Receipt scanning, quick splits | No private spaces or income-aware splits |
-
-**Strategy**
-
-1. **One message.** Repeat the pitch everywhere. The first store screenshot shows privacy and fairness, not a feature list.
-2. **Money Date ships at launch.** It's the retention hook and the marketing story ("our monthly money date"). None of the competitors has one, and a budgeting app without a ritual gets dropped in week three. Launch moves to after Phase 2 (see Phase 2.5).
-3. **Manual logging is a selling point, not a gap.** We can't beat Monarch on bank sync, so we don't try yet. Pitch it as mindful logging that works anywhere and in any currency. Logging must take under 5 seconds (step 37). CSV import (step 34) moves forward as a cheap middle step before bank feeds.
-4. **Go after markets the US apps ignore.** Monarch and YNAB are mostly US-focused, especially for bank sync. Launch first where we are the best option rather than the fifth option in the US (step 40).
-5. **Undercut on price, with one plan per couple.** Logging, private spaces and splits are free, so we compete with Honeydue. Money Date, goals and insights are paid, at roughly half the big apps' price and covering both partners (step 28).
-6. **Fix the two-person onboarding problem.** The app is useful solo from day one, and the invite feels like a gift: "I set up your private allowance" (steps 35 and 36).
-
-**What we don't compete on (yet):** net worth, investments, broad bank sync and receipt scanning. Monarch and Manebo do these well. They can come later, once couples stay for the relationship features.
-
-**Known risk:** some users won't consider a budgeting app without bank sync. That narrows the early audience to couples who budget on purpose, who are also the most loyal and most willing to pay. Bank feeds remain the v2 answer (Phase 4).
-
----
-
-## Decisions
-
-| Topic     | Decision                                                                                                                        |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Market    | Global from day one: multiple currencies, locale formatting, household timezone                                                 |
-| Bank data | v1 uses manual logging, a monthly balance check-in and CSV statement import. Bank feeds come in v2                              |
-| Launch    | Launch after Phase 2 so Money Date ships in v1. First markets are ones the US apps underserve                                   |
-| Pricing   | One subscription per couple. Logging, private spaces and splits free; Money Date, goals and insights paid, at ~half of Monarch/YNAB |
-| Platforms | One Expo codebase for iOS, Android and web. Desktop uses the web app, installable as a PWA. A Tauri wrapper only if ever needed |
-| Backend   | Supabase: Postgres, Auth, Realtime, Row-Level Security, Edge Functions, pg_cron                                                 |
-| Money     | Integer minor units plus an ISO currency code. Never floats                                                                     |
-| Privacy   | Enforced in the database (RLS), not only in the UI. Partners only ever receive aggregates of private data                       |
-| Styling   | `StyleSheet` with semantic finance tokens in `src/constants/theme.ts`: Shared indigo, Private violet, Manrope display and system body type   |
-| Tone      | "We" language, never "You overspent". Calm amber/terracotta warnings, clear financial labels, no harsh red                                                |
-
-## Tech stack
-
-| Layer             | Choice                                                                                         |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| App               | Expo SDK 58, Expo Router, React Native 0.88, TypeScript                                        |
-| Data fetching     | TanStack Query (optimistic updates). Offline queue added in Phase 1                            |
-| Validation        | Zod (shared between screens and backend functions)                                             |
-| Database and auth | Supabase                                                                                       |
-| Notifications     | Expo Notifications, triggered by pg_cron and Edge Functions                                    |
-| i18n              | i18next and expo-localization                                                                  |
-| Animation         | Reanimated. Lottie for celebrations                                                            |
-| Subscriptions     | RevenueCat (App Store, Play Store, Stripe on web)                                              |
-| Monitoring        | Sentry (errors) and PostHog (analytics, feature flags)                                         |
-| Testing           | Jest (unit), node:test + PGlite (database privacy), Maestro and Playwright (end-to-end, later) |
-
----
-
-## Phase 0: Foundations ✅
-
-**Goal:** a couple can sign up, form a household and see each other, on a foundation that keeps private data private.
-
-**Done**
-
-- [x] Expo project: web output switched to a single-page app, warm theme for the shared and private spaces, starter screens removed
-- [x] `src/lib/money.ts`: parse, format, allocate (exact splits), currency conversion
-- [x] `src/lib/split.ts`: Fair-Share Calculator (proportional, equal, combined)
-- [x] Database migration: households, members, categories, budget periods, shared and private transactions
-- [x] Row-level security, column-level update limits, `allowance_balances()`, `create_household()`, `join_household()`, `regenerate_invite_code()`
-- [x] Email/password sign-in, create or join a household with an invite code, live update when the partner joins
-- [x] Home screen (invite card or "connected") and Settings screen (household info, sign out)
-- [x] Tests: 19 unit tests and 17 database privacy tests, all passing
-
-**Your to-do before testing on a device**
-
-- [ ] Create a Supabase project, fill in `.env.local`, and run the migration (see README)
-- [ ] Try the two-partner flow: one partner in the browser, the other in Expo Go on a phone
-
----
-
-## Phase 1: Core MVP 🔜 (in progress)
-
-**Goal:** a couple can set up their budget and log every expense, shared or private, in seconds.
-
-1. **i18n setup. ✅** All current on-screen copy, navigation, validation and known service errors use typed translation keys. Bundled English fallback, device locale updates and locale-aware money/number/household-timezone date helpers are in place. Additional language translations can now be added without changing screens.
-2. **Onboarding wizard. ✅** Opens after creating or joining a household; each step saves and can be resumed from Home or Settings. Shared edits detect stale drafts instead of overwriting a partner's changes.
-   - Step 1: each partner enters their own monthly income. Choose a split mode, with the live Fair-Share ratio shown
-   - Step 2: agree on the guilt-free allowances
-   - Step 3: list recurring shared costs (rent, groceries, wifi, insurance). Show the household total and each partner's contribution
-   - Step 4: add each partner's payday schedule: monthly, weekly, biweekly, irregular, or multiple income sources
-   - Implemented in `20261025180000_budget_onboarding.sql`: shared planned costs, owner-only income sources, per-person progress and atomic setup RPCs. Income source amounts and payday dates stay private; only monthly income totals are shared. Payment occurrence generation and forecasting follow in steps 3 and 5.
-3. **Scheduled payments and recurring expenses. ✅** Implemented; native notification delivery and the two-device flow still need device verification.
-   - Add a bill or expense as **one-time** or **recurring monthly**
-   - Set the next payment date, with either an exact day (for example, Apple on **2 November**) or a date window (for example, Bank between the **14th and 16th of every month**)
-   - Store the payment name, expected amount (optional for variable bills), who pays, shared or private visibility, category, and an optional note
-   - Show upcoming payments in date order, including a clear "due soon" state and the current month's paid/unpaid state
-   - When a scheduled payment is marked paid, offer to create the transaction automatically while preserving the actual paid date and amount
-   - Remind each partner about their own upcoming payments without exposing private payment details to the other partner
-   - Support pausing, editing, archiving and deleting a schedule without deleting its payment history
-   - Support variable bills by keeping the schedule while recording a different actual amount each cycle, with recent amounts and a next-payment estimate
-   - New migration: `scheduled_payments`, with recurrence rules, date windows, next due date, reminder settings and RLS matching shared/private visibility
-   - Implemented in `20261025193000_scheduled_payments.sql`: version-checked schedule RPCs, owner-only private schedules/history, immutable payment records, optional atomic expense logging, three-cycle variable estimates and original monthly anchors that survive short months and edits. Device reminders are opt-in, generic and limited to the signed-in payer's next unpaid cycles; the server reminder engine follows in Phase 2.
-4. **Categories and expense frequency. ✅** Implemented; the user’s live two-person privacy check remains pending.
-   - Give every expense a category and a frequency: **one-time**, **monthly**, or another recurring schedule when supported by a scheduled payment
-   - Seed each household with editable starter categories: **Essentials** (toiletries, groceries), **Entertainment** (Netflix and other subscriptions), **Housing**, **Transport**, **Utilities**, **Health**, **Personal**, **Fun**, **Savings** and **Other**
-   - Keep the existing `needs / wants / savings` bucket as a reporting dimension: Essentials generally maps to needs, Entertainment and Fun to wants, and Savings to savings, while allowing the household to change the bucket
-   - Let either partner create, rename, reorder, archive and assign an emoji to custom categories; prevent archiving a category that still has transactions unless those transactions are reassigned
-   - Category management applies consistently to shared expenses, private expenses and scheduled payments, while private names and spending remain private
-   - New migration: seed categories during household creation and add transaction/category constraints needed for private category privacy
-   - Implemented in `20261025210000_categories_and_frequency.sql`: ten editable starters, version-checked shared/private category management, reporting buckets, reordering and archive-with-reassignment. Archive always needs a replacement and never returns private usage counts. New expense review/classification screens update labels without changing money or dates; schedule-linked frequency and historical links are protected in the database. Upgrade tests preserve existing labels, IDs, money and paid snapshots.
-5. **Cash-flow calendar and forecast. ✅** Implemented; apply the new migration before testing. Native and live two-person checks remain pending.
-   - Display paydays, scheduled payments, planned budgets, goals and actual transactions on one household-timezone calendar
-   - Forecast the available shared balance between income dates and payment dates, including a low-balance warning before payday
-   - Separate confirmed money from expected money, and allow a partner to correct or dismiss a forecast item without changing the original schedule
-   - Account for different paydays, irregular income, bonuses and temporary income changes
-   - Extend onboarding's `income_sources` with `income_occurrences`, with private income details aggregated for shared forecasts where appropriate
-   - Implemented in `20261026090000_cashflow.sql`: owner-only generated/manual income occurrences, explicitly approved daily shared contributions, signed closing balances, category-linked remaining budget reservations, dated goal reservations and version-checked forecast corrections. Stable onboarding cost/source IDs preserve links and history. A 90-day integer forecast handles overdue bills, date windows, short months, refunds and missing estimates. Full goal balances/progress remain in Phase 2. See README for forecast rules and test steps.
-6. **Home dashboard. ✅** Implemented; native and live two-person checks remain pending.
-   - Household summary: joint income, remaining shared budget, progress bar
-   - Allowance peek: each partner's remaining balance
-   - Upcoming payments section: next due payment, date window, expected amount and paid/unpaid status
-   - Cash-flow snapshot: next income, upcoming commitments and projected lowest balance
-   - Recent activity feed
-   - Implemented with existing database contracts, without a new migration: monthly shared plan/spending/remaining and accessible progress, provisional joint income until both partners enter it, aggregate allowance peeks, the next unpaid cycle per shared schedule and recent paid cycles, corrected cash-flow estimates, and the five latest logged shared expenses. Home refreshes on focus, foreground, shared Realtime events and every 30 seconds while focused. Private row details never enter its activity feed.
-7. **Quick-log sheet. ✅** Implemented; apply the new migration and rebuild the native development app before testing receipts. Native/offline-restart and live two-person checks remain pending.
-   - Reachable from anywhere in two taps
-   - Asks "Shared or Private?" first. Each choice switches to its own theme
-   - Amount, category, frequency, who paid, date, and an optional note or foreign currency
-   - Allow a quick-log entry to be linked to an existing scheduled payment, or create a new schedule after saving
-   - Attach an optional receipt photo, with merchant, amount and date prefilled when receipt scanning is available
-   - Offline queue, so logging works in a shop with no signal
-   - Implemented in `20261026120000_quick_log.sql`: actor-checked idempotent logging, atomic payment-cycle linking, owner-scoped request records and private receipt Storage policies. A global launcher opens the shared/private choice; device-persisted entries retry without duplicate spending, with separate receipt retries and review for conflicts. Native photo capture/library selection, JPEG normalization, durable local photos, a receipt viewer/deletion flow, original-currency provenance and post-save future schedule setup are included. Last-account offline drafting can use cached catalogues after a retryable session refresh failure; it grants no server access. OCR scanning is not configured, so receipt details are entered manually.
-8. **Shared budget screen. ✅** Implemented with existing migrations; native and live two-person checks remain pending.
-   - A Shared tab shows the household’s current monthly plan, logged spending and remaining budget, plus assigned plan/spent/remaining for each shared category
-   - Planned costs can be assigned to categories through a dedicated version-checked screen. Unassigned costs remain visible in the household total; categories without an allocation show that no plan is assigned
-   - Shared refunds reduce spending; future-dated entries and other months are excluded. Upcoming shared bills show the next unpaid cycle per schedule within 90 days, including date windows, unknown estimates and cash-flow corrections; they are not counted as spending until an expense is logged
-   - Shared totals use the existing shared-only cash-flow projection, refresh through Realtime, on focus/foreground and every 30 seconds while focused. Errors offer recovery instead of presenting failed loads as zero balances
-9. **Private Space screen. ✅** Implemented with existing migrations; native and live two-person checks remain pending.
-   - A Private tab uses the paper/clay desk theme and shows the signed-in partner’s monthly allowance, net spending and remaining balance from the existing aggregate contract
-   - Recent own spending (ten entries, with access to the full paginated list) includes category/frequency, refund and future-date labels, and links to classification/receipt review
-   - Upcoming own private payments show five next unpaid schedules within 90 days, date windows and exact/estimated/unknown amounts. Management opens filtered to Private; new payment drafts default to Private
-   - Private expenses remain owner-filtered and protected by RLS; partners only receive the existing allowance aggregates. Future-dated ledger entries within the month count toward allowance, matching Home; unpaid schedules are not deducted until logged. Independent section recovery, owner-scoped cache keys, Realtime/focus/foreground refresh and a focused 30-second fallback are in place
-10. **Comments and reactions on shared transactions. ✅** Implemented; apply the new migration before testing. Native and live two-person checks remain pending.
-   - Open a shared expense’s conversation from Home activity, Review expenses or shared expense classification. Household members can read paginated comments and add Love, Thanks, Coffee or Celebrate reactions
-   - Authors can edit and confirm removal of their own comments. Version checks preserve stale drafts; removed bodies become tombstones that cannot be resurrected by an old retry. Stable comment IDs and desired-state reactions make lost-response retries safe
-   - Implemented in `20261026150000_transaction_conversations.sql`: shared-only composite foreign keys, membership/actor-checked RPCs, RLS and direct-write restrictions. No private transaction target or partner-authored edit is allowed. A household revision signal drives live refresh without publishing raw comments or reactions; focus/foreground and a 15-second focused fallback recover missed updates
-   - Online comments preserve unsent text in the mounted form across failed refreshes and while editing/removing another comment. They do not use the expense offline queue; closing the screen discards an unsent draft. Money, payment history and classifications are unchanged
-
-**Done when:** two partners can onboard with different payday schedules, log shared and private expenses on different devices, schedule exact-date and date-window payments, see a useful cash-flow forecast, and see the right things instantly, with private items never shown to the partner.
-
----
-
-## Phase 1.5: Redesign 🔜 (implementation complete; final acceptance pending)
-
-**Goal:** replace the current sage/clay look with a crisp, modern finance UI based on the references in `inspo/`. Behaviour, data contracts and privacy rules stay exactly as they are.
-
-**Implementation status — 26 October 2026**
-
-The app is now named **Couple Goals**. `PRODUCT.md`, `DESIGN.md` and `.impeccable/design.json` record the confirmed product and implemented visual system.
-
-| Step | Status | Evidence / remaining work |
-| --- | --- | --- |
-| R1 | ✅ | Product brief confirmed; budgets stay monthly. No unsupported week/year selectors or historical series are shown. |
-| R2 | ✅ | Cool light/dark tokens, Shared indigo / Private violet, bundled Manrope display font and system body text. |
-| R3 | ✅ | Updated base controls plus HeroCard, StatTile, ProgressBar, CategoryRow, PillActions, Sheet, AmountEntry and platform category pickers. iOS uses SF Symbols; other platforms use local SVG icons. Router owns native sheet presentation. |
-| R4 | ✅ | Spending donut with numbered category legend, mini gauges and signed forecast checkpoint bars. Summaries include uncategorised spending; refunds stay in signed totals. No fabricated history or spending-limit feature. |
-| R5 | ✅ | Core dashboards, Quick-log, cash flow, payment detail, lists, onboarding and navigation use the new system. All other screens inherit the updated shared components. Independent source reviews and static web reviews of the core screens plus 21 secondary surfaces passed; screen implementation is complete. Full live-route/native visual acceptance remains under R7. |
-| R6 | ✅ | Reduced-motion-aware progress/arcs/bar updates and amount-change feedback; native press haptics. Native transitions remain platform-owned. Hardware motion verification is pending. |
-| R7 | 🔜 | Lint/typecheck, 199 app tests, 106 database tests and iOS/Android/web export pass. Core synthetic web captures cover 320/430/1440 widths in both appearances; 84 secondary captures cover 320/1440. Independent reviews cleared both static web scopes. Native, large-text and live two-partner checks remain open. |
-
-**Remaining acceptance checks**
-
-- [ ] Run the rebuilt native app on iOS and Android; verify picker labeling, sheet keyboard/dismissal, haptics, reduced motion and system navigation.
-- [ ] Capture every live route in both appearances on small/large phones and web, including full forms, receipts and native/web tab chrome.
-- [ ] Verify large system text, long translated labels/names, maximum amounts, empty/loading/error and offline states on device.
-- [ ] Repeat the live two-partner shared/private flow after the redesign.
-
-No migrations, financial models, API contracts or privacy policies were changed. Synthetic captures are development evidence, not native or real-account verification. Phase 1.5 is **not complete** until the remaining acceptance checks pass.
-
-**How:** run every step with the `/impeccable` skill. This is a redesign, not a polish. The current look is something to replace, not something to refine. Product truth, copy, functions, accessibility and native affordances stay. No new features and no migrations in this phase.
-
-**What we take from the references** (`inspo/`, 5 screenshots)
-
-- Near-white canvas, large-radius white cards, and one high-contrast near-black hero card per screen (the "Spending vs limit" card with progress bar, spent/budgeted and a percentage)
-- One saturated indigo/blue accent for progress and charts, plus a soft, distinct colour tile per category (orange, blue, pink, green)
-- Segmented period control (for example This week / This month / This year)
-- Circular spending chart: category arcs with icon markers and the total in the centre, plus three mini gauge rings for Income, Total spending and Net balance
-- Rounded bar chart with the current period highlighted, a dashed reference line and a value label
-- Two-up stat tiles (Bills paid/remaining, Earnings) with slim progress bars
-- A horizontally scrolling strip of pill actions on a dark band ("Add budget", "Manage budget")
-- Bottom sheets with a grab handle for category lists and transaction entry
-- Quick-log amount entry with −/+ steppers, a category picker, and Cancel/Save in the sheet header
-- Big, bold numerals with a clear label/value hierarchy
-
-**What we keep from our own rules**
-
-- **Tone:** "we" language and no harsh red. Over-budget states use a calm warning colour. The reference's "16.7% over spending budget" becomes something like "We're 16.7% over the plan".
-- **Two spaces:** Shared and Private must still feel different at a glance, and Quick-log still switches theme. The new system needs a shared and a private variant inside one visual language (for example an accent or hero-card swap), not two unrelated themes.
-- **Privacy:** no chart, gauge or total may reveal private data to the partner. The partner's allowance stays an aggregate.
-- **Global:** charts and numerals use the existing locale-aware money formatting and never assume `$`. Layouts survive long translations.
-- **Access:** light and dark mode, dynamic type, 44pt touch targets, screen-reader summaries for every chart, and reduced motion.
-
-**Steps**
-
-- [x] **R1. Product context.** `/impeccable init` to write `PRODUCT.md`: users, the couples angle, tone, privacy promises, platforms. Settle the main tension up front: the references are cool neutrals with indigo, the current brand is warm. Also decide which period filters make sense. Budgets are monthly today, so Hours is dropped; Weeks and Year are added only where existing data supports them, computed client-side.
-- [x] **R2. Visual direction and design system.** Run the `/impeccable` redesign flow with `inspo/` as the reference. Write `DESIGN.md` to replace the sage/clay world, then rewrite the tokens in `src/constants/theme.ts`: colour, type scale, spacing, radius, elevation and motion. Load the chosen fonts with `expo-font`. Update the Styling and Tone rows in **Decisions**.
-- [x] **R3. Component kit.** Rebuild `src/components/ui/` (Card, Button, Choices as a segmented control, SummaryRow, TextField, Screen) and add HeroCard, StatTile, ProgressBar, CategoryRow with icon tile, PillActions and Sheet. Prefer `@expo/ui` for sheets, pickers and switches, `expo-symbols` for icons, and `expo-glass-effect` for glass surfaces on iOS with a solid fallback elsewhere. Use `/impeccable extract` to keep it consistent.
-- [x] **R4. Charts.** Add `react-native-svg` with `npx expo install` (check the SDK 58 docs first). Build SpendDonut, MiniGauge and PeriodBarChart, animated with Reanimated. Each one has a text summary for screen readers and handles empty, zero, single-category and over-budget data.
-- [x] **R5. Screens.** Redesign in this order, running `/impeccable critique` on each before moving on:
-  1. [x] Home dashboard
-  2. [x] Shared budget: hero spending card, period control, category list
-  3. [x] Private Space: the private variant
-  4. [x] Quick-log sheet: amount steppers, category picker, Shared/Private choice
-  5. [x] Payments, payment detail and history, cash-flow calendar and forecast
-  6. [x] Categories, income and expenses lists
-  7. [x] Onboarding wizard, sign-in, setup, settings, offline and pending logs
-  8. [x] Tab bar, native and web
-- [x] **R6. Motion.** `/impeccable animate`: sheet transitions, chart draw-in, number changes and press feedback with haptics (`expo-haptics`, added with `npx expo install`). Everything respects reduced motion.
-- [ ] **R7. Quality pass (in progress).** `/impeccable audit` (native), then `/impeccable harden` (long names, large amounts, long translations, empty, loading and error states), then `/impeccable polish`. Check light and dark, small and large phones, and web.
-  - [x] Lint and typecheck pass; 199 app tests and 106 database tests pass.
-  - [x] iOS, Android and web exports pass.
-  - [x] Synthetic web captures and independent reviews complete, including the final font and category-picker typography fixes.
-  - [ ] Complete the native, full live-route, large-text, receipt/offline and two-partner acceptance checks listed above.
-
-Spending limits appear in the references, but the feature is Phase 3 (step 24). Design a slot for them in the hero card and leave it hidden until then.
-
-**Done when:** every screen uses the new tokens and components with no hard-coded colours left in `src/app`, `DESIGN.md` matches `theme.ts`, all existing tests pass (UI tests change only where markup changed, never behaviour), and both partners see the new design on iOS, Android and web with the same data and privacy as before.
-
----
-
-## Phase 1.75: Onboarding and guided discovery improvements 🔜 (implementation complete; acceptance pending)
-
-**Goal:** help each partner set up real household finances, then learn the app a little at a time through optional, contextual product tours. The setup wizard handles the work; short overlay walkthroughs explain the relevant features after entering the app. Avoid turning onboarding into a manual for every current and planned feature.
-
-**Implementation (26 October 2026):** O1–O7 are implemented for currently shipped workflows. See `.impeccable/review/phase175/AUDIT.md` for the first-use findings. Joining partners review the saved shared agreement, missing partner totals stay pending, and optional paydays can be deferred without fabricating or deleting sources. Seven versioned, replayable guides use in-flow instruction sheets beside stable controls; action steps advance only on actual results. Settings → Guides provides replay/resume. `20261026170000_guided_discovery.sql` adds owner-only progress and the version-checked payday deferral RPC. Guide progress caches per account and syncs without financial field values. Future Phase 2 guides remain unregistered until those features ship.
-
-**O8 acceptance remains open:** automated app/database checks and synthetic web inspection are recorded in `.impeccable/review/phase175/VERIFICATION.md`. Native accessibility/keyboard/large-text checks, live two-device sync/offline recovery and comprehension tests with new users remain required before this phase is signed off.
-
-**Follow-up (27 October 2026):** user reports both phase migrations applied. All 227 app tests, 114 local database tests, lint and typecheck passed again. Live authenticated Chrome checks passed for guide replay/Back/Next/Close, focus return and saved-step resume after reload. See the verification record for scope; native, fresh create/join, two-device/offline and new-user acceptance remain open.
-
-**Placement:** build the onboarding and tour foundation after Phase 1.5. Cover the features that exist then; extend the relevant guides as Phase 2 and later features ship. Refresh the guides before the Phase 2.5 launch.
-
-**Approach:** use `/impeccable onboard` to simplify the journey, `/impeccable clarify` for instructions, and `/impeccable harden` for accessibility and interruptions. Tours must fit the existing native and web app, its design system and its privacy promises. Choose an Expo-compatible implementation during this phase; a browser-only overlay library must not determine the mobile experience.
-
-**Steps**
-
-- **O1. Audit the first-use journey.** Walk through creating a household, joining an existing household, returning to unfinished setup and waiting for a partner. Identify what people need to do now, what can wait and which controls are hard to discover. Define first success as understanding Shared versus Private and being able to log a genuine expense or schedule a bill, without having to learn the whole app first.
-- **O2. Improve the task-based setup wizard.** Keep income/split, allowances, shared costs and payday setup actionable: enter real details, see the result, save and continue. Explain why information is needed beside the field. Separate essential setup from optional details and education; offer “Set up later” where the underlying budget rules allow it. Preserve saved progress, validation, stale-edit protection and the ability to resume from Home or Settings. Missing partner information stays visibly pending. Joining partners review the shared setup and enter their own private details, rather than repeating the creator's work.
-- **O3. Add a short first-visit product tour.** Phase 1.8 starts the first eligible authenticated introduction automatically, with Skip and Close; after entering Home, show a walkthrough of roughly 3–5 steps covering the household summary, Shared, Private and the expense launcher. Use a spotlight and a short anchored tooltip or accessible instruction sheet to explain one useful action at a time. Show progress such as “Step 2 of 4”, with Back, Next and a clearly visible Skip/Close. Explain that the partner sees allowance totals, not private purchase details. Users can explore immediately without completing the tour.
-- **O4. Teach workflows on the relevant screen.** Offer separate short guides when users first reach Quick-log, scheduled payments, the cash-flow calendar, budget categories and private allowances. Let users tap the actual controls and enter their own details; advance an action step when its expected result occurs, not just when the user taps Next. Opening or advancing a tour never saves an expense, marks a bill paid or changes a budget automatically. Make optional extras such as receipts and foreign currency discoverable at the point of use, rather than adding them all to the first tour. Empty states should explain the next useful action and offer the matching guide.
-- **O5. Make guides optional, resumable and personal.** Provide “Show me around” / “Guides” in Settings or Help, with individual guides users can replay. Persist completion, dismissal and resumable progress per signed-in user and tour version, across restarts and devices, with an offline fallback. Store only guide/step identifiers and status; server-stored progress must be owner-only. One partner's progress never completes or resets the other's. Routine launches and ordinary updates do not restart dismissed tours. A newly shipped feature can offer its own small guide without replaying onboarding.
-- **O6. Build a reusable cross-platform tour system.** Keep translated step content, stable target IDs, route, availability conditions, expected actions and version in a shared tour registry outside route files. Anchor overlays to the actual rendered control and reposition or scroll into view after layout, orientation or keyboard changes. Handle an absent target, loading/error state, offline action, navigation away and app backgrounding by pausing or ending cleanly. Never point to an unavailable feature or cover the control the user is meant to operate. Use the existing tokens and components; keep instructions short, supportive and specific.
-- **O7. Add discovery as features arrive.** Include a small contextual guide and suitable empty-state explanation with joint goals, reconciliation, Money Date and other future workflows. Show guides only when the feature is shipped, enabled and available to that user. Revisit the overall navigation and information hierarchy as the app grows: simplify confusing screens and labels as well as explaining them. Keep advanced and occasional workflows out of the initial tour.
-- **O8. Verify comprehension and accessibility.** Test with people unfamiliar with the app: can they finish setup, explain Shared versus Private, find Quick-log and record an expense without help? Check iOS, Android and web; light/dark; large text, long translations, screen readers, keyboard focus, reduced motion and comfortable touch targets. Overlays must announce their instruction and progress, preserve access to the intended control, and return focus sensibly when closed. Check Skip, Back, replay, interruption, account switching, partner joining and offline recovery. When analytics from step 29 are available, measure setup completion, first successful action and tour drop-off using step identifiers and coarse events, never amounts, notes, income, receipt content or entered field values.
-
-**Done when:** a new user can complete or resume practical setup, enter the app without a compulsory long tour, understand the privacy boundaries, and use short, replayable guides to discover the workflows they need. Tour progress belongs to each partner, unavailable features are never advertised as usable, and guidance works accessibly on iOS, Android and web without performing financial actions on the user's behalf.
-
----
-
-## Phase 1.8: Usability and cross-platform consistency 🔜 (implementation complete; acceptance pending)
-
-**Goal:** make everyday budgeting feel familiar, quick and clear on both the mobile app and website. Apply the supplied UI design principles to real tasks: log an expense, understand our shared plan, manage a bill and collaborate without exposing private spending.
-
-**Implementation (26 October 2026):** user approved “Calm and native: simpler screens, compact rows, fewer cards” and requested guides automatically at first sign-in. Taste's audit/restraint principles and Impeccable's native guidance informed a quieter shared/private system: smaller tonal summaries, compact rows/actions, optional charts and budget controls, top navigation on desktop web and bottom tabs on narrow screens. Quick-log puts Save beside the common fields, keeps advanced state behind More details, shows payer/date before saving, searches long category lists and remembers validated category choices per account/household/space. First authenticated household entry starts a short welcome; first Home entry starts the app walkthrough; completing it hands off to Quick-log guidance. Prior Skip/Close/completion choices remain respected. `20261026180000_first_sign_in_guidance.sql` extends owner-only progress without resetting existing rows. No financial data contract or privacy boundary changed.
-
-**Acceptance remains open:** native runtime/accessibility/keyboard and live first-sign-in/two-device/offline flows, measured interaction/sync timing, and before/after comprehension testing with new people. Source audit, automated checks and synthetic browser evidence are recorded in `.impeccable/review/phase18/`. Compilation and synthetic layouts do not close the device/person gates in U1, U7 and U10.
-
-**Follow-up (27 October 2026):** live authenticated Chrome checks passed for returning-user guidance and shared/private Quick-log entry, empty-save validation, category no-match behavior and optional-field draft preservation. At 390 px wide, Quick-log had no horizontal document overflow and sampled visible buttons met the 48-unit height target. No financial records were created. Automated checks passed again; native, two-partner/offline, measured timing and new-user acceptance remain open.
-
-**Placement:** the next implementation phase after Phase 1.75, before Phase 2. Carry forward the outstanding native, live two-person and new-user acceptance checks from Phases 1.5 and 1.75; this phase does not mark them complete.
-
-**Approach:** audit the existing product before changing it. Use `/impeccable audit` and `/impeccable critique` to identify friction, `/impeccable distill` and `/impeccable clarify` to simplify it, then `/impeccable harden` and `/impeccable polish` to verify the result. Keep the established visual system, shared/private distinction, translations and financial contracts. Treat the laws as design heuristics to test with people, not rigid limits on memory, category counts or screen layouts.
-
-**Steps**
-
-- **U1. Establish a task-based usability baseline.** Walk through solo setup, joining a partner, Quick-log, Shared, Private, payments, cash flow and Guides on mobile and desktop web. Record confusing choices, unnecessary taps, hard-to-reach controls, unclear balances and weak feedback. Measure the common logging path and distinguish time spent deciding, entering data, saving locally and waiting for the server. Prioritise observed problems and capture before/after evidence instead of redesigning screens solely to illustrate a law.
-- **U2. Use familiar navigation and interactions — Jakob's Law.** Keep the same destination names, financial meanings and workflow order across platforms. Use thumb-accessible bottom navigation on mobile and the existing web navigation, adapting to a top bar or sidebar only where the audit demonstrates a benefit. Preserve platform Back behavior, keyboard navigation and browser history. Make opening expense/payment details predictable; any clickable web row must also work by keyboard and leave its nested actions independent. Swipe actions, if introduced, need a visible button/menu equivalent.
-- **U3. Make frequent actions easy to reach — Fitts's Law.** Verify the global expense launcher remains reachable one-handed, above safe areas and tab bars, without covering content, guide instructions or form actions. Keep touch targets at least 48 logical units with comfortable separation, including category choices, calendar dates, increment controls and secondary actions. Give desktop rows and controls useful hit areas without turning every surface into a button. Check narrow screens, keyboard-open layouts, large text and pointer/keyboard input.
-- **U4. Reduce decisions and support recognition — Hick's and Miller's Laws.** Keep the common logging path focused on visibility, amount and category; reveal notes, receipts, foreign currency and schedule linking when needed. Improve long category lists with search, recent choices or meaningful groups using the existing category/bucket model where possible. Do not replace a manageable list with a deeper hierarchy just to reduce its visible count. Break longer forms into clearly labelled task groups, show saved selections, and preserve drafts when validation or connectivity fails. Use the amount of information a task needs, rather than imposing a literal seven-item limit.
-- **U5. Let the system handle routine input — Tesler's Law.** Use household-timezone Today, locale-aware amounts and appropriate payer defaults. Evaluate remembering a person's last category and Shared/Private preference within their account and household, while keeping visibility obvious and reviewable before saving. Revalidate remembered choices against the current category catalogue and permissions; never reuse another person's private choices. Follow the couple's chosen proportional/equal/combined agreement rather than silently defaulting every household to 50/50. Suggestions for recurring bills must be explicitly reviewed before creating a schedule or financial record. Preserve integer money, idempotent logging and the current offline queue. Coordinate these improvements with the formal five-second logging target in launch step 37.
-- **U6. Make the dashboard easier to scan — proximity, common region and aesthetic usability.** Group shared plan/spent/remaining, allowance aggregates, upcoming commitments and recent shared activity according to the questions they answer. Start with a small set of useful summaries and move detailed histories into the existing review screens; add collapsible sections only when they improve discovery. Keep related labels and values together and separate unrelated groups with the existing spacing/surface tokens, avoiding unnecessary nested cards. Label planned, logged, confirmed and projected money distinctly. Show an actual account balance only when one has been supplied, with its date and meaning; do not relabel budget remaining as a wallet/bank balance. Partner-private purchases, categories, notes and receipts never become dashboard sections. Savings goal summaries wait for the real Phase 2 feature.
-- **U7. Give prompt, truthful feedback — Doherty Threshold.** Aim for visible local acknowledgement within 400 ms for common taps and saves on representative devices, and measure it rather than claiming it. Distinguish saving, durably queued, syncing, saved and review-required outcomes. Keep duplicate submission protection and stable request IDs. Where optimistic UI is appropriate, keep provisional changes identifiable and reconcile failures without double-counting money or presenting pending values as confirmed. Measure partner update latency separately; network/server sync is not guaranteed within 400 ms. Preserve realtime refresh, foreground recovery and polling fallbacks, and keep private events out of partner-visible feedback.
-- **U8. Make the next action and important exceptions distinct — Von Restorff Effect.** Give each task one clear primary action, with secondary controls visibly quieter. Distinguish overdue bills, low projected balances, missing information and failed saves with concise labels, icons and the established calm amber/terracotta treatment. Do not rely on color alone or add harsh red contrary to the brand. Separate forecast warnings from actual account problems, and expose only details the viewer is allowed to see. Keep reminders, guide prompts and decorative motion from competing with the financial decision.
-- **U9. Adapt layout while preserving meaning.** Use the platform matrix below to review the same tasks at phone and desktop sizes. Share data, labels, validation and privacy rules; adapt density and navigation to input method and available space. Keep the existing light/dark tokens, locale-aware currency/date formatting, household timezone, reduced-motion support and accessible chart summaries. Update affected guide anchors and instructions whenever a control moves, so the Phase 1.75 guides continue to point to real, available actions.
-- **U10. Verify improvements with people and realistic states.** Repeat the baseline tasks with people unfamiliar with the app: can they identify Shared versus Private, explain the displayed balance, find the next action and log an expense without coaching? Compare task success, time, errors and recovery before/after. Check iOS, Android and web; small and large screens; light/dark; large text; long translations; screen readers; keyboard focus; loading/error/empty states; offline restart/reconnect; account switching; and stale simultaneous edits from two partners. Run lint, typecheck and relevant behavioral/privacy tests. Record device/browser evidence and unresolved acceptance work explicitly; synthetic previews and exports do not provide native signoff. If analytics are added later in step 29, record coarse timing/outcome events without financial values or private field content.
-
-**Cross-platform design matrix**
-
-| Area | Mobile app | Desktop web | Shared requirement |
-| --- | --- | --- | --- |
-| Navigation | Bottom tabs and native Back behavior | Clear top navigation or a justified sidebar; browser history and keyboard access | Same destinations, names and task outcomes |
-| Expense logging | Thumb-accessible launcher and keyboard-aware entry | Prominent launcher and efficient keyboard entry | Visible Shared/Private choice, validated defaults and truthful save/sync state |
-| Transactions and bills | Scannable single-column rows/cards; visible action alternatives | Denser lists/tables where useful, with filters and accessible row actions | Same records, permissions, date/amount meanings and recovery rules |
-| Dashboard | Prioritised summaries with detail one action away | More information side by side when it stays readable | Shared information and allowance aggregates only; no partner-private purchase details |
-| Goal progress, once shipped | Readable progress summary with accessible detail | Progress beside target/deadline figures | Real Phase 2 goal data; no placeholder balances or invented history |
-
-**Done when:** a couple can perform the same core tasks confidently on mobile and web, log common expenses with fewer avoidable decisions, and distinguish shared/private, actual/planned and pending/confirmed information without extra explanation. Before/after evidence supports the changes, privacy and money behavior remain correct, guides still work, and native/live acceptance results are recorded honestly. These standards also apply to new Phase 2 workflows and the Phase 2.5 launch review.
-
----
-
-## Phase 2: Relationship features — implementation complete; rollout and acceptance pending
-
-**Goal:** the features that make this a couples app, not just a budget tracker.
-
-**Implementation status, 29 October 2026:** all eight Phase 2 features are implemented locally. Steps 12–15 are in `20261029100000_relationship_features.sql`, after anti-nag. The user confirmed explicit weekly category budgets. Reconciliation and Money Date deployment reports remain accepted; Money Date was not rechecked. After the user explicitly authorized the migration, `20261029100000_relationship_features.sql` was applied to Supabase on 29 October; all seven schema/permission checks passed. Anti-nag database prerequisites were already present and were not reapplied. Money Date was not queried. Worker/Cron/push activation and native/live two-partner month-cycle acceptance remain open; no real financial actions were performed. Deployment evidence is in `.impeccable/review/phase2/DEPLOYMENT.md`.
-
-**Build order:** Money Date is the launch feature, so build what it depends on first: 16 (reconciliation), 11 (joint goals), 17 (Money Date), 18 (anti-nag engine), then 12–15.
-
-Each new workflow also adds its contextual guide and empty-state explanation from Phase 1.75 and follows the usability standards from Phase 1.8; it does not lengthen the initial setup wizard or introduce tour steps for unfinished features.
-
-11. **Joint savings goals. ✅** Implemented; apply `20261027190000_joint_goals.sql` before testing. Native and live two-partner acceptance remain pending for this feature.
-    - Shared target/deadline/category, exact integer monthly targets and frozen partner shares using the agreed proportional/equal/combined mode. Each person is measured against their own share, so different contributions can both show 100%. Missing partner/income information stays pending until an explicit plan review.
-    - Actor-checked own shared contributions, immutable shared history with owner-only correction reversals, stable cursor pagination, version/revision conflicts and idempotent request retries. No contribution is automatic, creates an expense, transfers bank funds or charges an allowance. Archive pauses targets while retaining saved earmarks/history.
-    - Overall and partner progress, real monthly contribution charts, a quiet goal-reached celebration and a contextual guide. Home/Shared link to goals. Reconciliation continues to compare actual shared cash, including money earmarked for goals.
-    - Cash flow separates actual cash from projected availability after saved earmarks and remaining monthly targets, without counting category reservations twice. An existing forecast-only reservation can be explicitly replaced without claiming its amount is saved. `scheduled / booster / gift / variance` sources are recorded in the ledger. Explicit shared contributions, reviewed weekly boosters and own-allowance gifts are available; Money Date supports jointly approved releases. See steps 12–13 for their distinct financial effects.
-12. **Leftover Booster. ✅ (implementation)** Goals → Leftover Booster. Explicit category limits repeat from a future Monday in household time; changes and pauses preserve past limits. Completed weeks show net signed shared spending, prior earmarks and available leftover, capped at the original weekly limit even after refunds. Either partner reviews synced expenses, a destination and amount before saving. Household locks, refreshed facts and idempotent actor requests prevent double use; closed weeks cannot be boosted or reopened through a reversal. Pooled leftovers credit both monthly shares according to the frozen plan. No monthly-to-weekly budget guess, expense, cash movement or allowance debit is created.
-13. **Gift to Joint Goal. ✅ (implementation)** A separately reviewed own-allowance gift creates an owner-only allowance ledger debit and shared savings earmark atomically. Latest remaining allowance, goal capacity, actor and period are checked on the server. Both partners see the gift celebration/history; gift details contain no private purchases or remaining balance. The existing household allowance-aggregate contract is unchanged. Corrections restore the original allowance month once; locked months remain immutable. Uncertain outcomes retain their exact request and review even when a final gift completes the goal, blocking competing decisions until resolved. Gifts reserve already available shared funds; no bank transfer or private purchase is invented. Money Date snapshots include aggregate gifts and next-month allowance use starts cleanly.
-14. **Sinking funds. ✅ (implementation)** A first-class purpose in the existing goal editor/list/detail for predictable dated costs, such as insurance, a car licence or birthdays. Shows saved, remaining, date and the monthly amount still needed; uses the same real contribution/history, fair-share, forecast, archival and Money Date release contracts. No automatic contributions or fabricated opening savings.
-15. **Flexible bill splitting. ✅ (implementation)** Shared expense rows and conversations link to equal, income-ratio, percentage, fixed-amount or custom-weight contribution plans. Exact integer largest-remainder allocation also handles signed refunds. Missing income/partners stay pending, reviewed shares are separate from the recorded payer, and stale amounts/dates require review. Versioned retries, ownership and locked-period checks protect saves. Plans enter the exact Money Date consent facts and snapshots. Saving expected contributions does not charge allowances, mark payment or change the expense. New contextual guides cover all four workflows.
-16. **End-of-month reconciliation. ✅** Implemented; apply `20261027180000_reconciliation.sql` before testing. Native and live two-partner acceptance remain pending for this new feature.
-    - User reports applying this migration on 27 October 2026; live migration history was not independently inspected.
-    - Home, Shared and Private link to a shared balance-check screen. The first observed closing balance establishes a starting point; later checks compare confirmed shared contributions and signed logged expenses/refunds after that closing date. Expected money, budget reservations and private purchases are excluded.
-    - A missing expense uses Quick-log and counts after it syncs. A shortfall can move to the signed-in partner’s allowance, or be proposed as a reviewed split. Each partner approves their own share; neither allowance is charged until all shares are approved. Shared reconciliation allocations never create private purchase records.
-    - Surplus money can be retained as an explicit balance correction without inventing income or a refund. Resolved checks advance the confirmed cash-flow balance, retain the warning threshold and keep dated history. New checks preserve replaced unresolved observations as history; locked periods reject changes.
-    - Actor-checked, owner-scoped request records make lost-response retries idempotent. A household revision catches shared ledger/contribution/balance changes and stale approvals; private-only edits never signal reconciliation activity. A contextual, replayable guide waits for the real Save action.
-17. **Money Date mode. ✅** Implemented locally in `20261027200000_money_date.sql`, after the joint-goals migration. The user reports applying this migration on 28 October; it was not rechecked at their request. Native/two-partner acceptance remains pending. The flow follows this order:
-    1. Wins first: categories that came in under budget, goal progress
-    2. Clean-up: resolve unlogged gaps together
-    3. A 30-day look-ahead at upcoming and unusual bills
-    4. An optional one-month split tweak or goal draw-down
-    5. Lock it in with a high-five/confetti animation, which closes the period, snapshots the numbers and hands out new allowances
-    - Current-month shared plans and allowance grants are captured without inventing older plans. Completed recorded months close in order, with signed actual closing balances, explicit opening-point limitations, reviewed allowance allocations or surplus corrections, and a 30-day shared forecast.
-    - Each partner explicitly acknowledges synced expenses and approves the exact shared review. Shared changes invalidate approvals; private purchases never enter the review token or emit a household activity signal. Actor-scoped stable requests protect retries. Financial amounts/dates in locked months reject later writes, including queued entries; classification can still be corrected while the snapshot stays fixed.
-    - One-month overrides expire by calendar month and leave the permanent agreement intact. Goal releases reduce earmarked savings without fabricating expenses, private debits or bank transfers; fair-share contribution credit excludes releases, and corrections cannot make saved money negative. Closing snapshots aggregate allowance totals, issues next-month grants once and keeps already-logged next-month spending.
-    - Home/Shared entry points, optional contextual guide, accessible action review and a finite confetti success state with reduced-motion fallback are implemented. Synthetic browser evidence and automated tests are recorded in `.impeccable/review/money-date/`; hosted concurrent-client, native and real month-rollover acceptance remain open.
-18. **Anti-nag engine. ✅ (implementation)** Neutral system reminders for unlogged days, upcoming scheduled payments, low projected balances and Money Date day, via pg_cron, an Edge Function and Expo Notifications. Apply `20261028100000_anti_nag.sql`, deploy the worker and activate the separate Cron setup only after credentials/device setup. See `supabase/setup/ANTI_NAG_DEPLOYMENT.md`; production delivery is not yet verified.
-    - Owner-only opt-in types/hour, one delivery installation per account, explicit native permission/registration, foreground token refresh, guarded known notification routes and own delivery history. Web reviews/pauses settings; it does not register a push endpoint. Each partner controls their own choices, with optional guided discovery.
-    - At most one reserved delivery per person/local day. Priority is Money Date, assigned payment, reliable low shared forecast, then optional own-log check-in. Payment cycles do not repeat after accepted/uncertain submission; low/log prompts have weekly cooldowns. Current membership, consent, schedule state, timezone/hour and endpoint are checked before sending.
-    - A durable `nudges` log and leased claims serialize workers. Sending is recorded before Expo; crashes/uncertain responses never automatically resubmit. Tickets/receipts distinguish accepted handoff from confirmed service delivery, invalidate only the matching dead-token revision and expire stale work. Fixed generic payloads exclude private names, amounts and partner activity; private logging never emits a shared revision.
-    - The app and worker reuse the same integer forecast. Incomplete forecasts do not assert a guessed low balance. The updated app cancels its old managed local payment schedules. EAS preview/production profiles and optional Firebase client file configuration are prepared; no hosted worker, scheduler or real push was activated by this implementation.
-
-**Done when:** a couple can run a full month (log, boost, reconcile, Money Date, lock) and the next month starts cleanly.
-
----
-
-## Phase 2.5: Launch — started
-
-**Goal:** ship v1 to the stores with Money Date, a clear message, a fair price and an onboarding that works before the partner joins. Steps 26–30 move here from Phase 3, and step 34 from Phase 4.
-
-**Started, 29 October 2026:** the first local implementation slice covers steps 35–36: solo-setup clarification, optional saved partner-allowance proposals, limited authenticated invite review, explicit own-allowance confirmation/adjustment and a `/join` link that retains its code through sign-in. `20261029120000_launch_invites.sql` is prepared locally and has not been applied to the hosted project. Full launch readiness, later Phase 2.5 items and the outstanding Phase 2 reminder/native/live acceptance gates remain open. Rollout and runtime checks are tracked in [`PHASE25_ACCEPTANCE.md`](supabase/setup/PHASE25_ACCEPTANCE.md).
-
-**Onboarding and usability launch gate:** finish Phases 1.75 and 1.8 and refresh the guides for the features actually shipping, including joint goals and Money Date. Verify both solo setup and the joining partner's journey, with tours that can be skipped, resumed and replayed, and repeat the core mobile/web usability checks for the launch build.
-
-35. **Solo mode. (local implementation; native/live acceptance pending)** One partner can set up the household, budget, scheduled payments and logging and get a useful forecast before the other joins. Missing partner data (income, payday) is shown as pending, never guessed. When the partner joins, their own income and private details stay private as today.
-36. **Gift-style invite. (local implementation; migration/native/live acceptance pending)** The inviter proposes the partner's private allowance and the shared plan, then sends an invite that reads like a gift ("I set up your private allowance"). The invitee sees what was prepared, confirms or adjusts their allowance on joining, and enters their own income privately. Share via the system share sheet with a deep link that carries the invite code.
-37. **Five-second logging.** Target: launcher tap to saved entry in under 5 seconds for a typical shared or private expense. Remember the last Shared/Private choice and category, put the amount first and keep everything else optional. Measure the time with a PostHog event (step 29) and treat regressions as bugs.
-34. **CSV statement import** (moved from Phase 4). Import a bank statement CSV, map its columns once per bank, and review rows before saving. Matching against manual logs and scheduled payments reuses the rules planned for step 33. Imported private rows stay owner-only.
-26. **Apple and Google sign-in.** Needs developer accounts and a development build.
-27. **Account deletion, data export and leaving a household.** Required by app stores, GDPR and POPIA.
-28. **Subscriptions via RevenueCat.** One plan per couple, valid on every platform. Free: logging, private spaces, splits, scheduled payments and forecast. Paid: Money Date, joint goals and insights. Price at roughly half of Monarch/YNAB (~$100/yr), with regional pricing in launch markets. Either partner can pay; both get access.
-29. **Monitoring.** Sentry and PostHog.
-38. **Messaging.** Use the pitch from **Positioning and launch strategy** in the store listing, onboarding welcome, Home empty state and website. The first store screenshot shows privacy and fairness (Shared vs Private, income-based split). Add an "our monthly money date" screenshot. All copy goes through i18n.
-39. **Website and privacy policy.** A simple landing page with the pitch, a privacy policy and a support contact. Both stores require the privacy policy URL.
-40. **Launch markets.** Choose 1–3 first markets where US apps are weakest (South Africa is the natural first candidate: Stitch, POPIA and local pricing are already in the plan). Localise the store listing, currency defaults and pricing for each. The US comes later.
-30. **App store release.** EAS Build and Submit, privacy labels, store listing. New personal Google Play accounts must run a closed test with 12 testers for 14 days before production, so start it early.
-41. **Legal and compliance.** Complete every item marked "before launch" in the **Legal and compliance checklist** below. The app items (in-app deletion, data export, consent screens, disclaimers) are code work. The rest are business and paperwork tasks.
-42. **Launch plan.** Run the stages and go/no-go gates in [LAUNCH.md](LAUNCH.md): private beta, store closed testing, soft launch in the first market, then expansion.
-
-**Done when:** a couple in a launch market can download the app, set it up solo, invite their partner, log in under 5 seconds, run a Money Date and subscribe once for both of them.
-
----
-
-## Phase 3: Polish and growth ⏳
-
-19. **Gamification.** Team streaks for consistent logging, badges for staying under budget, milestone celebrations.
-20. **Income-inverted view.** Show budgets as percentages instead of amounts, to ease big income gaps.
-21. **Settle-up IOUs.** Track who owes whom for couples with separate accounts (new `settlements` table).
-22. **50/30/20 insights.** Categories already carry a needs, wants or savings bucket. Show how the split compares to 50/30/20.
-23. **Shared shopping list.** Create a household grocery list with estimated prices, mark items bought and optionally turn the final list into one categorised transaction.
-24. **Spending limits and gentle alerts.** Set optional category limits and notify the household when a category is approaching its plan, using the app's neutral tone.
-25. **Shared financial snapshot.** Manually track household cash, savings, credit cards and debts before bank feeds arrive, with private accounts remaining private.
-
-Steps 26–30 moved to Phase 2.5.
-
----
-
-## Phase 4: Bank feeds (v2) ⏳
-
-31. **Bank-feed adapter interface**, so each provider plugs in the same way.
-32. **Providers by region:** Plaid (US/CA), TrueLayer or GoCardless (UK/EU), Stitch (South Africa).
-33. **Auto-matching.** Imported transactions are matched to manual logs and scheduled payments. Unmatched shared-account transactions feed reconciliation.
-
-Step 34 (CSV statement import) moved to Phase 2.5. It remains the fallback where no bank-feed provider covers the bank.
-
----
-
-## Global launch checklist
-
-- [ ] Base currency per household, plus the original currency on each transaction, with daily FX rates
-- [x] Month boundaries follow the household's timezone
-- [ ] Locale-aware number and date formats on every screen
-- [ ] Receipt storage, retention and deletion rules, including explicit camera/photo permission handling
-- [ ] Shared transaction audit history: who edited, archived or deleted an item, with private fields excluded from partner-visible history
-- [ ] Notification privacy settings: control lock-screen detail, reminder timing and whether private reminders are shown on shared devices
-- [x] Forecast rules documented for missing income, late payments, refunds, transfers and negative balances
-- [x] Translatable copy (Phase 1, step 1)
-- [ ] Privacy policy, data export, account deletion
-- [ ] Sign in with Apple (required on iOS when other social logins are offered)
-
-## Legal and compliance checklist
-
-Written for a South Africa-first launch (POPIA), with GDPR/UK GDPR in mind for later markets. This is a working checklist, not legal advice: have a South African attorney review the Terms, the Privacy Policy and the business setup before launch.
-
-**Business setup (before launch)**
-
-- [ ] Decide personal or company. Register a (Pty) Ltd with CIPC if possible. Store listings show the seller's legal name, and a company keeps personal liability and your home address separate
-- [ ] Get a D-U-N-S number (free, needed for an Apple organisation account)
-- [ ] Enrol in the Apple Developer Program and Google Play Console as the organisation. Google shows a physical address publicly on monetised apps
-- [ ] Open a business bank account. Complete the tax and banking forms in App Store Connect and the Google Play payments profile
-- [ ] Register with SARS for income tax (provisional tax if trading personally). Track VAT: Apple and Google act as merchant of record and handle VAT for in-app purchases in most countries, but web sales through Stripe make us the seller. Consider leaving web purchases off at launch, or use a merchant-of-record provider (Paddle, Lemon Squeezy) for web
-- [ ] Trademark check for "Couple Goals" in CIPC, WIPO Global Brand Database, USPTO and EUIPO, plus both app stores. It's a common phrase, so confirm we can use it, or rename now while it's cheap. Register the mark in South Africa if it's clear
-- [ ] Register the domain and social handles that match the final name
-
-**POPIA (before launch)**
-
-- [ ] Register the Information Officer with the Information Regulator (by default the CEO or sole director)
-- [ ] Write a POPIA section 51 / PAIA manual and publish it on the website
-- [ ] Record what personal information we process, why, where it's stored and for how long. This covers income, spending, receipts, comments, device tokens and analytics
-- [ ] Retention schedule: closed households, deleted accounts, receipts, logs and backups
-- [ ] Cross-border transfers (POPIA section 72): document the Supabase region and every processor outside South Africa, and make sure each has adequate protection (DPA or standard contractual clauses)
-- [ ] Sign or accept DPAs with Supabase, Expo, Sentry, PostHog and RevenueCat (and Stitch later)
-- [ ] Security safeguards (section 19): RLS privacy tests, encryption in transit and at rest, least-privilege service keys, MFA on all admin accounts, backups (Supabase Pro)
-- [ ] Breach response plan (section 22): who decides, how we notify the Regulator and affected users "as soon as reasonably possible", plus a template notice
-- [ ] Data subject requests: access, correction, deletion and objection handled in-app or by email within a set time
-- [ ] Direct marketing (section 69): marketing emails and push only with opt-in consent, and an unsubscribe in every message
-
-**User-facing documents (before launch)**
-
-- [ ] **Privacy Policy:** plain language, covers both partners and explains exactly what the other partner can and can't see (balances only for private spaces). Linked in both stores, the website, sign-up and Settings
-- [ ] **Terms of Service / EULA:** no financial advice, accuracy of user-entered data, acceptable use, limitation of liability, governing law, how a household is shared, and what happens to shared data when one partner leaves or deletes their account
-- [ ] **Subscription terms:** price, renewal period, auto-renew, how to cancel (through the store), trial terms, and that one subscription covers both partners
-- [ ] **Not financial advice:** forecasts, 50/30/20 insights and budget guidance are informational. Avoid "you should" advice wording so the app stays outside FAIS
-- [ ] **ECTA section 43 disclosures** on the website: legal name, registration number, address, contact details and the Terms
-- [ ] Consent at sign-up: accept the Terms and Privacy Policy (recorded with version and date). Separate opt-ins for marketing and analytics where needed
-- [ ] Open-source and font licences listed in Settings (for example Manrope is under the OFL)
-
-**App store requirements (before launch)**
-
-- [ ] In-app account deletion (Apple guideline 5.1.1(v)), plus a web page for deletion requests (Google Play requirement)
-- [ ] Data export (step 27)
-- [ ] Apple privacy nutrition labels and Google Play Data safety form, matching what Sentry, PostHog and RevenueCat actually collect
-- [ ] iOS privacy manifest covering the app and every SDK
-- [ ] Sign in with Apple if Google sign-in is offered on iOS (step 26)
-- [ ] Age rating questionnaires: set 18+ or 17+, as the app isn't aimed at children
-- [ ] Export compliance: the app uses only standard HTTPS encryption, so set `ITSAppUsesNonExemptEncryption` to false in `app.json`
-- [ ] Subscription screens show price, period and renewal terms before purchase, with Restore Purchases and links to the Terms and Privacy Policy
-- [ ] Notification permission asked in context, with lock-screen privacy (see Global launch checklist)
-- [ ] Review account: a demo household with both partners for Apple and Google reviewers
-
-**Safety (before launch)**
-
-- [ ] Leaving a household is safe for someone in a controlling relationship. Leaving or deleting never notifies the partner with details, and private data is never handed to the remaining partner
-- [ ] A support page with links to financial-abuse resources in each launch market
-
-**Before entering the EU/UK or US (later)**
-
-- [ ] GDPR/UK GDPR: lawful basis for each purpose, an EU and UK representative (Article 27) if there's no establishment there, cookie and analytics consent on web, and the 72-hour breach notification rule
-- [ ] US: state privacy laws (CCPA and others) once over their thresholds. Ask a US attorney whether the FTC Safeguards Rule (GLBA) applies, especially once bank feeds arrive
-- [ ] Bank feeds (Phase 4): provider agreements (Stitch, Plaid, TrueLayer), explicit consent flows, and per-market open-banking rules
-- [ ] Cyber and professional indemnity insurance once revenue starts
-
-## How we verify each phase
-
-- `npm test`: money and split maths
-- `npm run test:db`: privacy rules against a real Postgres. Every new table gets a test proving partners and outsiders see only what they should
-- `npm run typecheck` and `npm run lint`
-- Manual two-device test: browser plus phone, signed in as each partner
-- Forecast test: partners with different paydays, a date-window bank payment, a variable bill and an irregular income occurrence
-- Privacy test: partner-visible forecasts and notifications never reveal private payment names, categories, amounts or receipt images
-- From Phase 1.5: a screenshot of each redesigned screen in light and dark mode on a small phone, a large phone and web, compared with `DESIGN.md`
-- From Phase 1.75: first-use and returning-user tests for setup → optional tour → real task, including Skip/Back/replay, per-user progress, missing targets, offline interruption, large text and screen-reader/keyboard operation; tour advancement must never submit a financial change automatically
-- From Phase 2: end-to-end tests (Maestro on mobile, Playwright on web) for onboarding → log → reconcile → Money Date → lock
+| Overview | Shared budget remaining, next bills, recent shared activity, one timely attention message | Reuse `src/app/(tabs)/index.tsx` and dashboard services |
+| Plan | Spending budget, Bills, Goals, Contributions & income, Forecast, Monthly review | Add `src/app/(tabs)/plan.tsx`; grouped rows open existing features |
+| Personal | Own allowance, own transactions, private bills, Add personal expense | Reuse `(tabs)/private-space.tsx`; change label, preserve route |
+| Spending budget | Category plan/spent/remaining, unassigned costs, plan editing | Keep `/shared-budget` as a Plan detail instead of a main tab |
+| Settings | Account, household, invites, reminders, appearance, help/guides | Preserve `/settings`; access from profile |
+| Monthly review | Check month, review next month, approve together | Preserve `/money-date` and existing financial services |
+
+Moving routes between Expo Router groups must preserve public URLs, authentication guards, Back behaviour and old links. Keep non-route components outside `src/app/`. Native/web navigators expose the same destinations. Receipt, pending-log, payment history, category, conversation, split, goal, gift, booster and reconciliation screens remain reachable contextually.
+
+The main number is **Shared budget remaining**, not “Account balance.” Actual cash is an explicitly recorded balance; forecast is an estimate. Never combine them into one misleading number. Month browsing requires complete existing facts or frozen snapshots; the mockup does not authorize fabricated history.
+
+## App flows
+
+### First use
+
+Sign in/create account → create household or open invite → essential budget setup → Overview.
+
+Save each step and support resume. The creator enters their own income, proposed split, allowances and shared costs. Defer optional payday details and invitations where existing rules allow. Missing partner information stays pending. A joining partner reviews the proposal and confirms/adjusts their own allowance before entering their private income/payday details. Retain invite codes through authentication. Guides remain optional; respect saved dismissal. Password recovery is FIX-003.
+
+### Add expense
+
+Add expense → amount, description and category → confirm → saved or queued feedback.
+
+Keep Shared/Personal scope prominent. Personal entry defaults to Personal; elsewhere use a validated contextual/default choice and show it before saving. Keep payer/date visible. Receipts, notes, foreign currency and schedule linking belong under More details. Preserve required fields and validation; making description/category optional needs a separate contract decision. Avoid amount steppers.
+
+Reuse the stable expense request ID, owner-scoped offline queue and separate receipt retry. Queued does not mean server-confirmed. Preserve conflict recovery and photo lifecycle; return to the originating screen with refreshed data.
+
+### Bills, goals and income
+
+Plan → Bills → detail → record actual paid date/amount → optionally log expense atomically. Recording payment does not send money. Distinguish upcoming commitments from spending. Address BUG-001 before beta.
+
+Plan → Goals → detail → review and record earmark. Place gifts, boosters and sinking-fund options inside the goal flow. Preserve consent, own-allowance limits, reversals, frozen shares and month locks. Contributions & income keeps source details owner-only and shared contributions explicit. Address BUG-002 before beta.
+
+### Monthly review
+
+Group the existing review engine into three visible stages:
+
+1. **Check this month:** spending, savings progress and observed month-end cash; resolve discrepancies through existing explicit reconciliation actions.
+2. **Review next month:** commitments, forecast and optional one-month contribution changes or savings releases, preserving their consent requirements.
+3. **Approve together:** show exactly what will close, each partner's approval and the locked-month confirmation.
+
+This changes presentation, not the financial model. Preserve completed-month eligibility, recorded-plan requirements, immutable snapshots, approval hashes, stale-review detection, actor-scoped retries and exactly-once next-month allowances. Never silently allocate discrepancies to a partner. Missing history remains unknown. Resume from server state without implying both people approved.
+
+## Banking redesign implementation checklist
+
+Status reviewed 1 November 2026. "Done" means implemented in local code with automated checks; native/device and live acceptance are tracked under BR10. Route map and state notes: [docs/redesign/ROUTES.md](docs/redesign/ROUTES.md).
+
+- [x] **BR1 — Routes and state.** Route map, preserved URLs, guide targets, draft/offline ownership and Back behaviour recorded; baseline 321 app / 213 database / 13 worker tests plus lint/typecheck.
+- [x] **BR2 — Tokens and controls.** New palette (white/grey, navy, one blue accent, separate semantic tokens, light and dark), solid icon set (SVG on Android/web, SF Symbols on iOS), 38-unit category/feature tiles, stable ID/starter-key colour mapping that keeps user emoji, chart colours. Contrast measured (tile glyphs ≥ 3:1, text ≥ 4.5:1); accent tile values deepened from the illustrative starting values for that reason. Rows stack amounts at large text. `DESIGN.md` and `.impeccable/design.json` updated. *Open:* screen-reader and keyboard-focus checks on devices.
+- [x] **BR3 — Navigation.** Tabs Overview · Plan · Personal (native and web). Settings and Spending budget moved to the root Stack with unchanged URLs and guard; profile/gear opens Settings; persistent Add expense bar on main screens. *Open:* native deep-link and authentication-return checks on devices.
+- [x] **BR4 — Overview.** Shared budget remaining summary ("Budget estimate · Not your bank balance"), one attention message, next bills, recent shared activity, unavailable-not-zero states. Partner allowance aggregates and the cash-flow card moved to Plan.
+- [ ] **BR5 — Plan/details (partial).** Plan tab groups Spending budget, Bills, Savings goals, Contributions & income, Cash forecast, Monthly review, Balance check, allowances and tools. Spending budget has the wheel, Income / Total spending / Net balance (same month and cutoff, received shared contributions only), signed-refund and empty handling, selectable accessible category rows and plan editing. Inner feature screens (bills, goals, income, forecast, reconciliation) received the new tokens/components only; their layouts were not individually redesigned.
+- [x] **BR6 — Personal.** Own allowance (centred), persistent privacy wording, own transactions and private bills with tiles, income and allowance review. Owner filters and data props unchanged.
+- [x] **BR7 — Expense entry.** Shared/Personal control on the form (Personal defaults to Personal; elsewhere last validated choice, then Shared), large typed amount without steppers, category with tile, "Paid by … · date / Edit", "Receipt or more details". Request ID, queue, receipt and conflict paths unchanged.
+- [ ] **BR8 — Setup/invites.** *Partly done:* new tokens and components apply to setup, join and invite screens, and Settings shows the invite card when no partner has joined. Shorter explanations and setup-flow restructuring were not done; launch-invites migration deployment remains open (VERIFY-001).
+- [ ] **BR9 — Review/guides (partial).** Monthly review shows three stages (Check this month · Review next month · Both approve) around the existing five sections, actions, confirmations, hashes and approvals; "No money is moved" note; Finish later. Guide IDs, versions and step IDs are unchanged, avoiding a version migration. However, the review guide is not connected to the new local stages: its close target is absent until stage three. Resolve R-03 in the 1 November review and verify the real provider before completing BR9.
+- [ ] **BR10 — Acceptance.** *Local:* lint, typecheck, 335 app tests (52 suites, including new Plan and wheel suites), 213 database and 13 worker tests pass; `expo export --platform web` succeeds; synthetic web previews compared with the concept images in light and dark. *Open:* native iOS/Android builds, installed iOS/Android and responsive web checks (keyboard, safe areas, screen readers, large text, receipts, offline restart, account switching), live two-partner month close and unassisted new-user observation.
+
+The concept requires no financial schema changes. Any financial contract change is a separate fix. Guide metadata may need a narrow compatibility migration; preserve completion/dismissal and do not put a new version into the current version-1 constraint.
+
+Read matching SDK 58 docs before writing Expo/React Native API code. This is an npm project: use `npx expo install` for compatible dependencies; `package-lock.json` is present, not `bun.lock`.
+
+## Implemented work and actual status
+
+Statuses below are not absence-of-bug certifications.
+
+| Original work | Status and qualification |
+| --- | --- |
+| Phase 0: auth, household, money, RLS | Implemented; currency/allocation/timezone defects and recovery follow-up recorded |
+| Phase 1 / 1–2: i18n, setup | Implemented; Indian grouping defect; native/fresh two-person acceptance pending |
+| 3–5: bills, categories, cash flow | Implemented; bill/income creation retry defects; device/live acceptance pending |
+| 6–9: dashboard, quick-log, shared/private views | Implemented; local tests pass; native receipts/offline restart/live acceptance pending |
+| 10: shared comments/reactions | Implemented; local ownership/retry tests pass; unsent mounted drafts are not durable offline messages |
+| Phase 1.5 / 1.75 / 1.8 | Implemented, acceptance incomplete; appearance superseded by BR; native/comprehension checks remain open |
+| Phase 2 / 11–17: goals, boosters, gifts, sinking funds, splits, reconciliation, Money Date | Implemented; local tests pass; live two-partner financial acceptance pending |
+| 18: anti-nag engine | Implemented locally; worker/Cron/credentials and native delivery activation pending |
+| Phase 2.5 / 35–36: solo setup/reviewed invitations | Implemented locally; launch-invites migration undeployed per repository record; native/live acceptance pending |
+| BR banking redesign | Core layouts implemented locally; BR5 secondary pages, BR8 setup and BR9 guide integration partial; BR10 device/live acceptance open |
+
+Deployment evidence is historical: reconciliation is user-reported; Money Date was reported applied on 28 October with a request not to recheck it. Anti-nag prerequisites and the relationship migration have recorded 29 October verification. This audit did not recheck production; local tests do not establish live deployment.
+
+## Retained release and future backlog
+
+Original IDs remain for traceability. Full previous wording and business checklists are archived; no unfinished task is silently completed.
+
+| IDs | Remaining work |
+| --- | --- |
+| 37 | Measure ordinary logging speed; under-five-second target remains unverified |
+| 34 | CSV import: mapping, review, duplicate matching, private ownership |
+| 26 | Apple/Google sign-in and native return paths |
+| 27 | Account deletion, export and safe household departure |
+| 28 | Couple subscriptions/entitlements and regional pricing decisions |
+| 29 | Monitoring and privacy-preserving analytics; exclude financial field contents |
+| 38–40 | Messaging, landing/privacy/support pages, markets and localisation |
+| 30, 41–42 | Store release, current business/legal/platform requirements and LAUNCH.md gates |
+| 19–25 | Later: gamification, percentage view, IOUs, bucket insights, shopping list, spending alerts, financial snapshot |
+| 31–33 | Later: bank adapters/providers and matching |
+
+Reassess gamification against the professional direction. Existing weekly booster limits are not general monthly category limits. Do not advertise CSV, subscriptions, social sign-in or feeds as available before implementation.
+
+Installed stack includes Expo 58, React Native 0.88, Expo Router, TypeScript, Supabase, TanStack Query, Zod, i18next, Reanimated and SVG. RevenueCat, Sentry, PostHog, Lottie and full Maestro/Playwright journeys remain planned. `eas.json` has preview/production profiles; development configuration remains open.
+
+## Next work and release gates
+
+1. Keep BUGS.md visible during redesign. This review records findings without fixes; prioritize duplicate bill/income creation before beta.
+2. Complete the remaining page families in the [1 November review](docs/redesign/REVIEW-2026-11-01.md), especially BR5 secondary layouts, BR8 setup and BR9 stage-aware guides. Preserve the core redesign and existing services; use [flow.md](flow.md) to verify contextual navigation.
+3. Resolve release defects, deploy prerequisites in order and complete BR10. Activate reminders through their separate deployment checklist.
+4. Finish launch/business gates. Old synthetic captures and passing local tests do not replace native/live acceptance.
+
+```sh
+npm run lint
+npm run typecheck
+npm test -- --runInBand
+npm run test:db
+npm run test:edge
+```
+
+Audit baseline: **321 app + 213 database + 13 worker tests = 547 passed**, plus lint/typecheck. Database tests use isolated PGlite with a Supabase shim.

@@ -63,7 +63,7 @@ export function GoalDetail({ data, goal, household, userId, members, error, refr
   const busy = save.isPending || !!error || uncertain;
   const date = (value: string) => formatCalendarDate(value, locale);
   const openReview = (action: GoalReview['action'], label: string, details: GoalReview['details'] = []) => setReview({ action, revision: data.revision, label, details });
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={save.isPending ? undefined : onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{goal.name}</ThemedText>
     {goal.kind === 'sinking' && <ThemedText themeColor="textSecondary">{t('relationships.sinkingHint')}</ThemedText>}
     <ThemedText themeColor="textSecondary">{t('goals.deadlineValue', { date: date(goal.deadline_on) })}</ThemedText>
@@ -149,7 +149,6 @@ export function GoalDetail({ data, goal, household, userId, members, error, refr
       <Button title={t(goal.archived ? 'goals.restore' : 'goals.archive')} variant="ghost" disabled={busy} onPress={() => openReview(
         { action: 'archive', values: { id: goal.id, version: goal.version, archived: !goal.archived } }, t('goals.archiveHint'))} />
     </Disclosure>
-    <Button title={t('goals.refresh')} variant="secondary" loading={refreshing} disabled={save.isPending} onPress={onRefresh} />
     <Button title={t('goals.back')} variant="ghost" onPress={() => router.replace('/goals')} />
   </Screen>;
 }

@@ -26,12 +26,15 @@ const props: PrivateSpaceProps = { householdId: household.id, userId: me.userId,
   onRetryBalance: jest.fn(), onRetryExpenses: jest.fn(), onRetryPayments: jest.fn(), onRefresh: jest.fn() };
 const show = (patch: Partial<PrivateSpaceProps> = {}) => render(<LocalizationProvider><PrivateSpace {...props} {...patch} /></LocalizationProvider>);
 beforeEach(() => jest.clearAllMocks());
-it('shows own allowance, private payments and spending in the private theme', async () => {
+it('shows own allowance, private bills and spending with persistent privacy wording', async () => {
   const view = await show();
   expect(view.getByText('$275.00')).toBeTruthy(); expect(view.getByText('My private bill')).toBeTruthy();
   expect(view.queryByText('Shared bill')).toBeNull(); expect(view.queryByText('Partner secret')).toBeNull();
   expect(view.getByText('My coffee')).toBeTruthy();
-  expect(view.getByRole('header', { name: 'My private space' })).toHaveStyle({ color: Palettes.private.light.text });
+  expect(view.getByRole('header', { name: 'Personal' })).toBeTruthy();
+  expect(view.getByText('Purchases are private.')).toBeTruthy(); expect(view.getByText('Allowance totals are shared.')).toBeTruthy();
+  // Personal shares one visual system with Shared; the scope is stated in words, not a separate violet palette.
+  expect(Palettes.private.light).toBe(Palettes.shared.light);
 });
 it('keeps other sections usable after a balance failure and never shows cached balances as current', async () => {
   const view = await show({ balanceError: true });
@@ -41,16 +44,19 @@ it('keeps other sections usable after a balance failure and never shows cached b
 });
 it('opens spending, scheduled payments and new payments with explicit private context', async () => {
   const view = await show();
-  for (const [name, pathname] of [['All my private spending', '/expenses'], ['All my private payments', '/payments'], ['Add a private payment', '/payment']]) {
-    await fireEvent.press(view.getByRole('button', { name }));
+  for (const [role, name, pathname] of [['link', 'All my private spending', '/expenses'], ['link', 'All my private payments', '/payments'], ['button', 'Add a private bill', '/payment']] as const) {
+    await fireEvent.press(view.getByRole(role, { name }));
     expect(router.push).toHaveBeenLastCalledWith({ pathname, params: { visibility: 'private' } });
   }
-  await fireEvent.press(view.getByRole('button', { name: 'Review My coffee' }));
+  await fireEvent.press(view.getByRole('button', { name: /^Review My coffee/ }));
+  await fireEvent.press(view.getByRole('button', { name: 'Settings' }));
+  expect(router.push).toHaveBeenLastCalledWith('/settings');
+  await fireEvent.press(view.getAllByRole('button', { name: /^Review My coffee/ })[0]);
   expect(router.push).toHaveBeenLastCalledWith({ pathname: '/expense-category', params: { id: 'e', visibility: 'private' } });
 });
 it('labels refunds and future entries without recomputing the authoritative allowance', async () => {
   const view = await show({ expenses: [{ ...entry, amountMinor: -500, occurredOn: '2026-10-30' }] });
-  expect(view.getByText('Refund')).toBeTruthy(); expect(view.getByText('Future-dated entry')).toBeTruthy();
+  expect(view.getByText(/Refund/)).toBeTruthy(); expect(view.getByText(/Future-dated/)).toBeTruthy(); expect(view.getByText('$5.00')).toBeTruthy();
   expect(view.getByText('$275.00')).toBeTruthy();
 });
 it('distinguishes empty data, loading, failed lists and a mismatched account balance', async () => {
@@ -62,10 +68,10 @@ it('distinguishes empty data, loading, failed lists and a mismatched account bal
   await view.rerender(<LocalizationProvider><PrivateSpace {...props} expensesError paymentsError /></LocalizationProvider>);
   expect(view.queryByText('My coffee')).toBeNull(); expect(view.queryByText('My private bill')).toBeNull(); expect(view.getByText('$275.00')).toBeTruthy();
 });
-it('bounds the overview to ten expenses and five bills, with a named busy refresh action', async () => {
+it('bounds the overview to ten expenses and five bills, without a bottom refresh button', async () => {
   const view = await show({ refreshing: true, expenses: Array.from({ length: 12 }, (_, i) => ({ ...entry, id: `e${i}`, description: `Expense ${i}` })),
     schedules: Array.from({ length: 7 }, (_, i) => ({ ...schedule, visibility: 'private', id: `s${i}`, name: `Bill ${i}` })) });
   expect(view.queryByText('Expense 10')).toBeNull(); expect(view.getByText('Expense 9')).toBeTruthy();
   expect(view.queryByText('Bill 5')).toBeNull(); expect(view.getByText('Bill 4')).toBeTruthy();
-  expect(view.getByRole('button', { name: 'Refresh my private space' }).props.accessibilityState.busy).toBe(true);
+  expect(view.queryByRole('button', { name: 'Refresh my private space' })).toBeNull();
 });

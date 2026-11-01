@@ -8,12 +8,21 @@ const symbolsCache = new Map<string, Symbols>();
 function symbolsFor(locale: string): Symbols {
   const cached = symbolsCache.get(locale);
   if (cached) return cached;
-  const parts = new Intl.NumberFormat(locale).formatToParts(12345.6);
+  const formatter = new Intl.NumberFormat(locale);
   const digits = new Intl.NumberFormat(locale, { useGrouping: false });
+  const digitPairs: [string, string][] = Array.from({ length: 10 }, (_, digit) => [digits.format(digit), String(digit)]);
+  // Some native Intl implementations provide format but not formatToParts.
+  // Probe using the locale's digits so comma decimals and non-Latin scripts
+  // remain correct on those runtimes too.
+  const separator = (formatted: string) => {
+    for (const [localized] of digitPairs) formatted = formatted.split(localized).join('');
+    return formatted.replace(/[\u061c\u200e\u200f]/g, '');
+  };
+  const parts = typeof formatter.formatToParts === 'function' ? formatter.formatToParts(12345.6) : null;
   const symbols: Symbols = {
-    decimal: parts.find((part) => part.type === 'decimal')?.value ?? '.',
-    group: parts.find((part) => part.type === 'group')?.value,
-    digits: Array.from({ length: 10 }, (_, digit) => [digits.format(digit), String(digit)]),
+    decimal: parts ? parts.find((part) => part.type === 'decimal')?.value ?? '.' : separator(digits.format(1.1)),
+    group: parts ? parts.find((part) => part.type === 'group')?.value : separator(formatter.format(12345)) || undefined,
+    digits: digitPairs,
   };
   symbolsCache.set(locale, symbols);
   return symbols;

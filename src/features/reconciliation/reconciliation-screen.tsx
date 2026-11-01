@@ -75,7 +75,7 @@ export function Reconciliation({ data, household, userId, members, error, refres
   const [confirmationRevision, setConfirmationRevision] = useState<number | null>(null);
   const confirm = (action: ReconciliationAction) => { setConfirmation(action); setConfirmationRevision(data.revision); };
   const busy = save.isPending || !!error;
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={save.isPending ? undefined : onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{t('reconciliation.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('reconciliation.intro')}</ThemedText>
     {!!error && <ThemedText themeColor="attention" accessibilityRole="alert">{t('reconciliation.loadError')}</ThemedText>}
@@ -144,7 +144,6 @@ export function Reconciliation({ data, household, userId, members, error, refres
     {pending ? <Disclosure title={t('reconciliation.newCheck')}>
       <CheckForm data={data} household={household} disabled={busy} onCheck={submit} />
     </Disclosure> : <CheckForm data={data} household={household} disabled={busy} onCheck={submit} />}
-    <Button title={t('reconciliation.refresh')} variant="secondary" disabled={save.isPending} loading={refreshing} onPress={onRefresh} />
     <Disclosure title={t('reconciliation.history')}>
       {!data.history.length && <ThemedText themeColor="textSecondary">{t('reconciliation.noHistory')}</ThemedText>}
       {data.history.map(row => <View key={row.id} style={styles.section}>

@@ -3,17 +3,19 @@ import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedAmount } from '@/components/ui/animated-amount';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { HeroCard, HeroRow } from '@/components/ui/hero-card';
-import { PillActions } from '@/components/ui/pill-actions';
+import { Icon } from '@/components/ui/icon';
+import { GroupGap, ListRow, ListSection } from '@/components/ui/list-row';
+import { ProgressBar } from '@/components/ui/progress-bar';
 import { Screen } from '@/components/ui/screen';
-import { SummaryRow } from '@/components/ui/summary-row';
+import { TabHeader } from '@/components/ui/screen-header';
 import { Spacing } from '@/constants/theme';
-import { categoryLabel, type Category } from '@/features/categories/schema';
+import type { Category } from '@/features/categories/schema';
+import { categoryVisual, featureVisual } from '@/features/categories/visual';
 import { useExpenses } from '@/features/expenses/api';
 import type { Expense } from '@/features/expenses/schema';
 import { useMyHousehold } from '@/features/household/api';
@@ -67,85 +69,90 @@ function PrivateDesk({ householdId, userId, today, currency, timezone, balance, 
   const pending = privateUpcoming(schedules ?? [], householdId, userId, today).slice(0, 5);
   const month = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(`${today.slice(0, 7)}-15T12:00:00Z`));
+  // Owner filter stays explicit: a cached row for another account never renders here.
   const ownBalance = balance?.user_id === userId ? balance : undefined;
-  return <Screen withTabBar>
-    {Platform.OS === 'web' && <View style={styles.webTabSpacer} />}
-    <View style={styles.section}>
-      <ThemedText type="subtitle" accessibilityRole="header">{t('privateSpace.title')}</ThemedText>
-      <ThemedText themeColor="textSecondary">{month}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.privacy')}</ThemedText>
-    </View>
+  const categoryFor = (id: string | null) => !paymentsError ? categories?.find(c => c.id === id && (c.visibility === 'shared' || c.ownerId === userId)) : undefined;
+  return <Screen withTabBar withAction refreshing={refreshing} onRefresh={onRefresh}>
+    <TabHeader title={t('banking.personal.title')} subtitle={month}
+      trailing={{ kind: 'icon', icon: 'settings', label: t('banking.settings.title'), onPress: () => router.push('/settings') }} />
     {ownBalance && !balanceError && <GuideSlot target="private-summary" offer="private-allowance" />}
-    {ownBalance && !balanceError ? <HeroCard icon="lock" title={t('privateSpace.allowance')}
-      value={money(ownBalance.remaining_minor)} subtitle={t('privateSpace.remaining')}
-      progressLabel={t('design.allowanceUsed')}
-      progressSummary={t('design.allowanceSummary', { spent: money(ownBalance.spent_minor), allowance: money(ownBalance.allowance_minor) })}
-      progress={ownBalance.allowance_minor > 0 ? ownBalance.spent_minor / ownBalance.allowance_minor * 100 : null}
-      warning={ownBalance.remaining_minor < 0 ? t('privateSpace.over', { amount: money(-ownBalance.remaining_minor) }) : undefined}>
-      <HeroRow label={t('privateSpace.monthlyAllowance')} value={money(ownBalance.allowance_minor)} />
-      <HeroRow label={t('privateSpace.spent')} value={money(ownBalance.spent_minor)} />
-    </HeroCard> : <Card><ThemedText type="smallBold">{t('privateSpace.allowance')}</ThemedText>
-      <SectionState error={balanceError || (!!balance && !ownBalance)} retry={onRetryBalance} /></Card>}
-    <Disclosure title={t('phase18.balanceDetails')}><ThemedText type="small" themeColor="textSecondary">{t('privateSpace.balanceHint')}</ThemedText></Disclosure>
-    <PillActions actions={[
-      { label: t('privateSpace.reviewAllowance'), icon: 'lock', onPress: () => router.push('/(onboarding)/budget') },
-      { label: t('privateSpace.addPayment'), icon: 'plus', onPress: () => router.push({ pathname: '/payment', params: { visibility: 'private' } }) },
-      { label: t('reconciliation.title'), icon: 'bill', onPress: () => router.push('/reconciliation') },
-    ]} />
-    <View style={styles.section}>
-      <ThemedText type="section" accessibilityRole="header">{t('privateSpace.payments')}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.paymentHint')}</ThemedText>
-      {schedules && !paymentsError ? <>
-        {!pending.length && <ThemedText themeColor="textSecondary">{t('privateSpace.noPayments')}</ThemedText>}
-        {pending.map(payment => {
-          const state = dueState(payment.dueStart, payment.dueEnd, today);
-          return <View key={payment.id} style={[styles.entry, { borderBottomColor: theme.border }]}>
-            <SummaryRow label={payment.name} value={payment.estimateMinor === null ? t('payments.unknownAmount') :
-              t(payment.expectedAmountMinor === null ? 'payments.estimatedValue' : 'payments.expectedValue', { amount: money(payment.estimateMinor) })} />
-            <ThemedText themeColor="textSecondary">{dueLabel(payment, locale)}</ThemedText>
-            <ThemedText type="small" themeColor={state === 'overdue' ? 'attention' : 'textSecondary'}>{t(`payments.${state}`)}</ThemedText>
-            <Button title={t('privateSpace.reviewPayment', { name: payment.name })} variant="ghost"
-              onPress={() => router.push({ pathname: '/payment-detail', params: { id: payment.id } })} />
-          </View>;
-        })}
-      </> : <SectionState error={paymentsError} retry={onRetryPayments} />}
-      <Button title={t('privateSpace.allPayments')} variant="secondary" onPress={() => router.push({ pathname: '/payments', params: { visibility: 'private' } })} />
+    {ownBalance && !balanceError ? <View accessible accessibilityLabel={[t('banking.personal.yourAllowance'), money(ownBalance.remaining_minor),
+      ownBalance.remaining_minor < 0 ? t('banking.personal.overBy', { amount: money(-ownBalance.remaining_minor) })
+        : t('banking.personal.remainingOf', { allowance: money(ownBalance.allowance_minor) })].join(', ')} style={styles.allowance}>
+      <View style={styles.allowanceLabel}><Icon name="lock" color={theme.heading} size={20} />
+        <ThemedText type="section" accessibilityRole="header">{t('banking.personal.yourAllowance')}</ThemedText></View>
+      <AnimatedAmount type="amount" style={styles.centred}>{money(ownBalance.remaining_minor)}</AnimatedAmount>
+      {ownBalance.remaining_minor < 0
+        ? <ThemedText accessibilityRole="alert" themeColor="attention" style={styles.centred}>{t('banking.personal.overBy', { amount: money(-ownBalance.remaining_minor) })}</ThemedText>
+        : <ThemedText themeColor="textSecondary" style={styles.centred}>{t('banking.personal.remainingOf', { allowance: money(ownBalance.allowance_minor) })}</ThemedText>}
+      {ownBalance.allowance_minor > 0 && <ProgressBar value={ownBalance.spent_minor / ownBalance.allowance_minor * 100} label={t('design.allowanceUsed')}
+        warning={ownBalance.remaining_minor < 0}
+        summary={t('design.allowanceSummary', { spent: money(ownBalance.spent_minor), allowance: money(ownBalance.allowance_minor) })} />}
+    </View> : <SectionState error={balanceError || (!!balance && !ownBalance)} retry={onRetryBalance} message={t('banking.personal.unavailable')} />}
+    <View style={[styles.privacy, { borderTopColor: theme.border }]}>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.personal.privacy1')}</ThemedText>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.personal.privacy2')}</ThemedText>
     </View>
-    <View style={styles.section}>
-      <ThemedText type="section" accessibilityRole="header">{t('privateSpace.spending')}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.spendingHint')}</ThemedText>
+    <Disclosure title={t('phase18.balanceDetails')}><ThemedText type="small" themeColor="textSecondary">{t('privateSpace.balanceHint')}</ThemedText></Disclosure>
+
+    <ListSection title={t('banking.personal.transactions')} action={{ label: t('banking.seeAll'), accessibilityLabel: t('privateSpace.allExpenses'),
+      onPress: () => router.push({ pathname: '/expenses', params: { visibility: 'private' } }) }}>
       {expenses && !expensesError ? <>
-        {!expenses.length && <ThemedText themeColor="textSecondary">{t('privateSpace.noExpenses')}</ThemedText>}
-        {expenses.slice(0, 10).map(expense => {
-          const category = !paymentsError && categories?.find(c => c.id === expense.categoryId &&
-            (c.visibility === 'shared' || c.ownerId === userId));
-          return <View key={expense.id} style={[styles.entry, { borderBottomColor: theme.border }]}>
-            <SummaryRow label={expense.description || t('expenses.untitled')} value={money(expense.amountMinor)} />
-            <ThemedText type="small" themeColor="textSecondary">{formatCalendarDate(expense.occurredOn, locale)} · {t(`payments.${expense.frequency}`)}</ThemedText>
-            {!!category && <ThemedText type="small" themeColor="textSecondary">{categoryLabel(category)}</ThemedText>}
-            {expense.amountMinor < 0 && <ThemedText type="small" themeColor="success">{t('dashboard.refund')}</ThemedText>}
-            {expense.occurredOn > today && <ThemedText type="small" themeColor="textSecondary">{t('privateSpace.future')}</ThemedText>}
-            <Button title={t('privateSpace.reviewExpense', { name: expense.description || t('expenses.untitled') })} variant="ghost"
-              onPress={() => router.push({ pathname: '/expense-category', params: { id: expense.id, visibility: 'private' } })} />
-          </View>;
+        {!expenses.length && <ThemedText themeColor="textSecondary" style={styles.empty}>{t('privateSpace.noExpenses')}</ThemedText>}
+        {expenses.slice(0, 10).map((expense, index, list) => {
+          const category = categoryFor(expense.categoryId);
+          const title = expense.description || t('expenses.untitled');
+          const meta = [formatCalendarDate(expense.occurredOn, locale), category?.name, expense.frequency === 'monthly' ? t('payments.monthly') : null,
+            expense.amountMinor < 0 ? t('dashboard.refund') : null, expense.occurredOn > today ? t('banking.personal.future') : null].filter(Boolean).join(' · ');
+          return <ListRow key={expense.id} title={title} subtitle={meta} value={money(-expense.amountMinor)}
+            visual={category ? categoryVisual(category) : featureVisual.spending} last={index === list.length - 1}
+            accessibilityLabel={`${t('privateSpace.reviewExpense', { name: title })}, ${money(-expense.amountMinor)}, ${meta}`}
+            onPress={() => router.push({ pathname: '/expense-category', params: { id: expense.id, visibility: 'private' } })} />;
         })}
       </> : <SectionState error={expensesError} retry={onRetryExpenses} />}
-      <Button title={t('privateSpace.allExpenses')} variant="secondary" onPress={() => router.push({ pathname: '/expenses', params: { visibility: 'private' } })} />
+    </ListSection>
+
+    <ListSection title={t('banking.personal.bills')} action={{ label: t('banking.seeAll'), accessibilityLabel: t('privateSpace.allPayments'),
+      onPress: () => router.push({ pathname: '/payments', params: { visibility: 'private' } }) }}>
+      {schedules && !paymentsError ? <>
+        {!pending.length && <ThemedText themeColor="textSecondary" style={styles.empty}>{t('privateSpace.noPayments')}</ThemedText>}
+        {pending.map(payment => {
+          const state = dueState(payment.dueStart, payment.dueEnd, today);
+          const amount = payment.estimateMinor === null ? t('payments.unknownAmount') :
+            t(payment.expectedAmountMinor === null ? 'payments.estimatedValue' : 'payments.expectedValue', { amount: money(payment.estimateMinor) });
+          const category = categoryFor(payment.categoryId);
+          return <ListRow key={payment.id} title={payment.name} value={amount} visual={category ? categoryVisual(category) : featureVisual.bills}
+            subtitle={`${dueLabel(payment, locale)} · ${t(`payments.${state}`)}`} tone={state === 'overdue' ? 'attention' : 'default'}
+            accessibilityLabel={`${t('privateSpace.reviewPayment', { name: payment.name })}, ${amount}, ${t(`payments.${state}`)}`}
+            onPress={() => router.push({ pathname: '/payment-detail', params: { id: payment.id } })} />;
+        })}
+      </> : <SectionState error={paymentsError} retry={onRetryPayments} />}
+      <ListRow title={t('banking.personal.addBill')} visual={featureVisual.bills} last
+        onPress={() => router.push({ pathname: '/payment', params: { visibility: 'private' } })} />
+    </ListSection>
+
+    <GroupGap />
+    <View>
+      <ListRow title={t('banking.personal.income')} subtitle={t('banking.personal.incomeHint')} visual={featureVisual.income} onPress={() => router.push('/income')} />
+      <ListRow title={t('banking.personal.allowanceReview')} subtitle={t('privateSpace.reviewAllowance')} visual={featureVisual.allowance} last
+        onPress={() => router.push('/budget')} />
     </View>
-    <Button title={t('privateSpace.refresh')} accessibilityLabel={t('privateSpace.refresh')} variant="ghost" loading={refreshing} onPress={onRefresh} />
   </Screen>;
 }
-function SectionState({ error, retry }: { error: boolean; retry: () => unknown }) {
+function SectionState({ error, retry, message }: { error: boolean; retry: () => unknown; message?: string }) {
   const { t } = useTranslation();
-  return <View style={styles.section}>
+  return <View style={styles.state}>
     <ThemedText accessibilityRole={error ? 'alert' : undefined} themeColor={error ? 'attention' : 'textSecondary'}>
-      {t(error ? 'privateSpace.loadError' : 'dashboard.loading')}
+      {error ? message ?? t('privateSpace.loadError') : t('dashboard.loading')}
     </ThemedText>
     {error && <Button title={t('common.tryAgain')} variant="secondary" onPress={retry} />}
   </View>;
 }
 const styles = StyleSheet.create({
-  webTabSpacer: { height: 0 },
-  section: { gap: Spacing.three },
-  entry: { gap: Spacing.two, paddingVertical: Spacing.three, borderBottomWidth: StyleSheet.hairlineWidth },
+  allowance: { alignItems: 'stretch', gap: Spacing.two, paddingVertical: Spacing.two },
+  allowanceLabel: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.two },
+  centred: { textAlign: 'center' },
+  privacy: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spacing.three, gap: 2 },
+  empty: { paddingVertical: Spacing.three },
+  state: { gap: Spacing.two, paddingVertical: Spacing.three },
 });

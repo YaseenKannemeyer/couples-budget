@@ -21,41 +21,56 @@ const props: DashboardProps = {
 };
 const show = (patch: Partial<DashboardProps> = {}) => render(<LocalizationProvider><Dashboard {...props} {...patch} /></LocalizationProvider>);
 beforeEach(() => jest.clearAllMocks());
-it('shows the household plan, allowance aggregates, pending/paid payments and shared activity', async () => {
+it('leads with shared budget remaining, labels it as an estimate and lists next bills and shared activity', async () => {
   const view = await show({ workspace: { ...cashflow, budgets: [{ id: 'b', name: 'Monthly plan', amount_minor: 50000, category_id: cashflow.categories[0].id, version: 1 }] } });
-  expect(view.getByText('Our month · October 2026')).toBeTruthy();
+  expect(view.getByText('Overview')).toBeTruthy(); expect(view.getByText(/· October$/)).toBeTruthy();
+  expect(view.getByRole('header', { name: 'Shared budget remaining' })).toBeTruthy();
+  expect(view.getByText('Budget estimate · Not your bank balance')).toBeTruthy();
   expect(view.getByRole('progressbar', { name: 'Shared monthly budget used' })).toBeTruthy();
-  expect(view.getByText('$123.45')).toBeTruthy(); expect(view.getByText('$65.00')).toBeTruthy();
-  expect(view.getByText('Internet')).toBeTruthy(); expect(view.getByText('Unpaid · Due soon')).toBeTruthy();
-  expect(view.getByText('Paid · Oct 24, 2026')).toBeTruthy();
-  expect(view.getByText('Our groceries')).toBeTruthy(); expect(view.getByText('Sam paid · Oct 24, 2026')).toBeTruthy();
-  await fireEvent.press(view.getByRole('button', { name: 'Review Internet' }));
+  expect(view.getByText('Internet')).toBeTruthy(); expect(view.getByText(/Unpaid · Due soon|Due soon/)).toBeTruthy();
+  expect(view.getByText('Our groceries')).toBeTruthy(); expect(view.getByText('Sam · Oct 24, 2026')).toBeTruthy();
+  // Partner allowance aggregates and paid history live in Plan and Bills, not on Overview.
+  expect(view.queryByText('$123.45')).toBeNull();
+  await fireEvent.press(view.getByRole('button', { name: /^Review Internet/ }));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/payment-detail', params: { id: cashflow.payments[0].id } });
+  await fireEvent.press(view.getByRole('link', { name: 'View budget' }));
+  expect(router.push).toHaveBeenCalledWith('/shared-budget');
+  await fireEvent.press(view.getByRole('button', { name: /^Our groceries, .*Sam paid/ }));
+  expect(router.push).toHaveBeenCalledWith({ pathname: '/expense-thread', params: { id: 'entry' } });
 });
-it('keeps forecast and confirmed amounts separate and offers setup when no balance exists', async () => {
-  const view = await show({ workspace: { ...cashflow, balance: null } });
-  expect(view.getByText('Start with a confirmed shared closing balance to see a forecast.')).toBeTruthy();
-  expect(view.queryByText('Confirmed balance from entries')).toBeNull();
-  await fireEvent.press(view.getByRole('button', { name: 'Our cash-flow calendar' }));
-  expect(router.push).toHaveBeenCalledWith('/cash-flow');
+it('opens Settings from the profile button and keeps See all links named', async () => {
+  const view = await show();
+  await fireEvent.press(view.getByRole('button', { name: 'Profile and settings' }));
+  expect(router.push).toHaveBeenCalledWith('/settings');
+  await fireEvent.press(view.getByRole('link', { name: 'See all bills' }));
+  expect(router.push).toHaveBeenCalledWith('/payments');
+  await fireEvent.press(view.getByRole('link', { name: 'See all shared activity' }));
+  expect(router.push).toHaveBeenCalledWith('/expenses');
+});
+it('states over-plan spending explicitly instead of relying on colour', async () => {
+  const view = await show({ workspace: { ...cashflow, budgets: [{ id: 'b', name: 'Small plan', amount_minor: 100, category_id: null, version: 1 }],
+    transactions: [{ id: 'e', name: 'Router', amount_minor: 2500, category_id: cashflow.categories[0].id, on_date: cashflow.today }] } });
+  expect(view.getByRole('header', { name: 'Over shared plan' })).toBeTruthy();
+  expect(view.getByText(/\$24\.00 above this month’s plan/)).toBeTruthy();
 });
 it('shows fetch errors instead of zero balances and keeps successful sections usable', async () => {
   const retry = jest.fn();
   const view = await show({ activity: undefined, activityError: true, onRetryActivity: retry });
-  expect(view.getAllByText('$0.00').length).toBeGreaterThan(0); // real zero plan, not a fabricated allowance
-  expect(view.queryByText('$123.45')).toBeNull();
   expect(view.getByText('Internet')).toBeTruthy();
   await fireEvent.press(view.getAllByRole('button', { name: 'Try again' })[0]);
   expect(retry).toHaveBeenCalled();
+  const failed = await show({ workspace: undefined, flowError: true });
+  expect(failed.getByText(/It isn’t zero/)).toBeTruthy();
+  expect(failed.queryByRole('header', { name: 'Shared budget remaining' })).toBeNull();
 });
-it('shows provisional income and no progress bar for an empty plan', async () => {
-  const view = await show({ household: { household, me, partner: null, members: [me] }, invite: <></> });
-  expect(view.getByText('Monthly income entered so far')).toBeTruthy();
+it('shows spending without a progress bar for an empty plan and offers one attention message', async () => {
+  const view = await show({ household: { household, me: { ...me, budgetCompletedAt: null }, partner: null, members: [me] }, invite: <></> });
+  expect(view.getByRole('header', { name: 'Shared spending this month' })).toBeTruthy();
   expect(view.queryByRole('progressbar')).toBeNull();
+  expect(view.getAllByText('Finish your budget setup to see what remains each month.')).toHaveLength(1);
 });
 
-it('keeps the refresh action named while it is busy', async () => {
+it('leaves refreshing to pull-to-refresh instead of a bottom button', async () => {
   const view = await show({ refreshing: true });
-  const button = view.getByRole('button', { name: 'Refresh Home' });
-  expect(button.props.accessibilityState.busy).toBe(true);
+  expect(view.queryByRole('button', { name: 'Refresh Home' })).toBeNull();
 });

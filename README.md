@@ -6,7 +6,14 @@ partner that the other can see the balance of, but never the contents.
 One codebase (Expo + React Native) runs on iOS, Android and the web. Supabase provides the
 database, sign-in and live sync.
 
-See [PLAN.md](PLAN.md) for the full roadmap, phase by phase.
+Start with [flow.md](flow.md) for the app navigation and task journeys, and the
+[1 November redesign review](docs/redesign/REVIEW-2026-11-01.md) for the complete page checklist.
+
+See [PLAN.md](PLAN.md) for the approved banking-style redesign and active roadmap.
+The core banking layouts are implemented locally; secondary pages and some flow details remain
+unfinished. Use the current review for page-level status; older feature sections retain historical labels.
+See [BUGS.md](BUGS.md)
+for confirmed defects, completed checks and outstanding deployment/device acceptance.
 
 ## First-time setup
 
@@ -16,8 +23,8 @@ See [PLAN.md](PLAN.md) for the full roadmap, phase by phase.
    (Supabase → Project Settings → API).
 4. In the Supabase dashboard, open **SQL Editor** and run every file in
    `supabase/migrations/` in filename order. For an existing database, run only the files
-   you haven't applied yet: `20261025180000_budget_onboarding.sql`, then
-   `20261025193000_scheduled_payments.sql`, then `20261025210000_categories_and_frequency.sql`.
+   you haven't applied yet, in filename order. Check the feature-specific deployment records
+   under `supabase/setup/`; local migration tests do not establish hosted deployment.
 5. While developing, consider turning off **Confirm email** (Authentication → Sign In / Providers →
    Email) so new test accounts can sign in immediately.
 
@@ -34,8 +41,9 @@ To try the couple flow, sign up as one partner in the browser and as the other o
 ## Checks
 
 ```bash
-npm test           # money maths and the fair-share split
-npm run test:db    # privacy rules, run against a real Postgres in-process
+npm test           # app models, services, forms and UI
+npm run test:db    # migration/RPC/privacy tests in PGlite with a Supabase shim
+npm run test:edge  # reminder-worker tests
 npm run typecheck
 npm run lint
 ```
@@ -430,7 +438,7 @@ and live two-person checks remain pending. Web layout smoke checks used syntheti
 ## Private Space (Phase 1, step 9)
 
 Reload and open the **Private** tab. No new migration or dependency is required for this step.
-The screen uses the existing private paper/clay palette in light and dark appearances.
+The current screen uses the existing Private visual tokens in light and dark appearances; the approved banking redesign will replace them through the shared design system.
 
 - **My allowance** retains only the signed-in account’s row from `allowance_balances()`.
   Monthly allowance, net logged spending and remaining match the aggregate on Home. Refunds

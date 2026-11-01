@@ -14,7 +14,7 @@ import { useMyHousehold } from '@/features/household/api';
 import { SpaceContext } from '@/hooks/use-theme';
 
 import { useCategories, useCategoryAction } from './api';
-import { categoryLabel, type Category } from './schema';
+import type { Category } from './schema';
 import { CategoryError, CategoryLoading, goBack } from './ui';
 
 export function CategoriesScreen() {
@@ -50,7 +50,7 @@ export function CategoriesView({ householdId, categories, reload, initialVisibil
       <Choice label={t('payments.archived')} selected={archived} onPress={() => setArchived(true)} disabled={action.isPending} />
     </Choices>
     {!rows.length && <ThemedText themeColor="textSecondary">{t('categories.empty')}</ThemedText>}
-    {rows.map((category, index) => <CategoryRow key={category.id} id={category.id} name={categoryLabel(category)} emoji={category.emoji}>
+    {rows.map((category, index) => <CategoryRow key={category.id} id={category.id} name={category.name} emoji={category.emoji} starterKey={category.starterKey}>
       <ThemedText themeColor="textSecondary">{t(`categories.buckets.${category.bucket}`)}</ThemedText>
       <Button title={t('categories.edit')} variant="secondary" disabled={action.isPending}
         accessibilityLabel={t('categories.editName', { name: category.name })}

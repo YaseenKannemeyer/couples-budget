@@ -43,7 +43,7 @@ export function ExpensesScreen() {
     {rows.map((expense) => {
       const category = categories.data.find((value) => value.id === expense.categoryId);
       return <CategoryRow key={expense.id} id={expense.categoryId ?? expense.id} name={expense.description || t('expenses.untitled')}
-        emoji={category?.emoji} value={format.money(expense.amountMinor, data.household.baseCurrency)}>
+        emoji={category?.emoji} starterKey={category?.starterKey} value={format.money(expense.amountMinor, data.household.baseCurrency)}>
         <ThemedText themeColor="textSecondary">{formatCalendarDate(expense.occurredOn, locale)}</ThemedText>
         <ThemedText>{category ? categoryLabel(category) : t('common.unknown')}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">{t(`payments.${expense.frequency}`)}</ThemedText>

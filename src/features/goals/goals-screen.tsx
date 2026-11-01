@@ -43,7 +43,7 @@ export function GoalsList({ data, household, error, refreshing, onRefresh }: {
       <Button title={t('goals.open', { name: goal.name })} variant="secondary" onPress={() => router.push({ pathname: '/goal', params: { id: goal.id } })} />
     </View>;
   };
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{t('goals.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('goals.intro')}</ThemedText>
     {!!error && <ThemedText accessibilityRole="alert" themeColor="attention">{t('goals.loadError')}</ThemedText>}
@@ -54,7 +54,6 @@ export function GoalsList({ data, household, error, refreshing, onRefresh }: {
     {!data.goals.some(g => !g.archived) && <ThemedText themeColor="textSecondary">{t('goals.empty')}</ThemedText>}
     {data.goals.filter(g => !g.archived).map(row)}
     {data.goals.some(g => g.archived) && <Disclosure title={t('goals.archived')}>{data.goals.filter(g => g.archived).map(row)}</Disclosure>}
-    <Button title={t('goals.refresh')} variant="secondary" loading={refreshing} onPress={onRefresh} />
     <Button title={t('payments.home')} variant="ghost" onPress={() => router.replace('/')} />
   </Screen>;
 }

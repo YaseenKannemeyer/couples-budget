@@ -2,13 +2,14 @@ import type { TFunction } from 'i18next';
 import { router } from 'expo-router';
 import { useContext, useEffect, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Platform, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ActionReview } from '@/components/ui/action-review';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Choice, Choices } from '@/components/ui/choices';
 import { Disclosure } from '@/components/ui/disclosure';
+import { Icon } from '@/components/ui/icon';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { RevealInScreen, Screen } from '@/components/ui/screen';
 import { SummaryRow } from '@/components/ui/summary-row';
@@ -21,7 +22,7 @@ import { useMyHousehold } from '@/features/household/api';
 import type { Household } from '@/features/household/schema';
 import { formatCalendarDate, shiftCalendarDays } from '@/features/payments/dates';
 import { PaymentError } from '@/features/payments/ui';
-import { SpaceContext } from '@/hooks/use-theme';
+import { SpaceContext, useTheme } from '@/hooks/use-theme';
 import { SPLIT_MODES } from '@/lib/split';
 import { useMoneyDate, useMoneyDateAction } from './api';
 import { MoneyDateCelebration } from './celebration';
@@ -54,14 +55,16 @@ function ConnectedMoneyDate(props: MoneyDateProps) {
   const save = useMoneyDateAction(props.household.id, props.userId);
   return <MoneyDate {...props} save={save} />;
 }
-const steps = ['wins', 'cleanup', 'lookahead', 'adjust', 'agree'] as const;
-export function MoneyDate({ data, household, userId, save, onMonth, error, refreshing, onRefresh, initialStep = 0 }: MoneyDateProps & {
-  save: MoneyDateMutation; initialStep?: number;
+/** Three visible stages around the existing five review sections; decisions and their consent rules are unchanged. */
+const stages = ['check', 'next', 'approve'] as const;
+export function MoneyDate({ data, household, userId, save, onMonth, error, refreshing, onRefresh, initialStage = 0 }: MoneyDateProps & {
+  save: MoneyDateMutation; initialStage?: number;
 }) {
   const { t } = useTranslation();
   const { money, locale } = useFlowMoney(household.baseCurrency, household.timezone);
+  const theme = useTheme();
   const signal = useGuideAction();
-  const [step, setStep] = useState(initialStep);
+  const [stage, setStage] = useState(initialStage);
   const [revealStep, setRevealStep] = useState(false);
   const [confirmation, setConfirmation] = useState<{ token: string; action: MoneyDateAction } | null>(null);
   const [success, setSuccess] = useState(false);
@@ -81,7 +84,7 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
       if (result.locked) { setCelebrate(true); signal('month-closed'); }
     } });
   };
-  const next = (value: number) => { setStep(value); setRevealStep(true); setConfirmation(null); setSuccess(false); };
+  const next = (value: number) => { setStage(value); setRevealStep(true); setConfirmation(null); setSuccess(false); };
   const comparison = <>
     <SummaryRow label={t('reconciliation.actual')} value={facts.draft.actual_minor === null ? t('moneyDate.notChecked') : money(facts.draft.actual_minor)} />
     <SummaryRow label={t('reconciliation.expected')} value={facts.expected_minor === null ? t('moneyDate.noAnchorShort') : money(facts.expected_minor)} />
@@ -96,10 +99,22 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
     {facts.draft.drawdowns.map(d => <SummaryRow key={d.goal_id} label={t('moneyDate.releaseFrom', { name: facts.goals.find(g => g.id === d.goal_id)?.name })} value={money(d.amount_minor)} />)}
     {facts.next_allowances.map(a => <SummaryRow key={a.user_id} label={t('moneyDate.nextAllowance', { name: name(a.user_id) })} value={money(a.amount_minor)} />)}
   </>;
+  const leave = () => router.canGoBack() ? router.back() : router.replace('/plan');
   return <Screen>
-    <ThemedText type="subtitle" accessibilityRole="header">{t('moneyDate.title')}</ThemedText>
-    <ThemedText themeColor="textSecondary">{month(data.period.starts_on)}</ThemedText>
-    <ThemedText>{t('moneyDate.intro')}</ThemedText>
+    <View style={styles.bar}>
+      <Pressable accessibilityRole="button" accessibilityLabel={stage > 0 ? t('budget.back') : t('banking.back')} disabled={save.isPending}
+        onPress={() => stage > 0 ? next(stage - 1) : leave()} hitSlop={6} style={({ pressed }) => [styles.barButton, { opacity: pressed ? 0.6 : 1 }]}>
+        <Icon name="chevronLeft" color={theme.accent} size={22} />
+      </Pressable>
+      <ThemedText type="smallBold" accessibilityRole="header" style={styles.barTitle}>{t('banking.plan.review')}</ThemedText>
+      <Pressable accessibilityRole="button" accessibilityLabel={t('banking.close')} disabled={save.isPending} onPress={leave} hitSlop={6}
+        style={({ pressed }) => [styles.barButton, styles.barEnd, { opacity: pressed ? 0.6 : 1 }]}>
+        <Icon name="close" color={theme.accent} size={22} />
+      </Pressable>
+    </View>
+    <ThemedText type="smallBold" themeColor="accent">{t('banking.review.step', { number: stage + 1 })} · {month(data.period.starts_on)}</ThemedText>
+    <StepHeading key={stage} reveal={revealStep} title={t(`banking.review.stages.${stages[stage]}`)} />
+    <ThemedText themeColor="textSecondary">{t(`banking.review.stageHints.${stages[stage]}`)}</ThemedText>
     <Disclosure title={t('moneyDate.changeMonth')}>
       {data.periods.map(p => <Button key={p.month_on} title={`${month(p.month_on)} · ${t(p.status === 'locked' ? 'moneyDate.closed' : 'moneyDate.open')}`}
         variant="secondary" disabled={busy || p.month_on === data.period.starts_on} onPress={() => onMonth(p.month_on)} />)}
@@ -112,9 +127,8 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
     {!model.completed && <ThemedText themeColor="textSecondary">{t('moneyDate.preview', { date: date(data.period.ends_on) })}</ThemedText>}
     {!facts.plan && <ThemedText accessibilityRole="alert" themeColor="attention">{t('moneyDate.noPlan')}</ThemedText>}
     <GuideSlot target="money-date-review" offer="money-date" />
-    <ProgressBar value={(step + 1) * 20} label={t('moneyDate.progress')} summary={t('moneyDate.step', { number: step + 1, total: 5 })} />
-    <StepHeading key={step} reveal={revealStep} title={t('moneyDate.stepTitle', { number: step + 1, title: t(`moneyDate.${steps[step]}`) })} />
-    {step === 0 && <>
+    {stage === 0 && <>
+      <ThemedText type="section" accessibilityRole="header">{t('moneyDate.wins')}</ThemedText>
       <ThemedText themeColor="textSecondary">{t(model.completed ? 'moneyDate.winsHint' : 'moneyDate.winsSoFar')}</ThemedText>
       {model.wins.length === 0 && <ThemedText>{t('moneyDate.noWins')}</ThemedText>}
       {model.wins.map(c => <View key={c.category_id} style={styles.section}>
@@ -129,8 +143,7 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
         <ProgressBar value={g.saved_minor / g.target_minor * 100} label={g.name} summary={t('goals.progressSummary', { saved: money(g.saved_minor), target: money(g.target_minor) })} />
       </View>)}
       {!model.locked && <Button title={t('goals.title')} variant="ghost" onPress={() => router.push('/goals')} />}
-    </>}
-    {step === 1 && <>
+          <ThemedText type="section" accessibilityRole="header">{t('moneyDate.cleanup')}</ThemedText>
       {!!facts.bill_splits?.length && <Disclosure title={t('relationships.billPlans')}>
         {facts.bill_splits.map(s => <View key={s.transaction_id} style={styles.section}>
           <ThemedText type="smallBold">{s.description || t('expenses.untitled')}</ThemedText>
@@ -155,8 +168,9 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
         {facts.gap_minor !== null && facts.gap_minor > 0 && <Button title={t(facts.draft.surplus_correction ? 'moneyDate.removeCorrection' : 'reconciliation.keepCorrection')} variant="secondary" disabled={busy}
           onPress={() => confirm(optionsAction({ ...facts.draft, surplus_correction: !facts.draft.surplus_correction }))} />}
       </>}
-    </>}
-    {step === 2 && <>
+        </>}
+    {stage === 1 && <>
+      <ThemedText type="section" accessibilityRole="header">{t('moneyDate.lookahead')}</ThemedText>
       <ThemedText themeColor="textSecondary">{t('moneyDate.lookaheadHint', { from: date(facts.today), to: date(model.forecast.horizon) })}</ThemedText>
       <SummaryRow label={t('moneyDate.projected')} value={model.forecast.projected === null ? t('moneyDate.unknown') : money(model.forecast.projected)} />
       <ThemedText type="small" themeColor="textSecondary">{t('moneyDate.forecastHint')}</ThemedText>
@@ -167,13 +181,12 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
         <ThemedText type="small" themeColor="textSecondary">{t(b.on < facts.today ? 'moneyDate.overdueBill' : b.end && b.end !== b.on ? 'moneyDate.billWindow' : 'moneyDate.billDate', { date: date(b.on), end: b.end ? date(b.end) : '' })}</ThemedText>
       </View>)}
       {!model.locked && <Button title={t('cashflow.title')} variant="secondary" onPress={() => router.push('/cash-flow')} />}
-    </>}
-    {step === 3 && <>
+          <ThemedText type="section" accessibilityRole="header">{t('moneyDate.adjust')}</ThemedText>
       <ThemedText themeColor="textSecondary">{t('moneyDate.adjustHint', { month: month(data.period.ends_on) })}</ThemedText>
       {model.locked ? review : <OptionsForm key={`${data.period.id}:${facts.draft.version}`} household={household} data={data} disabled={busy}
         onSave={value => confirm(optionsAction(value))} />}
-    </>}
-    {step === 4 && <>
+        </>}
+    {stage === 2 && <>
       <GuideSlot target="money-date-close" />
       <Card>{review}</Card>
       <ThemedText themeColor="textSecondary">{t('moneyDate.closeHint')}</ThemedText>
@@ -194,7 +207,7 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
           <SummaryRow label={t('moneyDate.remaining')} value={a.allowance_minor === null ? t('moneyDate.unknown') : money(a.allowance_minor - a.spent_minor)} />
         </View>)}
       </Disclosure>}
-    </>}
+        </>}
     {confirmation && <ActionReview title={t('moneyDate.reviewAction')}>
       {confirmation.token !== data.token && <ThemedText accessibilityRole="alert" themeColor="attention">{t('moneyDate.changed')}</ThemedText>}
       <ThemedText>{confirmationText(confirmation.action, money, t)}</ThemedText>
@@ -208,13 +221,36 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
       <Button title={t('moneyDate.confirmAction')} loading={save.isPending} disabled={busy || confirmation.token !== data.token} onPress={submit} />
       <Button title={t('common.cancel')} variant="ghost" disabled={save.isPending} onPress={() => setConfirmation(null)} />
     </ActionReview>}
-    <View style={styles.section}>
-      {step < 4 && <Button title={t('moneyDate.next', { title: t(`moneyDate.${steps[step + 1]}`) })} disabled={save.isPending} onPress={() => next(step + 1)} />}
-      {step > 0 && <Button title={t('budget.back')} variant="ghost" disabled={save.isPending} onPress={() => next(step - 1)} />}
+    <Stages current={stage} />
+    <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.review.noMoneyMoved')}</ThemedText>
+    <View style={styles.actions}>
+      {stage < 2 && <Button title={t('banking.review.continue')} accessibilityLabel={`${t('banking.review.continue')}: ${t(`banking.review.stages.${stages[stage + 1]}`)}`}
+        disabled={save.isPending} onPress={() => next(stage + 1)} />}
+      <Button title={t('banking.review.finishLater')} variant="secondary" disabled={save.isPending} onPress={leave} />
+      <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.review.finishLaterHint')}</ThemedText>
     </View>
-    <Button title={t('moneyDate.refresh')} variant="secondary" loading={refreshing} disabled={save.isPending} onPress={onRefresh} />
-    <Button title={t('payments.home')} variant="ghost" onPress={() => router.replace('/')} />
+    <Button title={t('moneyDate.refresh')} variant="ghost" loading={refreshing} disabled={save.isPending} onPress={onRefresh} />
   </Screen>;
+}
+/** Numbered stage list; the current stage is filled blue and announced. */
+function Stages({ current }: { current: number }) {
+  const { t } = useTranslation(); const theme = useTheme();
+  return <View accessibilityRole="list" accessibilityLabel={t('banking.review.stagesLabel')} style={[styles.stages, { borderTopColor: theme.border }]}>
+    {stages.map((key, index) => {
+      const active = index === current; const done = index < current;
+      return <View key={key} accessible accessibilityLabel={`${index + 1}. ${t(`banking.review.stages.${key}`)}${active ? `, ${t('banking.review.current')}` : done ? `, ${t('banking.review.done')}` : ''}`}
+        style={styles.stageRow}>
+        <View style={styles.stageMarker}>
+          <View style={[styles.stageDot, { backgroundColor: active ? theme.accent : theme.backgroundSelected }]}>
+            <ThemedText type="smallBold" style={{ color: active ? theme.onAccent : theme.text }}>{index + 1}</ThemedText>
+          </View>
+          {index < stages.length - 1 && <View style={[styles.stageLine, { backgroundColor: theme.border }]} />}
+        </View>
+        <ThemedText type={active ? 'smallBold' : 'small'} themeColor={active ? 'heading' : 'textSecondary'} style={styles.stageLabel}>
+          {t(`banking.review.stages.${key}`)}</ThemedText>
+      </View>;
+    })}
+  </View>;
 }
 function StepHeading({ title, reveal }: { title: string; reveal: boolean }) {
   const inScreen = useContext(RevealInScreen);const heading = useRef<ComponentRef<typeof View>>(null);
@@ -293,4 +329,17 @@ function OptionsForm({ household, data, disabled, onSave }: { household: Househo
       drawdowns: values.flatMap(v => v.amount_minor !== null && v.amount_minor > 0 ? [{ goal_id: v.goal_id, amount_minor: v.amount_minor }] : []) })} />
   </View>;
 }
-const styles = StyleSheet.create({ section: { gap: Spacing.two, paddingVertical: Spacing.two } });
+const styles = StyleSheet.create({
+  section: { gap: Spacing.two, paddingVertical: Spacing.two },
+  bar: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: -Spacing.two },
+  barButton: { minWidth: 48, minHeight: 48, justifyContent: 'center' }, barEnd: { alignItems: 'flex-end' },
+  barTitle: { flex: 1, textAlign: 'center', fontSize: 17, lineHeight: 24 },
+  centred: { textAlign: 'center' },
+  actions: { gap: Spacing.two },
+  stages: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spacing.three },
+  stageRow: { flexDirection: 'row', gap: Spacing.three, minHeight: 48 },
+  stageMarker: { alignItems: 'center', width: 32 },
+  stageDot: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  stageLine: { width: 2, flex: 1, minHeight: 12 },
+  stageLabel: { paddingTop: 5, flex: 1 },
+});

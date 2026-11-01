@@ -5,10 +5,12 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** Optional detail stays in the normal flow; collapsing never clears its state. */
-export function Disclosure({ title, hint, initiallyOpen = false, children }: {
-  title: string; hint?: string; initiallyOpen?: boolean; children: ReactNode;
+export function Disclosure({ title, hint, initiallyOpen = false, open: controlled, onOpenChange, children }: {
+  title: string; hint?: string; initiallyOpen?: boolean; open?: boolean; onOpenChange?: (open: boolean) => void; children: ReactNode;
 }) {
-  const [open, setOpen] = useState(initiallyOpen);
+  const [own, setOwn] = useState(initiallyOpen);
+  const open = controlled ?? own;
+  const setOpen = (update: (value: boolean) => boolean) => { const next = update(open); setOwn(next); onOpenChange?.(next); };
   const theme = useTheme();
   return <View style={styles.group}>
     <Pressable accessibilityRole="button" accessibilityLabel={title} accessibilityState={{ expanded: open }}

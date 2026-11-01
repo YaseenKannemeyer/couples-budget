@@ -8,13 +8,13 @@ Each stage ends with a **go/no-go gate**. We move on when the gate passes, not o
 
 ---
 
-Engineering status, 29 October 2026: Phase 2.5 has started with local solo-setup and gift-invitation work. The new migration is undeployed. The business, beta and store gates below remain open; see [the first-slice acceptance checks](supabase/setup/PHASE25_ACCEPTANCE.md).
+Engineering status, 30 October 2026: the banking-style redesign is approved and planned, not implemented. Local solo-setup and reviewed-invitation work exists; its migration remains recorded as undeployed. Resolve the P1 creation-retry defects in [BUGS.md](BUGS.md), complete the active [redesign and acceptance plan](PLAN.md), and retain the [first-slice acceptance checks](supabase/setup/PHASE25_ACCEPTANCE.md). Business, beta and store gates below remain open. External policy/legal statements below are historical planning notes and need current verification before action.
 
 ## Stage 0: Groundwork
 
 Starts now, alongside Phase 2. Most of it is paperwork with long waits, so it shouldn't wait for the code.
 
-- [ ] Trademark and name check for "Couple Goals" (see the Legal checklist in PLAN.md). Rename now if it's not clear
+- [ ] Trademark and name check for "Couple Goals". Rename now if it's not clear
 - [ ] Company registration, D-U-N-S number, Apple and Google developer accounts
 - [ ] Information Officer registration with the Information Regulator
 - [ ] Domain, landing page with the pitch and a **waitlist** form

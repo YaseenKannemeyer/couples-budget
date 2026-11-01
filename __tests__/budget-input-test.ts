@@ -26,6 +26,32 @@ describe('budget amounts', () => {
   });
 });
 
+describe('budget amounts without native formatToParts', () => {
+  it('preserves locale parsing and validation with a fresh symbols cache', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl.NumberFormat.prototype, 'formatToParts')!;
+    Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', { ...descriptor, value: undefined });
+    try {
+      jest.isolateModules(() => {
+        const { parseBudgetAmount: parse, budgetAmountText: editable } = jest.requireActual<typeof import('@/features/budget/money-input')>('@/features/budget/money-input');
+        expect(parse('1,234.56', 'USD', 'en-US')).toBe(123456);
+        expect(parse('1.234,56', 'EUR', 'de-DE')).toBe(123456);
+        expect(parse('1,5', 'EUR', 'de-DE')).toBe(150);
+        expect(parse('1 234,56', 'EUR', 'fr-FR')).toBe(123456);
+        expect(parse('١٬٢٣٤٫٥٦', 'USD', 'ar-EG')).toBe(123456);
+        expect(parse('1500', 'JPY', 'ja-JP')).toBe(1500);
+        expect(parse('12.345', 'BHD', 'en-US')).toBe(12345);
+        expect(parse(editable(150, 'EUR', 'de-DE'), 'EUR', 'de-DE')).toBe(150);
+        expect(parse('0', 'USD', 'en-US')).toBe(0);
+        for (const invalid of ['', '-1', '1,23', '0.001', '1e3', 'Infinity', '9007199254740993']) {
+          expect(parse(invalid, 'USD', 'en-US')).toBeNull();
+        }
+      });
+    } finally {
+      Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', descriptor);
+    }
+  });
+});
+
 describe('payday input', () => {
   it('checks real calendar dates, including leap years', () => {
     expect(isCalendarDate('2028-02-29')).toBe(true);

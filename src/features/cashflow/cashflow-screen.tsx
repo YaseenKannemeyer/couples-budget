@@ -55,7 +55,7 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
     {!item.confirmed&&item.kind!=='transaction'&&!item.readOnly&&<Button variant="ghost" title={t('cashflow.correct')} onPress={()=>edit(item)}/>}
     {item.readOnly&&<Button variant="ghost" title={t('goals.reviewGoal')} onPress={()=>router.push('/goals')}/>}
   </View>;
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{t('cashflow.title')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('cashflow.description',{timezone})}</ThemedText>
     <GuideSlot target="cashflow-summary" offer="cashflow" />
@@ -115,7 +115,6 @@ export function CashflowCalendar({data,currency,timezone,refreshing=false,onRefr
     <ThemedText type="small" themeColor="textSecondary">{t('cashflow.goalHint')}</ThemedText>
     {data.goals.filter(g=>g.due_on>=shiftCalendarDays(data.today,-30)).map(g=><Button key={g.id} variant="ghost" title={t('cashflow.editGoal',{name:g.name})}
       onPress={()=>router.push({pathname:'/forecast-goal',params:{id:g.id}})}/>)}
-    <Button variant="ghost" title={t('cashflow.refresh')} loading={refreshing} onPress={onRefresh}/>
     <Button variant="ghost" title={t('payments.home')} onPress={()=>router.replace('/')}/>
   </Screen>;
 }

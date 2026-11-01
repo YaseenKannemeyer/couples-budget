@@ -2,29 +2,26 @@ import { Disclosure } from '@/components/ui/disclosure';
 import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
-import { HeroCard, HeroRow } from '@/components/ui/hero-card';
-import { CategoryRow } from '@/components/ui/category-row';
-import { PillActions } from '@/components/ui/pill-actions';
-import { SpendDonut } from '@/components/ui/charts';
+import { Icon, type IconName } from '@/components/ui/icon';
+import { GroupGap, ListRow, ListSection } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
-import { SummaryRow } from '@/components/ui/summary-row';
-import { Spacing } from '@/constants/theme';
+import { DetailHeader } from '@/components/ui/screen-header';
+import { SpendingWheel } from '@/components/ui/spending-wheel';
+import { accentColor, Spacing, type AccentFamily } from '@/constants/theme';
 import type { Workspace } from '@/features/cashflow/schema';
-import { categoryLabel } from '@/features/categories/schema';
-import { paymentWindow } from '@/features/dashboard/model';
+import { categoryVisual, featureVisual, unassignedVisual, type TileVisual } from '@/features/categories/visual';
 import { useMyHousehold } from '@/features/household/api';
-import { dueState, useHouseholdToday } from '@/features/payments/dates';
-import { dueLabel } from '@/features/payments/ui';
+import { useHouseholdToday } from '@/features/payments/dates';
 import { useFormatters } from '@/hooks/use-formatters';
 import { SpaceContext, useTheme } from '@/hooks/use-theme';
 import { useSharedBudget } from './api';
-import { sharedBudgetModel } from './model';
+import { sharedBudgetModel, spendingSummary, wheelMode } from './model';
 
 export function SharedBudgetScreen() {
   const household = useMyHousehold();
@@ -43,118 +40,124 @@ export type SharedBudgetProps = {
   error: boolean; refreshing: boolean; onRefresh: () => unknown;
 };
 
+const UNCATEGORISED = 'uncategorised';
+
+/** Spending budget: category wheel, recorded income/spending/net and accessible category rows for one month and cutoff. */
 export function SharedBudget({ workspace, currency, timezone, error, refreshing, onRefresh }: SharedBudgetProps) {
   const { t } = useTranslation();
   const locale = useLocales()[0]?.languageTag ?? 'en';
   const format = useFormatters(timezone);
-  const theme = useTheme();
+  const [selected, setSelected] = useState<string | null>(null);
   const result = useMemo(() => {
     if (!workspace || error) return null;
-    try { return sharedBudgetModel(workspace); } catch { return null; }
+    try { return { budget: sharedBudgetModel(workspace), summary: spendingSummary(workspace) }; } catch { return null; }
   }, [workspace, error]);
   const failed = error || (!!workspace && !result);
   const money = (amount: number) => format.money(amount, currency);
   const month = workspace ? new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(`${workspace.today.slice(0, 7)}-15T12:00:00Z`)) : '';
-  return <Screen withTabBar>
-    {Platform.OS === 'web' && <View style={styles.webTabSpacer} />}
-    <View style={styles.heading}>
-      <ThemedText type="subtitle" accessibilityRole="header">{t('sharedBudget.title')}</ThemedText>
-      <ThemedText themeColor="textSecondary">{month}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.description')}</ThemedText>
-    </View>
-    {!result ? <View style={styles.section}>
+
+  const rows = result ? result.budget.rows.map(row => ({ id: row.category.id, name: row.category.name, visual: categoryVisual(row.category),
+    spent: row.spent, plan: row.plan, remaining: row.remaining, archived: row.category.archived }))
+    .concat(result.budget.uncategorisedCount ? [{ id: UNCATEGORISED, name: t('banking.spending.uncategorised'), visual: unassignedVisual,
+      spent: result.budget.uncategorisedSpent, plan: null, remaining: null, archived: false }] : []) : [];
+  const mode = result ? wheelMode(rows, result.budget.spent) : 'empty';
+  const charted = rows.filter(row => row.spent > 0);
+  const toggle = (id: string) => setSelected(current => current === id ? null : id);
+
+  return <Screen withAction refreshing={refreshing} onRefresh={onRefresh}>
+    <DetailHeader title={t('banking.spending.title')} subtitle={month ? t('banking.spending.subtitle', { month }) : undefined} backLabel={t('banking.back')} />
+    {!result ? <View style={styles.state}>
       <ThemedText accessibilityRole={failed ? 'alert' : undefined} themeColor={failed ? 'attention' : 'textSecondary'}>
         {t(failed ? 'sharedBudget.loadError' : 'dashboard.loading')}
       </ThemedText>
       {failed && <Button title={t('common.tryAgain')} onPress={onRefresh} />}
     </View> : <>
       <GuideSlot target="shared-summary" />
-      <HeroCard title={t('dashboard.spent')} value={money(result.spent)}
-        progress={result.hasPlan && result.plan > 0 ? result.spent / result.plan * 100 : null}
-        progressLabel={t('dashboard.progress')}
-        progressSummary={t('dashboard.spentOfPlan', { spent: money(result.spent), plan: money(result.plan) })}
-        warning={result.hasPlan && result.remaining < 0 ? t('dashboard.overPlan', { amount: money(-result.remaining) }) : undefined}>
-        <HeroRow label={t('dashboard.planned')} value={result.hasPlan ? money(result.plan) : t('sharedBudget.noPlan')} />
-        {result.hasPlan && <HeroRow label={t('dashboard.remaining')} value={money(result.remaining)} />}
-      </HeroCard>
-      <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.actualHint')}</ThemedText>
-      <Button title={t('reconciliation.title')} variant="secondary" onPress={() => router.push('/reconciliation')} />
-      <Button title={t('moneyDate.title')} variant="secondary" onPress={() => router.push('/money-date')} />
-      <Button title={t('goals.title')} variant="ghost" onPress={() => router.push('/goals')} />
-      {result.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.futureHint')}</ThemedText>}
-      <Disclosure title={t('phase18.budgetSettings')}><PillActions actions={[
-        { label: t('budget.review'), icon: 'bill', onPress: () => router.push('/(onboarding)/budget') },
-        { label: t('sharedBudget.assign'), icon: 'chart', onPress: () => router.push('/budget-categories') },
-        { label: t('categories.manage'), icon: 'settings', onPress: () => router.push('/categories') },
-      ]} /></Disclosure>
-      <Disclosure title={t('phase18.spendingBreakdown')}>
-        <ThemedText type="section" accessibilityRole="header">{t('sharedBudget.categories')}</ThemedText>
-        <SpendDonut label={t('dashboard.spent')} value={money(result.spent)}
-          segments={result.rows.map(row => ({ id: row.category.id, label: categoryLabel(row.category), amount: row.spent }))
-            .concat(result.uncategorisedCount ? [{ id: 'uncategorised', label: t('sharedBudget.uncategorised'), amount: result.uncategorisedSpent }] : [])}
-          summary={t('design.categorySummary', { label: t('sharedBudget.categories'), value: money(result.spent),
-            details: result.rows.map(row => `${categoryLabel(row.category)}: ${money(row.spent)}`)
-              .concat(result.uncategorisedCount ? [`${t('sharedBudget.uncategorised')}: ${money(result.uncategorisedSpent)}`] : []).join('; ') })} />
-        <ThemedText type="small" themeColor="textSecondary">{t('design.chartHint')}</ThemedText>
-      </Disclosure>
+      {mode === 'signed' ? <View style={styles.signed}>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.spending.totalSpend')}</ThemedText>
+        <ThemedText type="subtitle" style={[styles.centred, styles.tabular]}>{money(result.budget.spent)}</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.spending.signed')}</ThemedText>
+      </View> : <SpendingWheel centreLabel={t('banking.spending.totalSpend')} centreValue={money(result.budget.spent)}
+        segments={charted.map(row => ({ id: row.id, amount: row.spent, family: row.visual.family }))}
+        selectedId={selected} onSelect={toggle}
+        summary={mode === 'empty' ? t('banking.spending.empty') : t('banking.spending.wheelSummary', {
+          details: charted.map(row => `${row.name} ${money(row.spent)}`).join('; '), total: money(result.budget.spent) })} />}
+      {mode === 'empty' && <ThemedText themeColor="textSecondary" style={styles.centred}>{t('banking.spending.empty')}</ThemedText>}
 
-      <View style={styles.section}>
-        <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.categoryHint')}</ThemedText>
-        {result.rows.length === 0 && <ThemedText themeColor="textSecondary">{t('sharedBudget.emptyCategories')}</ThemedText>}
-        {result.rows.map(row => <CategoryRow key={row.category.id} id={row.category.id} name={row.category.name} emoji={row.category.emoji}>
-          <ThemedText type="small" themeColor="textSecondary">
-            {t(`categories.buckets.${row.category.bucket}`)}{row.category.archived ? ` · ${t('payments.archived')}` : ''}
-          </ThemedText>
-          <SummaryRow label={t('sharedBudget.spent')} value={money(row.spent)} />
-          {row.plan === null ? <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.notAssigned')}</ThemedText> : <>
-            <SummaryRow label={t('sharedBudget.plan')} value={money(row.plan)} />
-            <SummaryRow label={t('sharedBudget.remaining')} value={money(row.remaining!)} />
-            {row.remaining! < 0 && <ThemedText type="small" themeColor="attention">
-              {t('sharedBudget.categoryOver', { amount: money(-row.remaining!) })}
-            </ThemedText>}
-          </>}
-        </CategoryRow>)}
-        {result.uncategorisedCount > 0 && <View style={styles.category}>
-          <SummaryRow label={t('sharedBudget.uncategorised')} value={money(result.uncategorisedSpent)} />
-        </View>}
-        {result.unassigned.length > 0 && <View style={styles.section}>
-          <SummaryRow label={t('sharedBudget.unassigned')} value={money(result.unassignedAmount)} />
-          <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.unassignedHint')}</ThemedText>
-          {result.unassigned.map(line => <SummaryRow key={line.id} label={line.name} value={money(line.amount_minor)} />)}
-        </View>}
+      <View style={styles.stats}>
+        <FinanceStat icon="income" family="sky" label={t('banking.spending.income')} value={money(result.summary.income)} />
+        <FinanceStat icon="spending" family="sky" label={t('banking.spending.totalSpending')} value={money(result.summary.spending)} />
+        <FinanceStat icon="wallet" family="sky" label={t('banking.spending.net')} value={money(result.summary.net)} />
       </View>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.spending.netHint')}</ThemedText>
+      <Disclosure title={t('banking.spending.about')}><ThemedText type="small" themeColor="textSecondary">{t('banking.spending.aboutBody')}</ThemedText></Disclosure>
 
-      <View style={styles.section}>
-        <ThemedText type="section" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">{t('sharedBudget.paymentHint')}</ThemedText>
-        {!result.pending.length && <ThemedText themeColor="textSecondary">{t('dashboard.noPayments')}</ThemedText>}
-        {result.pending.map(item => {
-          const window = paymentWindow(item);
-          const state = dueState(window.dueStart, window.dueEnd, workspace!.today);
-          return <View key={item.key} style={[styles.category, { borderBottomColor: theme.border }]}>
-            <SummaryRow label={item.name} value={item.amount === null ? t('payments.unknownAmount') : money(item.amount)} />
-            <ThemedText themeColor="textSecondary">{dueLabel(window, locale)}</ThemedText>
-            <ThemedText type="small" themeColor={state === 'overdue' ? 'attention' : 'textSecondary'}>
-              {t('dashboard.unpaid')} · {t(`payments.${state}`)}{item.corrected ? ` · ${t('cashflow.corrected')}` : ''}
-            </ThemedText>
-            <Button variant="ghost" title={t('dashboard.reviewPayment', { name: item.name })}
-              onPress={() => router.push({ pathname: '/payment-detail', params: { id: item.key.split(':')[1] } })} />
-          </View>;
-        })}
-        <Button variant="secondary" title={t('payments.all')} onPress={() => router.push('/payments')} />
-      </View>
+      {result.budget.hasPlan && result.budget.remaining < 0 && <ThemedText accessibilityRole="alert" themeColor="attention">
+        {t('dashboard.overPlan', { amount: money(-result.budget.remaining) })}</ThemedText>}
+
+      <ListSection title={t('banking.spending.byCategory')} action={{ label: t('banking.seeAll'), accessibilityLabel: t('expenses.title'),
+        onPress: () => router.push({ pathname: '/expenses', params: { visibility: 'shared' } }) }}>
+        {rows.length === 0 && <ThemedText themeColor="textSecondary" style={styles.empty}>{t('sharedBudget.emptyCategories')}</ThemedText>}
+        {rows.map((row, index) => <CategoryLine key={row.id} row={row} money={money} last={index === rows.length - 1}
+          selected={mode === 'wheel' && row.spent > 0 ? selected === row.id : undefined}
+          dimmed={mode === 'wheel' && !!selected && selected !== row.id}
+          onSelect={mode === 'wheel' && row.spent > 0 ? () => toggle(row.id) : undefined} />)}
+      </ListSection>
+      {result.budget.futureCount > 0 && <ThemedText type="small" themeColor="textSecondary">{t('banking.spending.futureHint')}</ThemedText>}
+
+      {result.budget.unassigned.length > 0 && <ListSection title={t('sharedBudget.unassigned')}>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>{t('sharedBudget.unassignedHint')}</ThemedText>
+        {result.budget.unassigned.map((line, index) => <ListRow key={line.id} title={line.name} visual={unassignedVisual}
+          value={money(line.amount_minor)} last={index === result.budget.unassigned.length - 1} />)}
+      </ListSection>}
+
+      <GroupGap />
+      <ListSection title={t('banking.spending.editPlan')}>
+        <ListRow title={t('budget.review')} visual={featureVisual.budget} onPress={() => router.push('/budget')} />
+        <ListRow title={t('sharedBudget.assign')} visual={featureVisual.spending} onPress={() => router.push('/budget-categories')} />
+        <ListRow title={t('categories.manage')} visual={featureVisual.categories} last onPress={() => router.push('/categories')} />
+      </ListSection>
     </>}
-    <Button variant="secondary" title={t('expenses.title')} onPress={() => router.push({ pathname: '/expenses', params: { visibility: 'shared' } })} />
-    <Button variant="ghost" title={t('sharedBudget.refresh')} accessibilityLabel={t('sharedBudget.refresh')}
+    <Button variant="ghost" title={t('banking.refresh')} accessibilityLabel={t('sharedBudget.refresh')}
       loading={refreshing} onPress={onRefresh} />
   </Screen>;
 }
 
+type Line = { id: string; name: string; visual: TileVisual; spent: number; plan: number | null; remaining: number | null; archived: boolean };
+function CategoryLine({ row, money, last, selected, dimmed, onSelect }: {
+  row: Line; money: (n: number) => string; last: boolean; selected?: boolean; dimmed: boolean; onSelect?: () => void;
+}) {
+  const { t } = useTranslation();
+  const over = row.remaining !== null && row.remaining < 0;
+  const subtitle = [row.plan === null ? (row.id === UNCATEGORISED ? null : t('banking.spending.categoryNoPlan'))
+    : over ? t('banking.spending.categoryOver', { plan: money(row.plan), amount: money(-row.remaining!) })
+      : t('banking.spending.categoryPlan', { plan: money(row.plan), remaining: money(row.remaining!) }),
+  row.spent < 0 ? t('banking.spending.categoryRefund') : null, row.archived ? t('payments.archived') : null].filter(Boolean).join(' · ');
+  return <ListRow title={row.name} visual={row.visual} value={money(row.spent)} subtitle={subtitle || undefined}
+    tone={over ? 'attention' : 'default'} last={last} selected={selected} dimmed={dimmed} chevron={false} onPress={onSelect}
+    accessibilityLabel={[row.name, `${t('sharedBudget.spent')} ${money(row.spent)}`, subtitle, selected ? t('banking.spending.selected') : null].filter(Boolean).join(', ')} />;
+}
+
+/** Circular badge is an icon holder only — it never implies a progress ratio. */
+function FinanceStat({ icon, family, label, value }: { icon: IconName; family: AccentFamily; label: string; value: string }) {
+  const theme = useTheme();
+  return <View accessible accessibilityLabel={`${label}, ${value}`} style={styles.stat}>
+    <View style={[styles.badge, { backgroundColor: theme.accentSoft }]}><Icon name={icon} color={accentColor(family)} size={24} /></View>
+    <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{label}</ThemedText>
+    <ThemedText style={[styles.centred, styles.statValue]}>{value}</ThemedText>
+  </View>;
+}
+
 const styles = StyleSheet.create({
-  webTabSpacer: { height: 0 },
-  gauges: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
-  heading: { gap: Spacing.two },
-  section: { gap: Spacing.three, paddingVertical: Spacing.two },
-  category: { gap: Spacing.two, paddingVertical: Spacing.three, borderBottomWidth: StyleSheet.hairlineWidth },
+  state: { gap: Spacing.three, paddingVertical: Spacing.two },
+  signed: { gap: Spacing.one, paddingVertical: Spacing.three },
+  centred: { textAlign: 'center' },
+  tabular: { fontVariant: ['tabular-nums'] },
+  stats: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: Spacing.three },
+  stat: { flexGrow: 1, flexBasis: 96, alignItems: 'center', gap: Spacing.one },
+  badge: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.one },
+  statValue: { fontSize: 18, lineHeight: 24, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  empty: { paddingVertical: Spacing.three },
+  hint: { paddingTop: Spacing.two },
 });

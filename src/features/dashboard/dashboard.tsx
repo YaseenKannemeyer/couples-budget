@@ -1,25 +1,25 @@
-import { Disclosure } from '@/components/ui/disclosure';
 import { GuideSlot } from '@/features/guides/guide-slot';
 import { useLocales } from 'expo-localization';
 import { router } from 'expo-router';
 import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { HeroCard } from '@/components/ui/hero-card';
+import { Icon } from '@/components/ui/icon';
+import { ListRow, ListSection } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
-import { SummaryRow } from '@/components/ui/summary-row';
-import { HeroCard, HeroRow } from '@/components/ui/hero-card';
-import { StatTile } from '@/components/ui/stat-tile';
-import { PillActions } from '@/components/ui/pill-actions';
+import { TabHeader } from '@/components/ui/screen-header';
 import { Spacing } from '@/constants/theme';
 import type { Workspace } from '@/features/cashflow/schema';
+import { categoryVisual, featureVisual } from '@/features/categories/visual';
 import type { useMyHousehold } from '@/features/household/api';
 import { formatCalendarDate, dueState } from '@/features/payments/dates';
 import { dueLabel } from '@/features/payments/ui';
 import { useFormatters } from '@/hooks/use-formatters';
+import { useTheme } from '@/hooks/use-theme';
 import { homeModel, paymentWindow } from './model';
 import type { HomeActivity } from './schema';
 
@@ -37,6 +37,7 @@ export type DashboardProps = {
   invite?: ReactNode;
 };
 
+/** Overview: one shared-budget summary, one timely attention message, next bills and recent shared activity. */
 export function Dashboard({ household: data, workspace, activity, flowError, activityError,
   onRetryFlow, onRetryActivity, onRefresh, refreshing, invite }: DashboardProps) {
   const { t } = useTranslation();
@@ -46,139 +47,112 @@ export function Dashboard({ household: data, workspace, activity, flowError, act
   const model = useMemo(() => workspace ? homeModel(workspace, members) : null, [workspace, members]);
   const money = (amount: number) => format.money(amount, household.baseCurrency);
   const displayDate = (on: string) => formatCalendarDate(on, locale);
-  const reviewBudget = () => router.push('/budget');
-  const budgetTitle = t(me.budgetCompletedAt ? 'budget.review' : me.budgetSetupStep > 0 ? 'budget.resume' : 'budget.start');
-  const month = workspace ? new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const month = workspace ? new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' })
     .format(new Date(`${workspace.today.slice(0, 7)}-15T12:00:00Z`)) : '';
+  const names = partner ? t('banking.names', { first: me.displayName, second: partner.displayName }) : me.displayName;
   const usable = model && !flowError;
+  const categoryFor = (id?: string) => workspace?.categories.find(category => category.id === id);
+  const budgetTitle = t(me.budgetCompletedAt ? 'budget.review' : me.budgetSetupStep > 0 ? 'budget.resume' : 'budget.start');
 
-  return <Screen withTabBar>
-    {Platform.OS === 'web' && <View style={styles.webTabSpacer} />}
-    <View style={styles.heading}>
-      <ThemedText type="subtitle" accessibilityRole="header">{t('home.greeting', { name: me.displayName })}</ThemedText>
-      <ThemedText themeColor="textSecondary">{household.name}</ThemedText>
-    </View>
+  const pending = usable ? model.pending.map(item => {
+    const dates = paymentWindow(item);
+    return { item, dates, state: dueState(dates.dueStart, dates.dueEnd, workspace!.today), id: item.key.split(':')[1] };
+  }) : [];
+  const overdue = pending.find(entry => entry.state === 'overdue');
+  const attention = !me.budgetCompletedAt ? { text: t('banking.overview.setup'), action: budgetTitle, onPress: () => router.push('/budget') }
+    : overdue ? { text: t('banking.overview.overdue', { name: overdue.item.name }), action: t('dashboard.reviewPayment', { name: overdue.item.name }),
+      onPress: () => router.push({ pathname: '/payment-detail', params: { id: overdue.id } }) }
+    : usable && model.projection.low ? { text: t('banking.overview.low'), action: t('cashflow.title'), onPress: () => router.push('/cash-flow') }
+    : usable && model.projection.gaps.length > 0 ? { text: t('dashboard.forecastGaps'), action: t('cashflow.title'), onPress: () => router.push('/cash-flow') }
+    : null;
+
+  return <Screen withTabBar withAction refreshing={refreshing} onRefresh={onRefresh}>
+    <TabHeader title={t('navigation.overview')} subtitle={month ? t('banking.nameMonth', { names, month }) : names}
+      trailing={{ kind: 'profile', initial: Array.from(me.displayName.trim())[0]?.toUpperCase() ?? '?', label: t('banking.profile'), onPress: () => router.push('/settings') }} />
     {!partner && invite}
 
     {usable && <GuideSlot target="home-summary" offer="first-visit" />}
-    {!me.budgetCompletedAt && <ThemedText themeColor="textSecondary">{t('budget.firstSuccess')}</ThemedText>}
-    {usable ? <>
-      <HeroCard title={t('dashboard.month', { month })} value={money(model.spent)} subtitle={t('dashboard.spent')}
+    {usable ? <View style={styles.summary}>
+      {model.progress !== null ? <HeroCard
+        title={t(model.remaining < 0 ? 'banking.overview.overPlan' : 'banking.overview.remaining')}
+        value={money(model.remaining < 0 ? -model.remaining : model.remaining)}
+        subtitle={t('banking.overview.spentOf', { spent: money(model.spent), plan: money(model.plan) })}
         progress={model.progress} progressLabel={t('dashboard.progress')}
         progressSummary={t('dashboard.spentOfPlan', { spent: money(model.spent), plan: money(model.plan) })}
-        warning={model.remaining < 0 && model.progress !== null ? t('dashboard.overPlan', { amount: money(-model.remaining) }) : undefined}>
-        <HeroRow label={t('dashboard.planned')} value={money(model.plan)} />
-        {model.progress !== null ? <HeroRow label={t('dashboard.remaining')} value={money(model.remaining)} /> :
-          <ThemedText themeColor="heroSecondary">{t('dashboard.noPlan')}</ThemedText>}
-      </HeroCard>
-      <View style={styles.tiles}>
-        <StatTile icon="income" label={t(model.incomeComplete ? 'budget.jointIncome' : 'dashboard.incomeSoFar')}
-          value={money(model.income)} hint={!model.incomeComplete ? t('dashboard.incomePending') : undefined} />
-        <StatTile icon="bill" label={t('dashboard.commitments')} value={money(model.commitments)}
-          hint={model.unknownCommitments ? t('dashboard.unknownCommitments') : undefined} />
-      </View>
-      <Disclosure title={t('phase18.totalsDetails')}><ThemedText type="small" themeColor="textSecondary">{t('dashboard.budgetHint')}</ThemedText></Disclosure>
-    </> : <Card><ThemedText type="smallBold">{t('dashboard.month', { month })}</ThemedText><SectionState error={flowError} retry={onRetryFlow} /></Card>}
-    <PillActions actions={[
-      { label: budgetTitle, icon: 'bill', onPress: reviewBudget },
-      { label: t('sharedBudget.title'), icon: 'chart', onPress: () => router.push('/shared-budget') },
-      { label: t('reconciliation.title'), icon: 'bill', onPress: () => router.push('/reconciliation') },
-      { label: t('moneyDate.title'), icon: 'bill', onPress: () => router.push('/money-date') },
-      { label: t('goals.title'), icon: 'chart', onPress: () => router.push('/goals') },
-    ]} />
+        warning={model.remaining < 0 ? t('dashboard.overPlan', { amount: money(-model.remaining) }) : undefined}
+        link={{ label: t('banking.overview.viewBudget'), onPress: () => router.push('/shared-budget') }} />
+        : <HeroCard title={t('banking.overview.spentNoPlan')} value={money(model.spent)} subtitle={t('banking.overview.noPlan')}
+          link={{ label: t('banking.overview.viewBudget'), onPress: () => router.push('/shared-budget') }} />}
+      <ThemedText type="small" themeColor="textSecondary" style={styles.caption}>{t('banking.overview.notBank')}</ThemedText>
+    </View> : <SectionState error={flowError} retry={onRetryFlow} message={flowError ? t('banking.overview.budgetUnavailable') : undefined} />}
 
-    <View style={styles.section}>
-      <ThemedText type="section" accessibilityRole="header">{t('dashboard.allowances')}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t('dashboard.allowancePrivacy')}</ThemedText>
-      {activity && !activityError ? <Card>{members.map(member => {
-        const balance = activity.allowances.find(a => a.user_id === member.userId);
-        return <SummaryRow key={member.userId} label={member.displayName}
-          value={balance ? money(balance.remaining_minor) : t('dashboard.unavailable')} />;
-      })}</Card> : <SectionState error={activityError} retry={onRetryActivity} />}
-    </View>
+    {attention && <Attention text={attention.text} action={attention.action} onPress={attention.onPress} />}
 
-    <View style={styles.section}>
-      <ThemedText type="section" accessibilityRole="header">{t('payments.upcomingTitle')}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">{t('dashboard.sharedOnly')}</ThemedText>
+    <ListSection title={t('banking.overview.upcoming')} action={{ label: t('banking.seeAll'), accessibilityLabel: t('banking.seeAllBills'), onPress: () => router.push('/payments') }}>
       {usable ? <>
-        {!model.pending.length && <ThemedText themeColor="textSecondary">{t('dashboard.noPayments')}</ThemedText>}
-        {model.pending.map(item => {
-          const dates = paymentWindow(item);
-          const state = dueState(dates.dueStart, dates.dueEnd, workspace!.today);
-          return <View key={item.key} style={styles.entry}>
-            <SummaryRow label={item.name} value={item.amount === null ? t('payments.unknownAmount') : money(item.amount)} />
-            <ThemedText themeColor="textSecondary">{dueLabel(dates, locale)}</ThemedText>
-            <ThemedText type="small" themeColor={state === 'overdue' ? 'attention' : 'textSecondary'}>
-              {t('dashboard.unpaid')} · {t(`payments.${state}`)}{item.corrected ? ` · ${t('cashflow.corrected')}` : ''}
-            </ThemedText>
-            <Button variant="ghost" title={t('dashboard.reviewPayment', { name: item.name })}
-              onPress={() => router.push({ pathname: '/payment-detail', params: { id: item.key.split(':')[1] } })} />
-          </View>;
+        {!pending.length && <Empty text={t('banking.overview.noUpcoming')} />}
+        {pending.map(({ item, dates, state, id }, index) => {
+          const category = categoryFor(workspace!.payments.find(payment => payment.id === id)?.category_id);
+          return <ListRow key={item.key} title={item.name} visual={category ? categoryVisual(category) : featureVisual.bills}
+            subtitle={t('banking.overview.unpaidState', { due: dueLabel(dates, locale), state: t(`payments.${state}`) }) + (item.corrected ? ` · ${t('cashflow.corrected')}` : '')}
+            tone={state === 'overdue' ? 'attention' : 'default'} last={index === pending.length - 1}
+            value={item.amount === null ? t('payments.unknownAmount') : money(item.amount)}
+            accessibilityLabel={`${t('dashboard.reviewPayment', { name: item.name })}, ${item.amount === null ? t('payments.unknownAmount') : money(item.amount)}, ${t(`payments.${state}`)}`}
+            onPress={() => router.push({ pathname: '/payment-detail', params: { id } })} />;
         })}
       </> : <SectionState error={flowError} retry={onRetryFlow} />}
-      {activity && !activityError && activity.paid.length > 0 && <>
-        <ThemedText type="smallBold">{t('dashboard.paidThisMonth')}</ThemedText>
-        {activity.paid.map(record => <View key={record.id} style={styles.entry}>
-          <SummaryRow label={record.name} value={money(record.amount_minor)} />
-          <ThemedText type="small" themeColor="success">{t('dashboard.paidOn', { date: displayDate(record.paid_on) })}</ThemedText>
-        </View>)}
-      </>}
-      <Button variant="secondary" title={t('payments.all')} onPress={() => router.push('/payments')} />
-    </View>
+    </ListSection>
 
-    <Card>
-      <ThemedText type="section" accessibilityRole="header">{t('dashboard.cashflow')}</ThemedText>
-      {usable ? <>
-        <SummaryRow label={t('dashboard.nextIncome')} value={model.nextIncome ? displayDate(model.nextIncome.on) : t('dashboard.noIncome')} />
-        {model.nextIncome?.amount != null && <SummaryRow label={t('cashflow.contribution')} value={money(model.nextIncome.amount)} />}
-        <SummaryRow label={t('dashboard.commitments')} value={money(model.commitments)} />
-        {model.unknownCommitments && <ThemedText themeColor="attention">{t('dashboard.unknownCommitments')}</ThemedText>}
-        {model.projection.lowest === null ? <ThemedText themeColor="textSecondary">{t('cashflow.needBalance')}</ThemedText> : <>
-          <SummaryRow label={t('cashflow.confirmedBalance')} value={money(model.projection.confirmed!)} />
-          {model.projection.reservedSavings > 0 && <SummaryRow label={t('goals.reserved')} value={money(model.projection.reservedSavings)} />}
-          <SummaryRow label={t('cashflow.lowest', { date: displayDate(model.projection.lowestOn) })} value={money(model.projection.lowest)} />
-          {model.projection.low && <ThemedText accessibilityRole="alert" themeColor="attention">{t('cashflow.lowWarning', { amount: money(model.projection.beforePayday!) })}</ThemedText>}
-        </>}
-        {model.projection.gaps.length > 0 && <ThemedText type="small" themeColor="attention">{t('dashboard.forecastGaps')}</ThemedText>}
-        <ThemedText type="small" themeColor="textSecondary">{t('dashboard.forecastHint')}</ThemedText>
-      </> : <SectionState error={flowError} retry={onRetryFlow} />}
-      <Button title={t('cashflow.title')} variant="secondary" onPress={() => router.push('/cash-flow')} />
-    </Card>
-
-    <View style={styles.section}>
-      <ThemedText type="section" accessibilityRole="header">{t('dashboard.activity')}</ThemedText>
+    <ListSection title={t('banking.overview.recent')} action={{ label: t('banking.seeAll'), accessibilityLabel: t('banking.seeAllActivity'), onPress: () => router.push('/expenses') }}>
       {activity && !activityError ? <>
-        {!activity.recent.length && <ThemedText themeColor="textSecondary">{t('dashboard.noActivity')}</ThemedText>}
-        {activity.recent.map(entry => <View key={entry.id} style={styles.entry}>
-          <SummaryRow label={entry.description || t('cashflow.transaction')} value={money(-entry.amount_minor)} />
-          <ThemedText type="small" themeColor="textSecondary">{t('dashboard.activityBy', {
-            name: members.find(m => m.userId === entry.paid_by)?.displayName ?? t('common.unknown'), date: displayDate(entry.occurred_on),
-          })}</ThemedText>
-          {entry.amount_minor < 0 && <ThemedText type="small" themeColor="success">{t('dashboard.refund')}</ThemedText>}
-          <Button title={t('conversation.open')} variant="ghost"
-            onPress={() => router.push({ pathname: '/expense-thread', params: { id: entry.id } })} />
-        </View>)}
+        {!activity.recent.length && <Empty text={t('banking.overview.noActivity')} />}
+        {activity.recent.map((entry, index) => {
+          const name = members.find(m => m.userId === entry.paid_by)?.displayName ?? t('common.unknown');
+          const category = categoryFor(workspace?.transactions.find(transaction => transaction.id === entry.id)?.category_id);
+          const title = entry.description || t('cashflow.transaction');
+          return <ListRow key={entry.id} title={title} visual={category ? categoryVisual(category) : featureVisual.spending}
+            subtitle={t(entry.amount_minor < 0 ? 'banking.overview.refundMeta' : 'banking.overview.activityMeta', { name, date: displayDate(entry.occurred_on) })}
+            value={money(-entry.amount_minor)} last={index === activity.recent.length - 1}
+            accessibilityLabel={`${title}, ${money(-entry.amount_minor)}, ${t('dashboard.activityBy', { name, date: displayDate(entry.occurred_on) })}`}
+            accessibilityHint={t('conversation.open')}
+            onPress={() => router.push({ pathname: '/expense-thread', params: { id: entry.id } })} />;
+        })}
       </> : <SectionState error={activityError} retry={onRetryActivity} />}
-      <Button title={t('expenses.title')} variant="secondary" onPress={() => router.push('/expenses')} />
-    </View>
-    <Button title={t('dashboard.refresh')} accessibilityLabel={t('dashboard.refresh')} variant="ghost" loading={refreshing} onPress={onRefresh} />
+    </ListSection>
   </Screen>;
 }
 
-function SectionState({ error, retry }: { error: boolean; retry: () => unknown }) {
+function Attention({ text, action, onPress }: { text: string; action: string; onPress: () => void }) {
+  const theme = useTheme();
+  return <Pressable accessibilityRole="button" accessibilityLabel={`${text} ${action}`} onPress={onPress}
+    style={({ pressed }) => [styles.attention, { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.75 : 1 }]}>
+    <Icon name="alert" color={theme.attention} size={20} />
+    <View style={{ flex: 1, gap: 2 }}>
+      <ThemedText type="small">{text}</ThemedText>
+      <ThemedText type="smallBold" themeColor="accent">{action}</ThemedText>
+    </View>
+    <Icon name="chevronRight" color={theme.textSecondary} size={16} />
+  </Pressable>;
+}
+
+function Empty({ text }: { text: string }) {
+  return <ThemedText themeColor="textSecondary" style={styles.empty}>{text}</ThemedText>;
+}
+
+function SectionState({ error, retry, message }: { error: boolean; retry: () => unknown; message?: string }) {
   const { t } = useTranslation();
-  return <View style={styles.entry}>
+  return <View style={styles.state}>
     <ThemedText accessibilityRole={error ? 'alert' : undefined} themeColor={error ? 'attention' : 'textSecondary'}>
-      {t(error ? 'dashboard.loadError' : 'dashboard.loading')}
+      {message ?? t(error ? 'dashboard.loadError' : 'dashboard.loading')}
     </ThemedText>
     {error && <Button title={t('common.tryAgain')} variant="secondary" onPress={retry} />}
   </View>;
 }
 
 const styles = StyleSheet.create({
-  webTabSpacer: { height: 0 },
-  heading: { gap: Spacing.one },
-  section: { gap: Spacing.three, paddingVertical: Spacing.two },
-  entry: { gap: Spacing.two, paddingVertical: Spacing.two },
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
+  summary: { gap: Spacing.two },
+  caption: { paddingHorizontal: Spacing.two },
+  attention: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.three, borderRadius: 12, minHeight: 48 },
+  empty: { paddingVertical: Spacing.three },
+  state: { gap: Spacing.two, paddingVertical: Spacing.three },
 });

@@ -18,20 +18,47 @@ const props: SharedBudgetProps = { workspace: { ...cashflow,
   currency: 'USD', timezone: 'Africa/Johannesburg', error: false, refreshing: false, onRefresh: jest.fn() };
 const show = (patch: Partial<SharedBudgetProps> = {}) => render(<LocalizationProvider><SharedBudget {...props} {...patch} /></LocalizationProvider>);
 beforeEach(() => jest.clearAllMocks());
-it('shows category remaining, the household month and upcoming shared payment windows', async () => {
+const second = { ...category, id: '22222222-2222-4222-8222-222222222222', name: 'Groceries', sortOrder: 9, starterKey: null, emoji: null };
+it('shows the wheel, category rows with plan/remaining and the shared month', async () => {
   const view = await show();
-  expect(view.getByText('October 2026')).toBeTruthy();
-  expect(view.getByRole('header', { name: 'Utilities' })).toBeTruthy(); expect(view.getAllByText('$75.00')).toHaveLength(2);
-  expect(view.getByText('Unpaid · Due soon')).toBeTruthy();
-  await fireEvent.press(view.getByRole('button', { name: 'Review Internet' }));
-  expect(router.push).toHaveBeenCalledWith({ pathname: '/payment-detail', params: { id: cashflow.payments[0].id } });
+  expect(view.getByText('Shared · October 2026')).toBeTruthy();
+  expect(view.getByRole('image', { name: /Utilities \$25\.00.*Total \$25\.00/ })).toBeTruthy();
+  expect(view.getByRole('button', { name: /^Utilities, Spent \$25\.00, \$100\.00 planned · \$75\.00 left/ })).toBeTruthy();
+});
+it('summarises received shared income, net spending with refunds and the net as recorded movement only', async () => {
+  const view = await show({ workspace: { ...props.workspace!,
+    income: [{ on_date: cashflow.today, amount_minor: 90000, confirmed: true }, { on_date: cashflow.today, amount_minor: 40000, confirmed: false },
+      { on_date: '2026-09-30', amount_minor: 70000, confirmed: true }],
+    transactions: [...props.workspace!.transactions, { id: 'r', name: 'Refund', amount_minor: -500, category_id: category.id, on_date: cashflow.today }] } });
+  expect(view.getByLabelText('Income, $900.00')).toBeTruthy();
+  expect(view.getByLabelText('Total spending, $20.00')).toBeTruthy();
+  expect(view.getByLabelText('Net balance, $880.00')).toBeTruthy();
+  expect(view.getByText('Recorded shared income less spending')).toBeTruthy();
+  await fireEvent.press(view.getByRole('button', { name: 'About these figures' }));
+  expect(view.getByText(/not a bank balance/)).toBeTruthy();
+});
+it('switches to a signed list when refunds exceed a category, and never draws an empty slice', async () => {
+  const signed = await show({ workspace: { ...props.workspace!, categories: [...cashflow.categories, second],
+    transactions: [{ id: 'e', name: 'Router', amount_minor: 2500, category_id: category.id, on_date: cashflow.today },
+      { id: 'r', name: 'Return', amount_minor: -900, category_id: second.id, on_date: cashflow.today }] } });
+  expect(signed.queryByRole('image')).toBeNull();
+  expect(signed.getByText(/listed with their signs/)).toBeTruthy();
+  expect(signed.getByText('-$9.00')).toBeTruthy();
+  const empty = await show({ workspace: { ...props.workspace!, transactions: [] } });
+  expect(empty.getByRole('image', { name: 'No shared spending recorded this month yet.' })).toBeTruthy();
+});
+it('selecting a category row highlights its chart segment without navigating', async () => {
+  const view = await show();
+  const row = view.getByRole('button', { name: /^Utilities, Spent/ });
+  await fireEvent.press(row);
+  expect(view.getByRole('button', { name: /Selected in chart/ }).props.accessibilityState.selected).toBe(true);
+  expect(router.push).not.toHaveBeenCalled();
 });
 it('keeps unassigned costs visible and opens the allocation page', async () => {
   const view = await show({ workspace: { ...props.workspace!, budgets: [{ ...props.workspace!.budgets[0], category_id: null }] } });
   expect(view.getByText('Plan still to assign')).toBeTruthy();
   expect(view.getByText('Our internet')).toBeTruthy();
-  expect(view.getByText('No plan assigned to this category yet.')).toBeTruthy();
-  await fireEvent.press(view.getByRole('button', { name: 'Budget settings' }));
+  expect(view.getByText('No plan assigned')).toBeTruthy();
   await fireEvent.press(view.getByRole('button', { name: 'Assign planned costs' }));
   expect(router.push).toHaveBeenCalledWith('/budget-categories');
 });
@@ -41,24 +68,20 @@ it('offers recovery without displaying cached money as current after a refresh f
   await fireEvent.press(view.getByRole('button', { name: 'Try again' }));
   expect(props.onRefresh).toHaveBeenCalled();
 });
-it('distinguishes loading, empty plans and unknown variable amounts', async () => {
+it('distinguishes loading from a confirmed empty month', async () => {
   const view = await show({ workspace: undefined });
-  expect(view.queryByText('$0.00')).toBeNull();
-  await view.rerender(<LocalizationProvider><SharedBudget {...props} workspace={{ ...cashflow, payments: [{ ...cashflow.payments[0], estimate_minor: null }] }} /></LocalizationProvider>);
-  expect(view.getByText('No monthly plan yet')).toBeTruthy();
-  expect(view.getByText('No plan assigned to this category yet.')).toBeTruthy();
-  expect(view.queryByText('Assigned plan')).toBeNull();
+  expect(view.queryByText('$0.00')).toBeNull(); expect(view.getByText('Loading our latest figures…')).toBeTruthy();
 });
 it('uses a named busy refresh action and preserves explicit shared expense navigation', async () => {
   const view = await show({ refreshing: true });
   expect(view.getByRole('button', { name: 'Refresh shared budget' }).props.accessibilityState.busy).toBe(true);
-  await fireEvent.press(view.getByRole('button', { name: 'Review expenses' }));
+  await fireEvent.press(view.getByRole('link', { name: 'Review expenses' }));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/expenses', params: { visibility: 'shared' } });
 });
-it('shows overspending in calm language and fails closed on unsafe totals', async () => {
+it('shows overspending in words and fails closed on unsafe totals', async () => {
   const view = await show({ workspace: { ...props.workspace!, budgets: [{ ...props.workspace!.budgets[0], amount_minor: 1000 }] } });
-  expect(view.getByText('We’re $15.00 above this category’s plan.')).toBeTruthy();
+  expect(view.getByText('$10.00 planned · $15.00 over')).toBeTruthy();
   await view.rerender(<LocalizationProvider><SharedBudget {...props} workspace={{ ...cashflow, budgets: [
     { ...props.workspace!.budgets[0], amount_minor: Number.MAX_SAFE_INTEGER }, props.workspace!.budgets[0]] }} /></LocalizationProvider>);
-  expect(view.getByRole('alert')).toBeTruthy(); expect(view.queryByText('Assigned plan')).toBeNull();
+  expect(view.getByRole('alert')).toBeTruthy(); expect(view.queryByText(/planned ·/)).toBeNull();
 });
