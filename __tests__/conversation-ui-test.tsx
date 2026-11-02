@@ -52,7 +52,7 @@ it('recovers a stale edit through explicit review while preserving the authored 
  const view=await show({onAction:action});await fireEvent.press(view.getByRole('button',{name:'Edit my comment'}));
  await fireEvent.changeText(view.getByLabelText('Edit your comment'),'Updated thanks');
  await fireEvent.press(view.getByRole('button',{name:'Save changes'}));expect(action.mock.calls[0][0].version).toBe(1);
- await fireEvent.press(view.getAllByRole('button',{name:'Refresh conversation'})[0]);expect(props.onRefresh).toHaveBeenCalled();
+ await fireEvent.press(view.getAllByRole('button',{name:'Try again'})[0]);expect(props.onRefresh).toHaveBeenCalled();
  await view.rerender(<LocalizationProvider><Conversation {...props} onAction={action} comments={[{...own,version:2,body:'Saved elsewhere'}]}/></LocalizationProvider>);
  expect(view.getByLabelText('Edit your comment').props.value).toBe('Updated thanks');
  expect(view.getByRole('button',{name:'Save changes'}).props.accessibilityState.disabled).toBe(true);
@@ -66,7 +66,7 @@ it('requires review and a new confirmation to remove a refreshed changed comment
  const action=jest.fn().mockRejectedValueOnce({message:'Comment changed'}).mockResolvedValue(undefined);
  const view=await show({onAction:action});await fireEvent.press(view.getByRole('button',{name:'Remove my comment'}));
  await fireEvent.press(view.getByRole('button',{name:'Yes, remove my comment'}));expect(action.mock.calls[0][0].version).toBe(1);
- await fireEvent.press(view.getAllByRole('button',{name:'Refresh conversation'})[0]);
+ await fireEvent.press(view.getAllByRole('button',{name:'Try again'})[0]);
  await view.rerender(<LocalizationProvider><Conversation {...props} onAction={action} comments={[{...own,version:2,body:'Latest text to review'}]}/></LocalizationProvider>);
  expect(view.getByRole('button',{name:'Yes, remove my comment'}).props.accessibilityState.disabled).toBe(true);
  await fireEvent.press(view.getByRole('button',{name:'Use this version for removal'}));

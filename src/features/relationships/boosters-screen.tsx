@@ -64,7 +64,7 @@ export function BoostersPanel({ household, goals, data, error, refreshing, onRef
   const busy = save.isPending || !!error || uncertain;
   const date = (value: string) => formatCalendarDate(value, locale);
   const label = (id: string) => { const c = goals.categories.find(c => c.id === id); return c ? categoryLabel(c) : t('common.unknown'); };
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={save.isPending ? undefined : onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{t('relationships.boosters')}</ThemedText>
     <ThemedText themeColor="textSecondary">{t('relationships.boosterIntro')}</ThemedText>
     {!!error && <ThemedText themeColor="attention" accessibilityRole="alert">{t('goals.loadError')}</ThemedText>}
@@ -119,7 +119,6 @@ export function BoostersPanel({ household, goals, data, error, refreshing, onRef
         onPress={() => save.mutate(review.action, { onSuccess: () => { setNotice(true); setReview(null); setAmount(''); setSynced(false); signal(review.action.action === 'boost' ? 'booster-saved' : 'weekly-budget-saved'); } })} />
       <Button title={t('common.cancel')} variant="ghost" disabled={save.isPending || uncertain} onPress={() => setReview(null)} />
     </ActionReview>}
-    <Button title={t('goals.refresh')} variant="secondary" loading={refreshing} disabled={save.isPending} onPress={onRefresh} />
     <Button title={t('goals.back')} variant="ghost" onPress={() => router.replace('/goals')} />
   </Screen>;
 }

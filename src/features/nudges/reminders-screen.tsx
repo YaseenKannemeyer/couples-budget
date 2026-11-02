@@ -24,21 +24,21 @@ export function RemindersScreen() {
   {(household.isError||query.isError)&&<Button title={t('common.tryAgain')} onPress={()=>{void household.refetch();void query.refetch();}}/>}
   <Button title={t('nudges.settings')} variant="ghost" onPress={()=>router.replace('/settings')}/></Screen>;
  return <ConnectedReminders key={`${household.data.household.id}:${household.data.me.userId}`} householdId={household.data.household.id} userId={household.data.me.userId}
-  data={query.data} timezone={household.data.household.timezone} failed={query.isError||household.isError} refresh={()=>query.refetch()}/>;
+  data={query.data} timezone={household.data.household.timezone} failed={query.isError||household.isError} refreshing={query.isFetching||household.isFetching} refresh={()=>Promise.all([query.refetch(),household.refetch()])}/>;
 }
-function ConnectedReminders({householdId,userId,data,timezone,failed,refresh}:{householdId:string;userId:string;data:NudgeSettings;timezone:string;failed:boolean;refresh:()=>unknown}) {
+function ConnectedReminders({householdId,userId,data,timezone,failed,refreshing,refresh}:{householdId:string;userId:string;data:NudgeSettings;timezone:string;failed:boolean;refreshing:boolean;refresh:()=>unknown}) {
  const save=useSaveNudgeSettings(householdId,userId);const [registering,setRegistering]=useState(false);const [deviceError,setDeviceError]=useState<unknown>(null);const signal=useGuideAction();
  let device:string|null=null;try {device=pushAvailable?reminderDeviceId():null;}catch{/* Explicit registration reports device storage failures. */}
  return <RemindersPanel data={data} timezone={timezone} available={pushAvailable} thisDevice={!!device&&device===data.device_id}
-  failed={failed} busy={save.isPending||registering} error={deviceError??save.error} onRefresh={refresh}
+  failed={failed} refreshing={refreshing} busy={save.isPending||registering} error={deviceError??save.error} onRefresh={refresh}
   onSave={async(values,revision)=>{setDeviceError(null);await save.mutateAsync({values,revision});signal('reminders-saved');}}
   onRegister={async(values,revision)=>{setRegistering(true);setDeviceError(null);
    try {await registerReminderDevice(householdId,userId,true);await save.mutateAsync({values:{...values,enabled:true},revision});signal('reminders-saved');}
    catch(error){setDeviceError(error);throw error;}finally{setRegistering(false);void refresh();}
   }}/>;
 }
-export function RemindersPanel({data,timezone,available,thisDevice,failed,busy,error,onRefresh,onSave,onRegister}:{
- data:NudgeSettings;timezone:string;available:boolean;thisDevice:boolean;failed?:boolean;busy?:boolean;error?:unknown;onRefresh:()=>unknown;
+export function RemindersPanel({data,timezone,available,thisDevice,failed,refreshing,busy,error,onRefresh,onSave,onRegister}:{
+ data:NudgeSettings;timezone:string;available:boolean;thisDevice:boolean;failed?:boolean;refreshing?:boolean;busy?:boolean;error?:unknown;onRefresh:()=>unknown;
  onSave:(values:PreferenceValues,revision:number)=>unknown;onRegister:(values:PreferenceValues,revision:number)=>unknown;
 }) {
  const {t}=useTranslation();const theme=useTheme();const [values,setValues]=useState(()=>preferenceValues.parse(data.preferences));const [revision,setRevision]=useState(data.preferences.revision);const [saved,setSaved]=useState(false);
@@ -48,13 +48,13 @@ export function RemindersPanel({data,timezone,available,thisDevice,failed,busy,e
   <Switch hitSlop={10} accessibilityLabel={title} value={values[key]} disabled={disabled||(key==='enabled'&&!values.enabled&&!data.device_registered)} onValueChange={value=>{setSaved(false);setValues(current=>({...current,[key]:value}));}}
    thumbColor={theme.onAccent} trackColor={{false:theme.border,true:theme.accent}}/>
  </View>;
- return <Screen>
+ return <Screen refreshing={refreshing} onRefresh={busy ? undefined : onRefresh}>
   <ThemedText type="subtitle" accessibilityRole="header">{t('nudges.title')}</ThemedText>
   <ThemedText themeColor="textSecondary">{t('nudges.intro')}</ThemedText>
   <SummaryRow label={t('nudges.status')} value={t(data.preferences.enabled?'nudges.on':'nudges.off')}/>
   <ThemedText type="small" themeColor="textSecondary">{t('nudges.privacy')}</ThemedText>
   <GuideSlot target="reminders-overview" offer="reminders"/>
-  {!!failed&&<ThemedText accessibilityRole="alert" themeColor="attention">{t('nudges.loadError')}</ThemedText>}
+  {!!failed&&<><ThemedText accessibilityRole="alert" themeColor="attention">{t('nudges.loadError')}</ThemedText><Button title={t('common.tryAgain')} onPress={onRefresh} disabled={busy}/></>}
   <PaymentError error={error}/>
   {saved&&!stale&&<ThemedText accessibilityLiveRegion="polite" themeColor="success">{t('nudges.saved')}</ThemedText>}
   {stale&&<><ThemedText accessibilityRole="alert" themeColor="attention">{t('nudges.changed')}</ThemedText><Button title={t('nudges.loadSaved')} variant="secondary" disabled={busy}
@@ -83,7 +83,6 @@ export function RemindersPanel({data,timezone,available,thisDevice,failed,busy,e
    {!data.history.length&&<ThemedText>{t('nudges.noHistory')}</ThemedText>}
    {data.history.map(row=><View key={row.id} style={styles.history}><ThemedText type="smallBold">{t(`nudges.${row.kind==='payment'?'payments':row.kind}`)}</ThemedText><SummaryRow label={row.local_on} value={t(`nudges.delivery.${row.status}`)}/></View>)}
   </Disclosure>
-  <Button title={t('nudges.refresh')} variant="secondary" disabled={busy} onPress={onRefresh}/>
   <Button title={t('nudges.settings')} variant="ghost" onPress={()=>router.replace('/settings')}/>
  </Screen>;
 }

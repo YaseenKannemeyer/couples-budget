@@ -494,6 +494,17 @@
     "recordOnly": "Record payment only",
     "transactionHint": "Logging creates a shared or private expense with the actual date, amount and payer.",
     "confirmPaid": "Save paid payment",
+    "receipt": {
+      "brand": "Couple Goals",
+      "title": "Payment receipt",
+      "recording": "Saving your payment…",
+      "printing": "Saved · Printing your receipt…",
+      "complete": "Payment recorded",
+      "paid": "Marked as paid",
+      "total": "Total paid",
+      "note": "Recorded in Couple Goals. No money was moved.",
+      "done": "Done"
+    },
     "paidCycle": "For the cycle due {{date}}",
     "paid": "Paid",
     "unpaid": "Unpaid",

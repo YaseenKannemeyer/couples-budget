@@ -72,9 +72,9 @@ it('distinguishes loading from a confirmed empty month', async () => {
   const view = await show({ workspace: undefined });
   expect(view.queryByText('$0.00')).toBeNull(); expect(view.getByText('Loading our latest figures…')).toBeTruthy();
 });
-it('uses a named busy refresh action and preserves explicit shared expense navigation', async () => {
+it('leaves refresh to the pull gesture and preserves explicit shared expense navigation', async () => {
   const view = await show({ refreshing: true });
-  expect(view.getByRole('button', { name: 'Refresh shared budget' }).props.accessibilityState.busy).toBe(true);
+  expect(view.queryByRole('button', { name: 'Refresh shared budget' })).toBeNull();
   await fireEvent.press(view.getByRole('link', { name: 'Review expenses' }));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/expenses', params: { visibility: 'shared' } });
 });

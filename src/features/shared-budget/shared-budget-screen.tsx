@@ -119,8 +119,6 @@ export function SharedBudget({ workspace, currency, timezone, error, refreshing,
         <ListRow title={t('categories.manage')} visual={featureVisual.categories} last onPress={() => router.push('/categories')} />
       </ListSection>
     </>}
-    <Button variant="ghost" title={t('banking.refresh')} accessibilityLabel={t('sharedBudget.refresh')}
-      loading={refreshing} onPress={onRefresh} />
   </Screen>;
 }
 

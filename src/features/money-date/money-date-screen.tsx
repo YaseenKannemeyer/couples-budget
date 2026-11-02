@@ -100,7 +100,7 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
     {facts.next_allowances.map(a => <SummaryRow key={a.user_id} label={t('moneyDate.nextAllowance', { name: name(a.user_id) })} value={money(a.amount_minor)} />)}
   </>;
   const leave = () => router.canGoBack() ? router.back() : router.replace('/plan');
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={save.isPending ? undefined : onRefresh}>
     <View style={styles.bar}>
       <Pressable accessibilityRole="button" accessibilityLabel={stage > 0 ? t('budget.back') : t('banking.back')} disabled={save.isPending}
         onPress={() => stage > 0 ? next(stage - 1) : leave()} hitSlop={6} style={({ pressed }) => [styles.barButton, { opacity: pressed ? 0.6 : 1 }]}>
@@ -229,7 +229,6 @@ export function MoneyDate({ data, household, userId, save, onMonth, error, refre
       <Button title={t('banking.review.finishLater')} variant="secondary" disabled={save.isPending} onPress={leave} />
       <ThemedText type="small" themeColor="textSecondary" style={styles.centred}>{t('banking.review.finishLaterHint')}</ThemedText>
     </View>
-    <Button title={t('moneyDate.refresh')} variant="ghost" loading={refreshing} disabled={save.isPending} onPress={onRefresh} />
   </Screen>;
 }
 /** Numbered stage list; the current stage is filled blue and announced. */

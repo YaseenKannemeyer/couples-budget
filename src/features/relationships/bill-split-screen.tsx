@@ -55,7 +55,7 @@ export function BillSplitPanel({ household, data, error, refreshing, onRefresh, 
   const busy = save.isPending || !!error || data.locked || uncertain;
   const incomeReady = data.members.length === 2 && data.members.every(m => m.setup_step >= 1) && data.members.some(m => m.income_minor > 0);
   const name = (id: string) => data.members.find(m => m.user_id === id)?.display_name ?? t('common.unknown');
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={save.isPending ? undefined : onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{t('relationships.billSplit')}</ThemedText>
     <ThemedText>{data.expense.description || t('expenses.untitled')}</ThemedText>
     <SummaryRow label={t('relationships.loggedAmount')} value={money(data.expense.amount_minor)} />
@@ -99,7 +99,6 @@ export function BillSplitPanel({ household, data, error, refreshing, onRefresh, 
         onPress={() => save.mutate(review.action, { onSuccess: () => { setNotice(true); setReview(null); signal('bill-split-saved'); } })} />
       <Button title={t('common.cancel')} variant="ghost" disabled={save.isPending || uncertain} onPress={() => setReview(null)} />
     </ActionReview>}
-    <Button title={t('goals.refresh')} variant="secondary" loading={refreshing} disabled={save.isPending} onPress={onRefresh} />
     <Button title={t('categories.back')} variant="ghost" onPress={() => router.back()} />
   </Screen>;
 }

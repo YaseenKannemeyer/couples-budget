@@ -1,7 +1,8 @@
 import { useLocales } from 'expo-localization';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Keyboard } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { SpaceContext } from '@/hooks/use-theme';
 import { usePaymentAction } from './api';
 import { householdToday } from './dates';
 import { paidInput, type Schedule } from './schema';
+import { PaymentReceipt, type PaidReceipt } from './payment-receipt';
 import { Choice, Choices, dueLabel, PaymentError, PaymentLoading, usePaymentData } from './ui';
 
 export function PaymentPaidScreen() {
@@ -21,21 +23,27 @@ export function PaymentPaidScreen() {
   const { household, workspace } = usePaymentData();
   const { t } = useTranslation();
   const [generation, setGeneration] = useState(0);
+  // A one-off schedule is archived by saving. Keep this session mounted while
+  // mutation invalidation updates the workspace, including on refresh errors.
+  const [recording, setRecording] = useState<{ id: string; schedule: Schedule; household: NonNullable<typeof household> } | null>(null);
   async function reload() {
     const result = await workspace.refetch();
-    if (result.isSuccess) setGeneration((value) => value + 1);
+    if (result.isSuccess) { setRecording(null); setGeneration((value) => value + 1); }
   }
+  if (recording?.id === id) return <PaymentPaid key={`${id}:${generation}`} initial={recording.schedule}
+    household={recording.household.household} members={recording.household.members} reload={reload} />;
   if (!household || !workspace.data || workspace.isError) return <PaymentLoading error={workspace.isError} onRetry={reload} />;
   const schedule = workspace.data.schedules.find((row) => row.id === id);
   if (!schedule || schedule.status !== 'active') return <Screen>
     <ThemedText>{t('payments.notFound')}</ThemedText>
     <Button title={t('payments.back')} onPress={() => router.replace('/payments')} />
   </Screen>;
-  return <PaymentPaid key={`${id}:${generation}`} initial={schedule} household={household.household} members={household.members} reload={reload} />;
+  return <PaymentPaid key={`${id}:${generation}`} initial={schedule} household={household.household} members={household.members} reload={reload}
+    onRecording={() => setRecording({ id, schedule, household })} />;
 }
 
-export function PaymentPaid({ initial, household, members, reload }: {
-  initial: Schedule; household: Household; members: Member[]; reload: () => Promise<void>;
+export function PaymentPaid({ initial, household, members, reload, onRecording }: {
+  initial: Schedule; household: Household; members: Member[]; reload: () => Promise<void>; onRecording?: () => void;
 }) {
   const { t } = useTranslation();
   const [locale] = useState(useLocales()[0]?.languageTag ?? 'en');
@@ -45,6 +53,9 @@ export function PaymentPaid({ initial, household, members, reload }: {
   const [paidBy, setPaidBy] = useState(initial.payerId);
   const [createTransaction, setCreateTransaction] = useState(true);
   const [attempted, setAttempted] = useState(false);
+  const submitting = useRef(false);
+  const [receipt, setReceipt] = useState<PaidReceipt | null>(null);
+  const [recorded, setRecorded] = useState(false);
   const action = usePaymentAction(household.id);
   const value = { id: baseline.id, version: baseline.version, dueStart: baseline.dueStart,
     amountMinor: parseBudgetAmount(amount, household.baseCurrency, locale), paidOn, paidBy, createTransaction };
@@ -52,12 +63,26 @@ export function PaymentPaid({ initial, household, members, reload }: {
 
   async function submit() {
     setAttempted(true);
-    if (!parsed.success || action.isPending) return;
+    if (!parsed.success || action.isPending || submitting.current || recorded) return;
+    submitting.current = true;
+    Keyboard.dismiss();
+    onRecording?.();
+    setReceipt({ name: baseline.name, visibility: baseline.visibility, amountMinor: parsed.data.amountMinor,
+      currency: household.baseCurrency, paidOn: parsed.data.paidOn, cycle: dueLabel(baseline, locale),
+      payer: members.find(member => member.userId === parsed.data.paidBy)?.displayName ?? t('common.unknown'),
+      createTransaction: parsed.data.createTransaction });
     try {
       await action.mutateAsync({ kind: 'paid', value: parsed.data });
-      router.replace({ pathname: '/payment-history', params: { id: baseline.id } });
-    } catch { /* The mutation retains the translated error. */ }
+      setRecorded(true);
+    } catch { setReceipt(null); /* Keep the form values and translated error. */ }
+    finally { submitting.current = false; }
   }
+
+  if (receipt) return <SpaceContext value={baseline.visibility === 'private' ? 'private' : 'shared'}>
+    <Screen key="receipt"><PaymentReceipt receipt={receipt} recorded={recorded} locale={locale}
+      onDone={() => router.replace('/payments')}
+      onHistory={() => router.replace({ pathname: '/payment-history', params: { id: baseline.id } })} /></Screen>
+  </SpaceContext>;
 
   return <SpaceContext value={baseline.visibility === 'private' ? 'private' : 'shared'}><Screen>
     <ThemedText type="subtitle" accessibilityRole="header">{t('payments.paidTitle')}</ThemedText>

@@ -48,6 +48,7 @@ export function ConversationScreen() {
   return <Conversation key={`${h!.id}:${session.user.id}:${validId}`} expense={expense.data} userId={session.user.id}
     householdId={h!.id} members={household.data.members} currency={h!.baseCurrency} timezone={h!.timezone}
     comments={comments} reactions={thread.reactions.data} commentsError={thread.comments.isError} reactionsError={thread.reactions.isError}
+    refreshing={household.isFetching || expense.isFetching || thread.comments.isFetching || thread.reactions.isFetching}
     parentError={household.isError || expense.isError} onAction={action => mutation.mutateAsync(action)} onRefresh={retry}
     hasOlder={!!thread.comments.hasNextPage} loadingOlder={thread.comments.isFetchingNextPage}
     onOlder={() => thread.comments.fetchNextPage()} />;
@@ -56,10 +57,10 @@ export type ConversationProps = {
   expense: Expense; userId: string; householdId: string; members: Member[]; currency: string; timezone: string;
   comments?: Comment[]; reactions?: Reaction[]; commentsError: boolean; reactionsError: boolean; parentError: boolean;
   onAction: (action: ConversationAction) => Promise<unknown>; onRefresh: () => unknown;
-  hasOlder: boolean; loadingOlder: boolean; onOlder: () => unknown;
+  refreshing?: boolean; hasOlder: boolean; loadingOlder: boolean; onOlder: () => unknown;
 };
 export function Conversation({ expense, userId, householdId, members, currency, timezone, comments, reactions,
-  commentsError, reactionsError, parentError, onAction, onRefresh, hasOlder, loadingOlder, onOlder }: ConversationProps) {
+  commentsError, reactionsError, parentError, onAction, onRefresh, refreshing, hasOlder, loadingOlder, onOlder }: ConversationProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const locale = useLocales()[0]?.languageTag ?? 'en';
@@ -87,7 +88,7 @@ export function Conversation({ expense, userId, householdId, members, currency, 
     } catch (failure) { setError(failure); return false; }
     finally { running.current = false; setBusy(false); }
   }
-  return <Screen>
+  return <Screen refreshing={refreshing} onRefresh={busy ? undefined : onRefresh}>
     <ThemedText type="subtitle" accessibilityRole="header">{t('conversation.title')}</ThemedText>
     {parentError ? <LoadState error retry={onRefresh} /> : <Card>
       <ThemedText type="smallBold">{expense.description || t('expenses.untitled')}</ThemedText>
@@ -136,7 +137,7 @@ export function Conversation({ expense, userId, householdId, members, currency, 
     </View>
     {!!error && <View style={styles.section}>
       <ThemedText accessibilityRole="alert" themeColor="attention">{t(errorTranslationKey(error))}</ThemedText>
-      <Button title={t('conversation.refresh')} variant="secondary" onPress={onRefresh} disabled={busy} />
+      <Button title={t('common.tryAgain')} variant="secondary" onPress={onRefresh} disabled={busy} />
     </View>}
     {!!notice && <ThemedText accessibilityLiveRegion="polite" themeColor="success">{notice}</ThemedText>}
     {removing && <View style={styles.section}>
@@ -170,7 +171,6 @@ export function Conversation({ expense, userId, householdId, members, currency, 
         onDone={() => setEditing(null)} onCancel={() => setEditing(null)} />
     </View>}
     <View style={editing || removing ? styles.hidden : undefined}><CommentComposer busy={busy} disabled={parentError} run={run} /></View>
-    <Button title={t('conversation.refresh')} variant="secondary" disabled={busy} onPress={onRefresh} />
     <Button title={t('categories.back')} variant="ghost" disabled={busy} onPress={() => router.back()} />
   </Screen>;
 }
